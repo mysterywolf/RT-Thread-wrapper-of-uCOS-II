@@ -517,7 +517,7 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>uCOS-III_Wrapper/uCOS-II</GroupName>
+          <GroupName>uCOS-II_Wrapper/uCOS-II</GroupName>
         </Group>
         <Group>
           <GroupName>::CMSIS</GroupName>

@@ -44,7 +44,8 @@
 
 #include  <stdarg.h>
 #include  <stdio.h>
-
+#include  <os_cfg.h>
+#include  <rtconfig.h>
 
 /*
 *********************************************************************************************************
@@ -61,8 +62,13 @@
 
 #define  APP_CFG_STARTUP_TASK_PRIO          3u
 
-#define  OS_TASK_TMR_PRIO                  (OS_LOWEST_PRIO - 2u)
-
+#ifdef RT_USING_TIMER_SOFT
+#define  OS_TASK_TMR_PRIO                   RT_TIMER_THREAD_PRIO
+#else
+#if OS_TMR_EN
+#error "please enable RT_USING_TIMER_SOFT"
+#endif
+#endif
 
 /*
 *********************************************************************************************************
@@ -71,7 +77,7 @@
 *********************************************************************************************************
 */
 
-#define  APP_CFG_STARTUP_TASK_STK_SIZE    128u
+#define  APP_CFG_STARTUP_TASK_STK_SIZE    256u
 
 
 /*

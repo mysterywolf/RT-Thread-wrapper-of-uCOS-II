@@ -446,7 +446,7 @@
   </Group>
 
   <Group>
-    <GroupName>uCOS-III_Wrapper/uCOS-II</GroupName>
+    <GroupName>uCOS-II_Wrapper/uCOS-II</GroupName>
     <tvExp>0</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
