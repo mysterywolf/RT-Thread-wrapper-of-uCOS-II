@@ -54,7 +54,7 @@ extern "C" {
 #include <app_cfg.h>
 #include <os_cfg.h>
 #include <os_cpu.h>
-#include "os_trace.h"
+//#include "os_trace.h"
 
 /*
 *********************************************************************************************************
