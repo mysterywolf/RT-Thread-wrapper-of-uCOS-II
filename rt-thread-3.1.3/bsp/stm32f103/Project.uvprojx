@@ -518,6 +518,13 @@
         </Group>
         <Group>
           <GroupName>uCOS-II_Wrapper/uCOS-II</GroupName>
+          <Files>
+            <File>
+              <FileName>os_mem.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\uCOS-II_Wrapper\uCOS-II\os_mem.c</FilePath>
+            </File>
+          </Files>
         </Group>
         <Group>
           <GroupName>::CMSIS</GroupName>
