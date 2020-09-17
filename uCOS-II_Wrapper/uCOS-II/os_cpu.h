@@ -51,6 +51,7 @@
 #define  OS_CPU_EXT  extern
 #endif
 
+#include <rtdef.h>
 
 /*
 *********************************************************************************************************
@@ -140,8 +141,8 @@ typedef signed   int   INT32S;                   /* Signed   32 bit quantity    
 typedef float          FP32;                     /* Single precision floating point                    */
 typedef double         FP64;                     /* Double precision floating point                    */
 
-typedef unsigned int   OS_STK;                   /* Each stack entry is 32-bit wide                    */
-typedef unsigned int   OS_CPU_SR;                /* Define size of CPU status register (PSR = 32 bits) */
+typedef rt_ubase_t     OS_STK;                   /* Each stack entry is 32-bit wide                    */
+typedef rt_ubase_t     OS_CPU_SR;                /* Define size of CPU status register (PSR = 32 bits) */
 
 
 /*
@@ -171,7 +172,7 @@ typedef unsigned int   OS_CPU_SR;                /* Define size of CPU status re
 #if OS_CRITICAL_METHOD == 3u
                                                  /* Save current BASEPRI priority lvl for exception... */
                                                  /* .. and set BASEPRI to CPU_CFG_KA_IPL_BOUNDARY      */
-#define  OS_ENTER_CRITICAL()  do { cpu_sr = OS_CPU_SR_Save(CPU_CFG_KA_IPL_BOUNDARY << (8u - CPU_CFG_NVIC_PRIO_BITS));} while (0)
+#define  OS_ENTER_CRITICAL()  do { cpu_sr = OS_CPU_SR_Save();} while (0)
                                                  /* Restore CPU BASEPRI priority level.                */
 #define  OS_EXIT_CRITICAL()   do { OS_CPU_SR_Restore(cpu_sr);} while (0)
 #endif
@@ -205,25 +206,25 @@ OS_CPU_EXT  OS_STK  *OS_CPU_ExceptStkBase;
 */
 
 #if OS_CRITICAL_METHOD == 3u                     /* See OS_CPU_A.ASM                                   */
-OS_CPU_SR  OS_CPU_SR_Save         (OS_CPU_SR  new_basepri);
+OS_CPU_SR  OS_CPU_SR_Save         (void);
 void       OS_CPU_SR_Restore      (OS_CPU_SR  cpu_sr);
 #endif
 
-void       OSCtxSw                (void);
-void       OSIntCtxSw             (void);
-void       OSStartHighRdy         (void);
+//void       OSCtxSw                (void);
+//void       OSIntCtxSw             (void);
+//void       OSStartHighRdy         (void);
 
                                                  /* See OS_CPU_C.C                                     */
-void       OS_CPU_SysTickInit     (INT32U     cnts);
-void       OS_CPU_SysTickInitFreq (INT32U     cpu_freq);
+//void       OS_CPU_SysTickInit     (INT32U     cnts);
+//void       OS_CPU_SysTickInitFreq (INT32U     cpu_freq);
 
-void       OS_CPU_SysTickHandler  (void);
-void       OS_CPU_PendSVHandler   (void);
+//void       OS_CPU_SysTickHandler  (void);
+//void       OS_CPU_PendSVHandler   (void);
 
-#if (OS_CPU_ARM_FP_EN > 0u)
-void       OS_CPU_FP_Reg_Push     (OS_STK    *stkPtr);
-void       OS_CPU_FP_Reg_Pop      (OS_STK    *stkPtr);
-#endif
+//#if (OS_CPU_ARM_FP_EN > 0u)
+//void       OS_CPU_FP_Reg_Push     (OS_STK    *stkPtr);
+//void       OS_CPU_FP_Reg_Pop      (OS_STK    *stkPtr);
+//#endif
 
 /*
 *********************************************************************************************************

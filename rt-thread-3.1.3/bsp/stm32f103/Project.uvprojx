@@ -520,9 +520,19 @@
           <GroupName>uCOS-II_Wrapper/uCOS-II</GroupName>
           <Files>
             <File>
+              <FileName>os_cpu_a.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\uCOS-II_Wrapper\uCOS-II\os_cpu_a.c</FilePath>
+            </File>
+            <File>
               <FileName>os_mem.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\uCOS-II_Wrapper\uCOS-II\os_mem.c</FilePath>
+            </File>
+            <File>
+              <FileName>os_core.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\uCOS-II_Wrapper\uCOS-II\os_core.c</FilePath>
             </File>
           </Files>
         </Group>

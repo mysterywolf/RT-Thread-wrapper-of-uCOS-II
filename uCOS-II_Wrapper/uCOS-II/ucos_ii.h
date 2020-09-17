@@ -54,7 +54,7 @@ extern "C" {
 #include <app_cfg.h>
 #include <os_cfg.h>
 #include <os_cpu.h>
-//#include "os_trace.h"
+#include "os_trace.h"
 #include <rtthread.h>
 
 /*
@@ -720,9 +720,9 @@ OS_EXT  BOOLEAN           OSStatRdy;                /* Flag indicating that the 
 OS_EXT  OS_STK            OSTaskStatStk[OS_TASK_STAT_STK_SIZE];      /* Statistics task stack          */
 #endif
 
-OS_EXT  INT8U             OSIntNesting;             /* Interrupt nesting level                         */
+#define OSIntNesting      rt_interrupt_get_nest()   /* Interrupt nesting level                         */
 
-OS_EXT  INT8U             OSLockNesting;            /* Multitasking lock nesting level                 */
+#define OSLockNesting     rt_critical_level()       /* Multitasking lock nesting level                 */
 
 OS_EXT  INT8U             OSPrioCur;                /* Priority of current task                        */
 OS_EXT  INT8U             OSPrioHighRdy;            /* Priority of highest priority task               */
