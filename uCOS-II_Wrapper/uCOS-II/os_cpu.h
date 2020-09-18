@@ -131,13 +131,13 @@ extern  "C" {                                    /* See Note #1.                
 *********************************************************************************************************
 */
 
-typedef unsigned char  BOOLEAN;
-typedef unsigned char  INT8U;                    /* Unsigned  8 bit quantity                           */
-typedef signed   char  INT8S;                    /* Signed    8 bit quantity                           */
-typedef unsigned short INT16U;                   /* Unsigned 16 bit quantity                           */
-typedef signed   short INT16S;                   /* Signed   16 bit quantity                           */
-typedef unsigned int   INT32U;                   /* Unsigned 32 bit quantity                           */
-typedef signed   int   INT32S;                   /* Signed   32 bit quantity                           */
+typedef rt_bool_t      BOOLEAN;
+typedef rt_uint8_t     INT8U;                    /* Unsigned  8 bit quantity                           */
+typedef rt_int8_t      INT8S;                    /* Signed    8 bit quantity                           */
+typedef rt_uint16_t    INT16U;                   /* Unsigned 16 bit quantity                           */
+typedef rt_int16_t     INT16S;                   /* Signed   16 bit quantity                           */
+typedef rt_uint32_t    INT32U;                   /* Unsigned 32 bit quantity                           */
+typedef rt_int32_t     INT32S;                   /* Signed   32 bit quantity                           */
 typedef float          FP32;                     /* Single precision floating point                    */
 typedef double         FP64;                     /* Double precision floating point                    */
 
