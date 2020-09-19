@@ -54,7 +54,7 @@ extern "C" {
 #include <app_cfg.h>
 #include <os_cfg.h>
 #include <os_cpu.h>
-#include "os_trace.h"
+#include <os_trace.h>
 #include <rtthread.h>
 
 /*
@@ -730,7 +730,7 @@ typedef  void                      (*OS_TLS_DESTRUCT_PTR)(OS_TCB    *ptcb,
 //OS_EXT  OS_PRIO           OSRdyGrp;                        /* Ready list group                         */
 //OS_EXT  OS_PRIO           OSRdyTbl[OS_RDY_TBL_SIZE];       /* Table of tasks which are ready to run    */
 
-//OS_EXT  BOOLEAN           OSRunning;                       /* Flag indicating that kernel is running   */
+OS_EXT  BOOLEAN           OSRunning;                       /* Flag indicating that kernel is running   */
 
 //OS_EXT  INT8U             OSTaskCtr;                       /* Number of tasks created                  */
 

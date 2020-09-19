@@ -16,5 +16,7 @@
 
 int main(void)/*RT-Thread mainœﬂ≥Ã*/
 {
-
+    OSInit();
+    
+    OSStart();
 }

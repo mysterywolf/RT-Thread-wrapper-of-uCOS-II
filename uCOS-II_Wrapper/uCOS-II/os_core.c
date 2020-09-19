@@ -34,7 +34,37 @@
 #endif
 #endif
 
-#include <rtthread.h>
+/*
+*********************************************************************************************************
+*                                             INITIALIZATION
+*                                    INITIALIZE MISCELLANEOUS VARIABLES
+*
+* Description: This function is called by OSInit() to initialize miscellaneous variables.
+*
+* Arguments  : none
+*
+* Returns    : none
+*********************************************************************************************************
+*/
+
+static  void  OS_InitMisc (void)
+{
+    OSRunning                 = OS_FALSE;                  /* Indicate that multitasking not started   */    
+
+//#if OS_TASK_STAT_EN > 0u
+//    OSIdleCtrRun              = 0uL;
+//    OSIdleCtrMax              = 0uL;
+//    OSStatRdy                 = OS_FALSE;                  /* Statistic task is not ready              */
+//#endif
+
+#ifdef OS_SAFETY_CRITICAL_IEC61508
+    OSSafetyCriticalStartFlag = OS_FALSE;                  /* Still allow creation of objects          */
+#endif
+
+//#if OS_TASK_REG_TBL_SIZE > 0u
+//    OSTaskRegNextAvailID      = 0u;                        /* Initialize the task register ID          */
+//#endif
+}
 
 /*
 *********************************************************************************************************
@@ -51,7 +81,15 @@
 
 void  OSInit (void)
 {
+#if OS_TASK_CREATE_EXT_EN > 0u
+#if defined(OS_TLS_TBL_SIZE) && (OS_TLS_TBL_SIZE > 0u)
+    INT8U  err;
+#endif
+#endif
 
+//    OSInitHookBegin();                                           /* Call port specific initialization code   */
+
+    OS_InitMisc();                                               /* Initialize miscellaneous variables       */
 }
 
 
@@ -82,7 +120,9 @@ void  OSInit (void)
 
 void  OSIntEnter (void)
 {
-
+    if (OSRunning == OS_TRUE) {
+        rt_interrupt_enter();
+    }
 }
 
 
@@ -107,7 +147,9 @@ void  OSIntEnter (void)
 
 void  OSIntExit (void)
 {
-
+    if (OSRunning == OS_TRUE) {
+        rt_interrupt_leave();
+    }
 }
 
 
@@ -156,7 +198,9 @@ void  OSSafetyCriticalStart (void)
 #if OS_SCHED_LOCK_EN > 0u
 void  OSSchedLock (void)
 {
-    
+    if (OSRunning == OS_TRUE) {                  /* Make sure multitasking is running                  */
+        rt_enter_critical();
+    }        
 }
 #endif
 
@@ -179,7 +223,9 @@ void  OSSchedLock (void)
 #if OS_SCHED_LOCK_EN > 0u
 void  OSSchedUnlock (void)
 {
-
+    if (OSRunning == OS_TRUE) {                            /* Make sure multitasking is running        */
+        rt_exit_critical();
+    }
 }
 #endif
 
@@ -206,7 +252,9 @@ void  OSSchedUnlock (void)
 
 void  OSStart (void)
 {
-
+    if (OSRunning == OS_FALSE) {
+        OSRunning = OS_TRUE;
+    }
 }
 
 
@@ -254,7 +302,7 @@ void  OSStatInit (void)
 
 void  OSTimeTick (void)
 {
-
+    rt_tick_increase();
 }
 
 
@@ -335,10 +383,7 @@ void  OS_MemCopy (INT8U  *pdest,
                   INT8U  *psrc,
                   INT16U  size)
 {
-    while (size > 0u) {
-        *pdest++ = *psrc++;
-        size--;
-    }
+    rt_memcpy(pdest,psrc,size);
 }
 
 
@@ -361,20 +406,6 @@ void  OS_MemCopy (INT8U  *pdest,
 #if (OS_EVENT_NAME_EN > 0u) || (OS_FLAG_NAME_EN > 0u) || (OS_MEM_NAME_EN > 0u) || (OS_TASK_NAME_EN > 0u) || (OS_TMR_CFG_NAME_EN > 0u)
 INT8U  OS_StrLen (INT8U *psrc)
 {
-    INT8U  len;
-
-
-#if OS_ARG_CHK_EN > 0u
-    if (psrc == (INT8U *)0) {
-        return (0u);
-    }
-#endif
-
-    len = 0u;
-    while (*psrc != OS_ASCII_NUL) {
-        psrc++;
-        len++;
-    }
-    return (len);
+    return rt_strlen((const char*)psrc);
 }
 #endif

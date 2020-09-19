@@ -28,8 +28,6 @@
 #ifndef  OS_MEM_C
 #define  OS_MEM_C
 
-#define  MICRIUM_SOURCE
-
 #ifndef  OS_MASTER_FILE
 #include <ucos_ii.h>
 #endif
