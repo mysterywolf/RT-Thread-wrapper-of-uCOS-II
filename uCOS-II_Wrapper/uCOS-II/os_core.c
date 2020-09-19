@@ -1,4 +1,13 @@
 /*
+ * Copyright (c) 2006-2019, RT-Thread Development Team
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Change Logs:
+ * Date           Author       Notes
+ * 2020-09-18     Meco Man     first version
+ */
+/*
 *********************************************************************************************************
 *                                              uC/OS-II
 *                                        The Real-Time Kernel
@@ -27,6 +36,8 @@
 
 #ifndef  OS_CORE_C
 #define  OS_CORE_C
+
+#define  MICRIUM_SOURCE
 
 #ifndef  OS_MASTER_FILE
 #define  OS_GLOBALS
