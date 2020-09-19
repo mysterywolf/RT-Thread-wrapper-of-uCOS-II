@@ -69,6 +69,7 @@
 ;********************************************************************************************************
 */
 
+#if OS_CRITICAL_METHOD == 3
 OS_CPU_SR OS_CPU_SR_Save (void)
 {
     return rt_hw_interrupt_disable();
@@ -78,3 +79,4 @@ void OS_CPU_SR_Restore (OS_CPU_SR cpu_sr)
 {
     rt_hw_interrupt_enable(cpu_sr);
 }
+#endif

@@ -415,3 +415,26 @@ INT8U  OS_StrLen (INT8U *psrc)
     return rt_strlen((const char*)psrc);
 }
 #endif
+
+
+/*
+*********************************************************************************************************
+*                                              SCHEDULER
+*
+* Description: This function is called by other uC/OS-II services to determine whether a new, high
+*              priority task has been made ready to run.  This function is invoked by TASK level code
+*              and is not used to reschedule tasks from ISRs (see OSIntExit() for ISR rescheduling).
+*
+* Arguments  : none
+*
+* Returns    : none
+*
+* Notes      : 1) This function is INTERNAL to uC/OS-II and your application should not call it.
+*              2) Rescheduling is prevented when the scheduler is locked (see OS_SchedLock())
+*********************************************************************************************************
+*/
+
+void  OS_Sched (void)
+{
+    rt_schedule();
+}
