@@ -90,6 +90,12 @@ void  OSInit (void)
 //    OSInitHookBegin();                                           /* Call port specific initialization code   */
 
     OS_InitMisc();                                               /* Initialize miscellaneous variables       */
+
+
+#if (OS_MEM_EN > 0u) && (OS_MAX_MEM_PART > 0u)
+    OS_MemInit();                                                /* Initialize the memory manager            */
+#endif
+    
 }
 
 
