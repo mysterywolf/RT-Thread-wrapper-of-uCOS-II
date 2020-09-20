@@ -37,8 +37,6 @@
 #ifndef  OS_CORE_C
 #define  OS_CORE_C
 
-#define  MICRIUM_SOURCE
-
 #ifndef  OS_MASTER_FILE
 #define  OS_GLOBALS
 #include <ucos_ii.h>
@@ -98,7 +96,7 @@ void  OSInit (void)
 #endif
 #endif
 
-//    OSInitHookBegin();                                           /* Call port specific initialization code   */
+    OSInitHookBegin();                                           /* Call port specific initialization code   */
 
     OS_InitMisc();                                               /* Initialize miscellaneous variables       */
 

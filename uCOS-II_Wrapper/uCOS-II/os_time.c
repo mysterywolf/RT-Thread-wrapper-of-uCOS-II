@@ -37,8 +37,6 @@
 #ifndef  OS_TIME_C
 #define  OS_TIME_C
 
-#define  MICRIUM_SOURCE
-
 #ifndef  OS_MASTER_FILE
 #include <ucos_ii.h>
 #endif

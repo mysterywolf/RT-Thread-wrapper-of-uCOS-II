@@ -1414,10 +1414,6 @@ void          OSTaskIdleHook          (void);
 void          OSTaskReturnHook        (OS_TCB          *ptcb);
 
 void          OSTaskStatHook          (void);
-OS_STK       *OSTaskStkInit           (void           (*task)(void *p_arg),
-                                       void            *p_arg,
-                                       OS_STK          *ptos,
-                                       INT16U           opt);
 
 #if OS_TASK_SW_HOOK_EN > 0u
 void          OSTaskSwHook            (void);
