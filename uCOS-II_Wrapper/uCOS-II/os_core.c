@@ -104,7 +104,18 @@ void  OSInit (void)
 #if (OS_MEM_EN > 0u) && (OS_MAX_MEM_PART > 0u)
     OS_MemInit();                                                /* Initialize the memory manager            */
 #endif
-    
+ 
+
+
+#if OS_TMR_EN > 0u
+    OSTmr_Init();                                                /* Initialize the Timer Manager             */
+#endif
+
+    OSInitHookEnd();                                             /* Call port specific init. code            */
+
+#if OS_DEBUG_EN > 0u
+//    OSDebugInit();
+#endif    
 }
 
 

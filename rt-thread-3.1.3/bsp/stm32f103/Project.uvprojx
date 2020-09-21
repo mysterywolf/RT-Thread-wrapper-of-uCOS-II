@@ -549,6 +549,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\..\uCOS-II_Wrapper\uCOS-II\os_time.c</FilePath>
             </File>
+            <File>
+              <FileName>os_tmr.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\uCOS-II_Wrapper\uCOS-II\os_tmr.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

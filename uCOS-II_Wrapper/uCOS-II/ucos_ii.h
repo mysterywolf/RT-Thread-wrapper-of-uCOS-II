@@ -653,30 +653,24 @@ typedef  void (*OS_TMR_CALLBACK)(void *ptmr, void *parg);
 
 
 typedef  struct  os_tmr {
-    INT8U            OSTmrType;             /* Should be set to OS_TMR_TYPE                            */
-    OS_TMR_CALLBACK  OSTmrCallback;         /* Function to call when timer expires                     */
-    void            *OSTmrCallbackArg;      /* Argument to pass to function when timer expires         */
-    void            *OSTmrNext;             /* Double link list pointers                               */
-    void            *OSTmrPrev;
-    INT32U           OSTmrMatch;            /* Timer expires when OSTmrTime == OSTmrMatch              */
-    INT32U           OSTmrDly;              /* Delay time before periodic update starts                */
-    INT32U           OSTmrPeriod;           /* Period to repeat timer                                  */
-#if OS_TMR_CFG_NAME_EN > 0u
-    INT8U           *OSTmrName;             /* Name to give the timer                                  */
-#endif
-    INT8U            OSTmrOpt;              /* Options (see OS_TMR_OPT_xxx)                            */
-    INT8U            OSTmrState;            /* Indicates the state of the timer:                       */
-                                            /*     OS_TMR_STATE_UNUSED                                 */
-                                            /*     OS_TMR_STATE_RUNNING                                */
-                                            /*     OS_TMR_STATE_STOPPED                                */
+    struct rt_timer  OSTmr;
+//    INT8U            OSTmrType;             /* Should be set to OS_TMR_TYPE                            */
+//    OS_TMR_CALLBACK  OSTmrCallback;         /* Function to call when timer expires                     */
+//    void            *OSTmrCallbackArg;      /* Argument to pass to function when timer expires         */
+//    void            *OSTmrNext;             /* Double link list pointers                               */
+//    void            *OSTmrPrev;
+//    INT32U           OSTmrMatch;            /* Timer expires when OSTmrTime == OSTmrMatch              */
+//    INT32U           OSTmrDly;              /* Delay time before periodic update starts                */
+//    INT32U           OSTmrPeriod;           /* Period to repeat timer                                  */
+//#if OS_TMR_CFG_NAME_EN > 0u
+//    INT8U           *OSTmrName;             /* Name to give the timer                                  */
+//#endif
+//    INT8U            OSTmrOpt;              /* Options (see OS_TMR_OPT_xxx)                            */
+//    INT8U            OSTmrState;            /* Indicates the state of the timer:                       */
+//                                            /*     OS_TMR_STATE_UNUSED                                 */
+//                                            /*     OS_TMR_STATE_RUNNING                                */
+//                                            /*     OS_TMR_STATE_STOPPED                                */
 } OS_TMR;
-
-
-
-typedef  struct  os_tmr_wheel {
-    OS_TMR          *OSTmrFirst;            /* Pointer to first timer in linked list                   */
-    INT16U           OSTmrEntries;
-} OS_TMR_WHEEL;
 #endif
 
 
