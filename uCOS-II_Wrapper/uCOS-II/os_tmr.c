@@ -49,8 +49,6 @@
 *
 *    OS_TASK_TMR_PRIO          The priority of the Timer management task
 *    OS_TASK_TMR_STK_SIZE      The size     of the Timer management task's stack
-*
-* 2) You must call OSTmrSignal() to notify the Timer management task that it's time to update the timers.
 *********************************************************************************************************
 */
 
@@ -68,6 +66,7 @@
 *                                          LOCAL PROTOTYPES
 *********************************************************************************************************
 */
+static void OS_TmrCallback(void *p_ara);
 
 /*
 *********************************************************************************************************
@@ -123,7 +122,100 @@ OS_TMR  *OSTmrCreate (INT32U           dly,
                       INT8U           *pname,
                       INT8U           *perr)
 {
+    OS_TMR   *ptmr;
+    rt_timer_t rt_tmr;
+    rt_tick_t time;
+    rt_uint8_t rt_flag;
+    
+#ifdef OS_SAFETY_CRITICAL
+    if (perr == (INT8U *)0) {
+        OS_SAFETY_CRITICAL_EXCEPTION();
+        return ((OS_TMR *)0);
+    }
+#endif
 
+#ifdef OS_SAFETY_CRITICAL_IEC61508
+    if (OSSafetyCriticalStartFlag == OS_TRUE) {
+        OS_SAFETY_CRITICAL_EXCEPTION();
+        *perr = OS_ERR_ILLEGAL_CREATE_RUN_TIME;
+        return ((OS_TMR *)0);
+    }
+#endif
+    
+#if OS_ARG_CHK_EN > 0u
+    switch (opt) {                                          /* Validate arguments                                     */
+        case OS_TMR_OPT_PERIODIC:
+             if (period == 0u) {
+                 *perr = OS_ERR_TMR_INVALID_PERIOD;
+                 return ((OS_TMR *)0);
+             }
+             break;
+
+        case OS_TMR_OPT_ONE_SHOT:
+             if (dly == 0u) {
+                 *perr = OS_ERR_TMR_INVALID_DLY;
+                 return ((OS_TMR *)0);
+             }
+             break;
+
+        default:
+             *perr = OS_ERR_TMR_INVALID_OPT;
+             return ((OS_TMR *)0);
+    }
+#endif
+    if (OSIntNesting > 0u) {                                /* See if trying to call from an ISR                      */
+        *perr  = OS_ERR_TMR_ISR;
+        return ((OS_TMR *)0);
+    }    
+
+    /*uCOS-III原版定时器回调函数就是在定时器线程中调用的,而非在中断中调用,
+    因此要使用RTT的RT_TIMER_FLAG_SOFT_TIMER选项,在此之前应将宏定义RT_USING_TIMER_SOFT置1*/
+    if(opt == OS_TMR_OPT_ONE_SHOT)
+    {
+        rt_flag = RT_TIMER_FLAG_ONE_SHOT|RT_TIMER_FLAG_SOFT_TIMER;
+        time = dly * (1000 / OS_TMR_CFG_TICKS_PER_SEC);     /* RTT和uCOS-III在定时器时钟源的设计不同,需要进行转换     */
+    }
+    else if(opt == OS_TMR_OPT_PERIODIC)
+    {
+        rt_flag = RT_TIMER_FLAG_PERIODIC|RT_TIMER_FLAG_SOFT_TIMER;     
+        time = period * (1000 / OS_TMR_CFG_TICKS_PER_SEC);
+    }
+    else
+    {
+        *perr = OS_ERR_TMR_INVALID_OPT;
+        return ((OS_TMR *)0);
+    }
+    
+    /*TODO: 带有迟滞的周期延时，目前周期延时时dly参数无效*/
+    rt_tmr = rt_timer_create((const char*)pname,            /* invoke rt_timer_create to create a timer               */
+                OS_TmrCallback, rt_tmr, time, rt_flag);    
+    
+    ptmr = RT_KERNEL_MALLOC(sizeof(OS_TMR));                /* malloc OS_TMR                                          */
+    if(!ptmr){
+        *perr = OS_ERR_TMR_NON_AVAIL;
+        return ((OS_TMR *)0);
+    }
+    
+    OSSchedLock();
+    ptmr->pOSTmr           = rt_tmr;
+    ptmr->OSTmrState       = OS_TMR_STATE_STOPPED;          /* Indicate that timer is not running yet                 */
+    ptmr->OSTmrDly         = dly;
+    ptmr->OSTmrPeriod      = period;
+    ptmr->OSTmrOpt         = opt;
+    ptmr->OSTmrCallback    = callback;
+    ptmr->OSTmrCallbackArg = callback_arg;
+    ptmr->OSTmrType        = OS_TMR_TYPE;
+#if OS_TMR_CFG_NAME_EN > 0u
+    if (pname == (INT8U *)0) {                              /* Is 'pname' a NULL pointer?                             */
+        ptmr->OSTmrName    = (INT8U *)(void *)"?";
+    } else {
+        ptmr->OSTmrName    = pname;
+    }
+#endif  
+    OSSchedUnlock();
+    OS_TRACE_TMR_CREATE(ptmr, ptmr->OSTmrName);
+    *perr = OS_ERR_NONE;
+    return (ptmr);   
 }
 #endif
 
@@ -156,7 +248,55 @@ OS_TMR  *OSTmrCreate (INT32U           dly,
 BOOLEAN  OSTmrDel (OS_TMR  *ptmr,
                    INT8U   *perr)
 {
+#ifdef OS_SAFETY_CRITICAL
+    if (perr == (INT8U *)0) {
+        OS_SAFETY_CRITICAL_EXCEPTION();
+        return (OS_FALSE);
+    }
+#endif
 
+#ifdef OS_SAFETY_CRITICAL_IEC61508
+    if (OSSafetyCriticalStartFlag == OS_TRUE) {
+        OS_SAFETY_CRITICAL_EXCEPTION();
+        *perr = OS_ERR_ILLEGAL_DEL_RUN_TIME;
+        return (OS_FALSE);
+    }
+#endif
+
+#if OS_ARG_CHK_EN > 0u
+    if (ptmr == (OS_TMR *)0) {
+        *perr = OS_ERR_TMR_INVALID;
+        return (OS_FALSE);
+    }
+#endif
+    
+    OS_TRACE_TMR_DEL_ENTER(ptmr);
+    
+    if (ptmr->OSTmrType != OS_TMR_TYPE) {                   /* Validate timer structure                               */
+        *perr = OS_ERR_TMR_INVALID_TYPE;
+        OS_TRACE_TMR_DEL_EXIT(*perr);
+        return (OS_FALSE);
+    }
+    if (OSIntNesting > 0u) {                                /* See if trying to call from an ISR                      */
+        *perr  = OS_ERR_TMR_ISR;
+        OS_TRACE_TMR_DEL_EXIT(*perr);
+        return (OS_FALSE);
+    }
+    if (ptmr->OSTmrState == OS_TMR_STATE_UNUSED){           /* Already deleted                                        */
+        *perr = OS_ERR_TMR_INACTIVE;
+        OS_TRACE_TMR_DEL_EXIT(*perr);
+        return (OS_FALSE);
+    }
+
+    OSSchedLock();
+    ptmr->OSTmrState = OS_TMR_STATE_UNUSED;
+    OSSchedUnlock();
+    
+    rt_timer_delete(ptmr->pOSTmr);                          /* 删除rt-thread定时器,并对结构体清零                     */
+    rt_memset(ptmr,0,sizeof(OS_TMR));
+    RT_KERNEL_FREE(ptmr);
+    OS_TRACE_TMR_DEL_EXIT(*perr);
+    return (OS_TRUE);
 }
 #endif
 
@@ -189,7 +329,38 @@ INT8U  OSTmrNameGet (OS_TMR   *ptmr,
                      INT8U   **pdest,
                      INT8U    *perr)
 {
+#ifdef OS_SAFETY_CRITICAL
+    if (perr == (INT8U *)0) {
+        OS_SAFETY_CRITICAL_EXCEPTION();
+        return (0u);
+    }
+#endif
 
+#if OS_ARG_CHK_EN > 0u
+    if (pdest == (INT8U **)0) {
+        *perr = OS_ERR_TMR_INVALID_DEST;
+        return (0u);
+    }
+    if (ptmr == (OS_TMR *)0) {
+        *perr = OS_ERR_TMR_INVALID;
+        return (0u);
+    }
+#endif
+    if (ptmr->OSTmrType != OS_TMR_TYPE) {              /* Validate timer structure                                    */
+        *perr = OS_ERR_TMR_INVALID_TYPE;
+        return (0u);
+    }
+    if (OSIntNesting > 0u) {                           /* See if trying to call from an ISR                           */
+        *perr = OS_ERR_NAME_GET_ISR;
+        return (0u);
+    }
+    if (ptmr->OSTmrState == OS_TMR_STATE_UNUSED){           /* Already deleted                                        */
+        *perr = OS_ERR_TMR_INACTIVE;
+        return (0u);
+    }
+    
+    *pdest = ptmr->OSTmrName;
+    return OS_StrLen(*pdest);
 }
 #endif
 
@@ -220,7 +391,8 @@ INT8U  OSTmrNameGet (OS_TMR   *ptmr,
 INT32U  OSTmrRemainGet (OS_TMR  *ptmr,
                         INT8U   *perr)
 {
-
+    /*TODO*/
+    return 0;
 }
 #endif
 
@@ -254,7 +426,46 @@ INT32U  OSTmrRemainGet (OS_TMR  *ptmr,
 INT8U  OSTmrStateGet (OS_TMR  *ptmr,
                       INT8U   *perr)
 {
+    INT8U  state;
 
+
+#ifdef OS_SAFETY_CRITICAL
+    if (perr == (INT8U *)0) {
+        OS_SAFETY_CRITICAL_EXCEPTION();
+        return (0u);
+    }
+#endif
+
+#if OS_ARG_CHK_EN > 0u
+    if (ptmr == (OS_TMR *)0) {
+        *perr = OS_ERR_TMR_INVALID;
+        return (0u);
+    }
+#endif
+    if (ptmr->OSTmrType != OS_TMR_TYPE) {              /* Validate timer structure                                    */
+        *perr = OS_ERR_TMR_INVALID_TYPE;
+        return (0u);
+    }
+    if (OSIntNesting > 0u) {                           /* See if trying to call from an ISR                           */
+        *perr = OS_ERR_TMR_ISR;
+        return (0u);
+    }
+    OSSchedLock();
+    state = ptmr->OSTmrState;
+    switch (state) {
+        case OS_TMR_STATE_UNUSED:
+        case OS_TMR_STATE_STOPPED:
+        case OS_TMR_STATE_COMPLETED:
+        case OS_TMR_STATE_RUNNING:
+             *perr = OS_ERR_NONE;
+             break;
+
+        default:
+             *perr = OS_ERR_TMR_INVALID_STATE;
+             break;
+    }
+    OSSchedUnlock();
+    return (state);
 }
 #endif
 
@@ -284,7 +495,42 @@ INT8U  OSTmrStateGet (OS_TMR  *ptmr,
 BOOLEAN  OSTmrStart (OS_TMR   *ptmr,
                      INT8U    *perr)
 {
+#ifdef OS_SAFETY_CRITICAL
+    if (perr == (INT8U *)0) {
+        OS_SAFETY_CRITICAL_EXCEPTION();
+        return (OS_FALSE);
+    }
+#endif
 
+#if OS_ARG_CHK_EN > 0u
+    if (ptmr == (OS_TMR *)0) {
+        *perr = OS_ERR_TMR_INVALID;
+        return (OS_FALSE);
+    }
+#endif
+
+    OS_TRACE_TMR_START_ENTER(ptmr);
+    
+    if (ptmr->OSTmrType != OS_TMR_TYPE) {                   /* Validate timer structure                               */
+        *perr = OS_ERR_TMR_INVALID_TYPE;
+        OS_TRACE_TMR_START_EXIT(*perr);
+        return (OS_FALSE);
+    }
+    if (OSIntNesting > 0u) {                                /* See if trying to call from an ISR                      */
+        *perr  = OS_ERR_TMR_ISR;
+        OS_TRACE_TMR_START_EXIT(*perr);
+        return (OS_FALSE);
+    }   
+    if(ptmr->OSTmrState == OS_TMR_STATE_UNUSED)
+    {
+        *perr = OS_ERR_TMR_INACTIVE;
+        OS_TRACE_TMR_START_EXIT(*perr);
+        return (OS_FALSE);
+    }
+    
+    rt_timer_start(ptmr->pOSTmr);
+    OS_TRACE_TMR_START_EXIT(*perr);
+    *perr = OS_ERR_NONE;
 }
 #endif
 
@@ -339,33 +585,6 @@ BOOLEAN  OSTmrStop (OS_TMR  *ptmr,
 
 /*
 *********************************************************************************************************
-*                             SIGNAL THAT IT'S TIME TO UPDATE THE TIMERS
-*
-* Description: This function is typically called by the ISR that occurs at the timer tick rate and is
-*              used to signal to OSTmr_Task() that it's time to update the timers.
-*
-* Arguments  : none
-*
-* Returns    : OS_ERR_NONE         The call was successful and the timer task was signaled.
-*              OS_ERR_SEM_OVF      If OSTmrSignal() was called more often than OSTmr_Task() can handle
-*                                  the timers. This would indicate that your system is heavily loaded.
-*              OS_ERR_EVENT_TYPE   Unlikely you would get this error because the semaphore used for
-*                                  signaling is created by uC/OS-II.
-*              OS_ERR_PEVENT_NULL  Again, unlikely you would ever get this error because the semaphore
-*                                  used for signaling is created by uC/OS-II.
-*********************************************************************************************************
-*/
-
-#if OS_TMR_EN > 0u
-INT8U  OSTmrSignal (void)
-{
-
-}
-#endif
-
-
-/*
-*********************************************************************************************************
 *                                                    INITIALIZATION
 *                                          INITIALIZE THE FREE LIST OF TIMERS
 *
@@ -383,5 +602,25 @@ void  OSTmr_Init (void)
 
 }
 #endif
+
+/*
+************************************************************************************************************************
+*                                                   内部回调函数
+*
+* Description: 由于RT-Thread的定时器回调函数参数只有一个，而uCOS-III的定时器回调函数参数有两个，因此需要
+*              先由RTT调用内部回调函数，再由内部回调函数调用uCOS-III的回调函数，以此完成参数的转换。
+************************************************************************************************************************
+*/
+static void OS_TmrCallback(void *p_ara)
+{
+    OS_TMR   *ptmr;
+    ptmr = (OS_TMR*)p_ara;
+        
+    ptmr->OSTmrCallback(ptmr, ptmr->OSTmrCallbackArg);           /* 调用真正的uCOS-II定时器回调函数         */
+
+    if(ptmr->OSTmrOpt == OS_TMR_OPT_ONE_SHOT){
+        ptmr->OSTmrState = OS_TMR_STATE_COMPLETED;
+    }
+}
 
 #endif                                                           /* OS_TMR_C                                */
