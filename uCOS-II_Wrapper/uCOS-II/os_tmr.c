@@ -354,7 +354,7 @@ INT8U  OSTmrNameGet (OS_TMR   *ptmr,
         *perr = OS_ERR_NAME_GET_ISR;
         return (0u);
     }
-    if (ptmr->OSTmrState == OS_TMR_STATE_UNUSED){           /* Already deleted                                        */
+    if (ptmr->OSTmrState == OS_TMR_STATE_UNUSED){      /* Already deleted                                        */
         *perr = OS_ERR_TMR_INACTIVE;
         return (0u);
     }
@@ -531,6 +531,7 @@ BOOLEAN  OSTmrStart (OS_TMR   *ptmr,
     rt_timer_start(ptmr->pOSTmr);
     OS_TRACE_TMR_START_EXIT(*perr);
     *perr = OS_ERR_NONE;
+    return (OS_TRUE);
 }
 #endif
 
@@ -578,7 +579,8 @@ BOOLEAN  OSTmrStop (OS_TMR  *ptmr,
                     void    *callback_arg,
                     INT8U   *perr)
 {
-
+    /*TODO*/
+    return OS_TRUE;
 }
 #endif
 
