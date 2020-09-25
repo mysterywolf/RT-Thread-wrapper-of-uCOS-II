@@ -653,7 +653,7 @@ typedef  void (*OS_TMR_CALLBACK)(void *ptmr, void *parg);
 
 
 typedef  struct  os_tmr {
-    rt_timer_t       pOSTmr;                /* RT-Thread timer structure                               */
+    struct rt_timer  OSTmr;                /* RT-Thread timer structure                               */
     INT8U            OSTmrType;             /* Should be set to OS_TMR_TYPE                            */
     OS_TMR_CALLBACK  OSTmrCallback;         /* Function to call when timer expires                     */
     void            *OSTmrCallbackArg;      /* Argument to pass to function when timer expires         */

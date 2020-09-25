@@ -123,7 +123,6 @@ OS_TMR  *OSTmrCreate (INT32U           dly,
                       INT8U           *perr)
 {
     OS_TMR   *ptmr;
-    rt_timer_t rt_tmr;
     rt_tick_t time;
     rt_uint8_t rt_flag;
     
@@ -186,18 +185,17 @@ OS_TMR  *OSTmrCreate (INT32U           dly,
         return ((OS_TMR *)0);
     }
     
-    /*TODO: 带有迟滞的周期延时，目前周期延时时dly参数无效*/
-    rt_tmr = rt_timer_create((const char*)pname,            /* invoke rt_timer_create to create a timer               */
-                OS_TmrCallback, rt_tmr, time, rt_flag);    
-    
     ptmr = RT_KERNEL_MALLOC(sizeof(OS_TMR));                /* malloc OS_TMR                                          */
     if(!ptmr){
         *perr = OS_ERR_TMR_NON_AVAIL;
         return ((OS_TMR *)0);
     }
     
+    /*TODO: 带有迟滞的周期延时，目前周期延时时dly参数无效*/
+    rt_timer_init(&ptmr->OSTmr, (const char*)pname,         /* invoke rt_timer_create to create a timer               */
+        OS_TmrCallback, ptmr, time, rt_flag);
+    
     OSSchedLock();
-    ptmr->pOSTmr           = rt_tmr;
     ptmr->OSTmrState       = OS_TMR_STATE_STOPPED;          /* Indicate that timer is not running yet                 */
     ptmr->OSTmrDly         = dly;
     ptmr->OSTmrPeriod      = period;
@@ -292,7 +290,7 @@ BOOLEAN  OSTmrDel (OS_TMR  *ptmr,
     ptmr->OSTmrState = OS_TMR_STATE_UNUSED;
     OSSchedUnlock();
     
-    rt_timer_delete(ptmr->pOSTmr);                          /* 删除rt-thread定时器,并对结构体清零                     */
+    rt_timer_detach(&ptmr->OSTmr);                          /* 删除rt-thread定时器,并对结构体清零                     */
     rt_memset(ptmr,0,sizeof(OS_TMR));
     RT_KERNEL_FREE(ptmr);
     OS_TRACE_TMR_DEL_EXIT(*perr);
@@ -528,7 +526,7 @@ BOOLEAN  OSTmrStart (OS_TMR   *ptmr,
         return (OS_FALSE);
     }
     
-    rt_timer_start(ptmr->pOSTmr);
+    rt_timer_start(&ptmr->OSTmr);
     OS_TRACE_TMR_START_EXIT(*perr);
     *perr = OS_ERR_NONE;
     return (OS_TRUE);
@@ -597,7 +595,7 @@ BOOLEAN  OSTmrStop (OS_TMR  *ptmr,
 * Returns    : none
 *********************************************************************************************************
 */
-
+// 注意：该函数尚未被调用
 #if OS_TMR_EN > 0u
 void  OSTmr_Init (void)
 {
@@ -617,7 +615,7 @@ static void OS_TmrCallback(void *p_ara)
 {
     OS_TMR   *ptmr;
     ptmr = (OS_TMR*)p_ara;
-        
+
     ptmr->OSTmrCallback(ptmr, ptmr->OSTmrCallbackArg);           /* 调用真正的uCOS-II定时器回调函数         */
 
     if(ptmr->OSTmrOpt == OS_TMR_OPT_ONE_SHOT){
