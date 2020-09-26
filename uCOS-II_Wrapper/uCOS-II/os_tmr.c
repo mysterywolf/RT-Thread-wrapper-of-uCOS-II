@@ -112,7 +112,7 @@ OS_TMR  *OSTmrCreate (INT32U           dly,
                       INT8U           *perr)
 {
     OS_TMR   *ptmr;
-    rt_tick_t time;
+    rt_tick_t time, time2;
     rt_uint8_t rt_flag;
     
 #ifdef OS_SAFETY_CRITICAL
@@ -168,26 +168,18 @@ OS_TMR  *OSTmrCreate (INT32U           dly,
         rt_flag = RT_TIMER_FLAG_PERIODIC|RT_TIMER_FLAG_SOFT_TIMER;     
         time = period * (1000 / OS_TMR_CFG_TICKS_PER_SEC);
     }
-    else
-    {
-        *perr = OS_ERR_TMR_INVALID_OPT;
-        return ((OS_TMR *)0);
-    }
     
     ptmr = RT_KERNEL_MALLOC(sizeof(OS_TMR));                /* malloc OS_TMR                                          */
     if(!ptmr){
         *perr = OS_ERR_TMR_NON_AVAIL;
         return ((OS_TMR *)0);
     }
-    
-    /*TODO: 带有迟滞的周期延时，目前周期延时时dly参数无效*/
-    rt_timer_init(&ptmr->OSTmr, (const char*)pname,         /* invoke rt_timer_create to create a timer               */
-        OS_TmrCallback, ptmr, time, rt_flag);
-    
+        
     OSSchedLock();
     ptmr->OSTmrState       = OS_TMR_STATE_STOPPED;          /* Indicate that timer is not running yet                 */
     ptmr->OSTmrDly         = dly;
     ptmr->OSTmrPeriod      = period;
+    ptmr->_dly             = dly;
     ptmr->OSTmrOpt         = opt;
     ptmr->OSTmrCallback    = callback;
     ptmr->OSTmrCallbackArg = callback_arg;
@@ -200,6 +192,17 @@ OS_TMR  *OSTmrCreate (INT32U           dly,
     }
 #endif  
     OSSchedUnlock();
+    
+    if(opt == OS_TMR_OPT_PERIODIC && dly != 0) {            /* 带有延迟的周期性延时                                   */
+        time2 = dly * (1000 / OS_TMR_CFG_TICKS_PER_SEC);
+        rt_timer_init(&ptmr->OSTmr, (const char*)pname,     /* invoke rt_timer_create to create a timer               */
+            OS_TmrCallback, ptmr, time2, RT_TIMER_FLAG_ONE_SHOT|RT_TIMER_FLAG_SOFT_TIMER);
+    }
+    else {
+        rt_timer_init(&ptmr->OSTmr, (const char*)pname,     /* invoke rt_timer_create to create a timer               */
+            OS_TmrCallback, ptmr, time, rt_flag);        
+    }
+    
     OS_TRACE_TMR_CREATE(ptmr, ptmr->OSTmrName);
     *perr = OS_ERR_NONE;
     return (ptmr);   
@@ -280,7 +283,6 @@ BOOLEAN  OSTmrDel (OS_TMR  *ptmr,
     OSSchedUnlock();
     
     rt_timer_detach(&ptmr->OSTmr);                          /* 删除rt-thread定时器                                    */
-
     RT_KERNEL_FREE(ptmr);
     OS_TRACE_TMR_DEL_EXIT(*perr);
     return (OS_TRUE);
@@ -737,7 +739,7 @@ BOOLEAN  OSTmrStop (OS_TMR  *ptmr,
 #if OS_TMR_EN > 0u
 void  OSTmr_Init (void)
 {
-
+    /*nothing to do*/
 }
 #endif
 
@@ -754,13 +756,33 @@ static void OS_TmrCallback(void *p_ara)
     OS_TMR   *ptmr;
     ptmr = (OS_TMR*)p_ara;
     
-    OSSchedLock();  
-    ptmr->OSTmrCallback(ptmr, ptmr->OSTmrCallbackArg);           /* 调用真正的uCOS-II定时器回调函数         */
+#if OS_CFG_CALLED_FROM_ISR_CHK_EN > 0u    
+    if(OSIntNesting > 0u)                                        /* 检查是否在中断中运行                    */
+    {
+        RT_DEBUG_LOG(OS_DEBUG_EN,("uCOS-II的定时器是在任务中运行的,不可以在RTT的Hard模式下运行\n"));
+        return;
+    }
+#endif
     
-    ptmr->OSTmrMatch = ptmr->OSTmr.timeout_tick; /*TODO*/
-    if(ptmr->OSTmrOpt == OS_TMR_OPT_ONE_SHOT){
+    OSSchedLock(); 
+    if(ptmr->OSTmrOpt == OS_TMR_OPT_PERIODIC && ptmr->_dly != 0)
+    {
+        ptmr->_dly = 0;
+        ptmr->OSTmr.init_tick = ptmr->OSTmrPeriod * (1000 / OS_TMR_CFG_TICKS_PER_SEC);
+        ptmr->OSTmr.timeout_tick = rt_tick_get() + ptmr->OSTmr.init_tick;
+        ptmr->OSTmr.parent.flag |= RT_TIMER_FLAG_PERIODIC;       /* 定时器设置为周期模式                    */        
+        ptmr->OSTmrMatch = rt_tick_get() + ptmr->OSTmr.init_tick;/* 重新设定下一次定时器的参数              */
+        rt_timer_start(&(ptmr->OSTmr));                          /* 开启定时器                              */
+    }
+    else if(ptmr->OSTmrOpt == OS_TMR_OPT_ONE_SHOT)
+    {
         ptmr->OSTmrState = OS_TMR_STATE_COMPLETED;
     }
+    else if(ptmr->OSTmrOpt == OS_TMR_OPT_PERIODIC)
+    {
+        ptmr->OSTmrMatch = rt_tick_get() + ptmr->OSTmr.init_tick;/* 重新设定下一次定时器的参数              */
+    }
+    ptmr->OSTmrCallback(ptmr, ptmr->OSTmrCallbackArg);           /* 调用真正的uCOS-II定时器回调函数         */
     OSSchedUnlock();
 }
 
