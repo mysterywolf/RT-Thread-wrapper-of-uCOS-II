@@ -43,17 +43,6 @@
 
 /*
 *********************************************************************************************************
-*                                                        NOTES
-*
-* 1) Your application MUST define the following #define constants:
-*
-*    OS_TASK_TMR_PRIO          The priority of the Timer management task
-*    OS_TASK_TMR_STK_SIZE      The size     of the Timer management task's stack
-*********************************************************************************************************
-*/
-
-/*
-*********************************************************************************************************
 *                                              CONSTANTS
 *********************************************************************************************************
 */
@@ -389,8 +378,74 @@ INT8U  OSTmrNameGet (OS_TMR   *ptmr,
 INT32U  OSTmrRemainGet (OS_TMR  *ptmr,
                         INT8U   *perr)
 {
-    /*TODO*/
-    return 0;
+    INT32U  remain;
+    
+#ifdef OS_SAFETY_CRITICAL
+    if (perr == (INT8U *)0) {
+        OS_SAFETY_CRITICAL_EXCEPTION();
+        return (0u);
+    }
+#endif
+
+#if OS_ARG_CHK_EN > 0u
+    if (ptmr == (OS_TMR *)0) {
+        *perr = OS_ERR_TMR_INVALID;
+        return (0u);
+    }
+#endif
+    if (ptmr->OSTmrType != OS_TMR_TYPE) {              /* Validate timer structure                                    */
+        *perr = OS_ERR_TMR_INVALID_TYPE;
+        return (0u);
+    }
+    if (OSIntNesting > 0u) {                           /* See if trying to call from an ISR                           */
+        *perr = OS_ERR_TMR_ISR;
+        return (0u);
+    }
+    OSSchedLock();
+    switch (ptmr->OSTmrState) {
+        case OS_TMR_STATE_RUNNING:
+             ptmr->OSTmrMatch = ptmr->OSTmr.timeout_tick;
+             remain = ptmr->OSTmrMatch - OSTmrTime;    /* Determine how much time is left to timeout                  */
+             OSSchedUnlock();
+             *perr  = OS_ERR_NONE;
+             return (remain);
+
+        case OS_TMR_STATE_STOPPED:                     /* It's assumed that the timer has not started yet             */
+             switch (ptmr->OSTmrOpt) {
+                 case OS_TMR_OPT_PERIODIC:
+                      if (ptmr->OSTmrDly == 0u) {
+                          remain = ptmr->OSTmrPeriod;
+                      } else {
+                          remain = ptmr->OSTmrDly;
+                      }
+                      OSSchedUnlock();
+                      *perr  = OS_ERR_NONE;
+                      break;
+
+                 case OS_TMR_OPT_ONE_SHOT:
+                 default:
+                      remain = ptmr->OSTmrDly;
+                      OSSchedUnlock();
+                      *perr  = OS_ERR_NONE;
+                      break;
+             }
+             return (remain);
+
+        case OS_TMR_STATE_COMPLETED:                   /* Only ONE-SHOT that timed out can be in this state           */
+             OSSchedUnlock();
+             *perr = OS_ERR_NONE;
+             return (0u);
+
+        case OS_TMR_STATE_UNUSED:
+             OSSchedUnlock();
+             *perr = OS_ERR_TMR_INACTIVE;
+             return (0u);
+
+        default:
+             OSSchedUnlock();
+             *perr = OS_ERR_TMR_INVALID_STATE;
+             return (0u);
+    }
 }
 #endif
 
@@ -527,6 +582,9 @@ BOOLEAN  OSTmrStart (OS_TMR   *ptmr,
     }
     
     rt_timer_start(&ptmr->OSTmr);
+    OSSchedLock();
+    ptmr->OSTmrMatch = ptmr->OSTmr.timeout_tick;
+    OSSchedUnlock();
     OS_TRACE_TMR_START_EXIT(*perr);
     *perr = OS_ERR_NONE;
     return (OS_TRUE);
@@ -695,12 +753,15 @@ static void OS_TmrCallback(void *p_ara)
 {
     OS_TMR   *ptmr;
     ptmr = (OS_TMR*)p_ara;
-
+    
+    OSSchedLock();  
     ptmr->OSTmrCallback(ptmr, ptmr->OSTmrCallbackArg);           /* 调用真正的uCOS-II定时器回调函数         */
-
+    
+    ptmr->OSTmrMatch = ptmr->OSTmr.timeout_tick; /*TODO*/
     if(ptmr->OSTmrOpt == OS_TMR_OPT_ONE_SHOT){
         ptmr->OSTmrState = OS_TMR_STATE_COMPLETED;
     }
+    OSSchedUnlock();
 }
 
 #endif                                                           /* OS_TMR_C                                */

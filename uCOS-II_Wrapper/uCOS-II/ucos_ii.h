@@ -766,10 +766,10 @@ OS_EXT  OS_MEM            OSMemTbl[OS_MAX_MEM_PART];/* Storage for memory partit
 //OS_EXT  volatile  INT32U  OSTime;                   /* Current value of system time (in ticks)         */
 //#endif
 
-//#if OS_TMR_EN > 0u
+#if OS_TMR_EN > 0u
 //OS_EXT  INT16U            OSTmrFree;                /* Number of free entries in the timer pool        */
 //OS_EXT  INT16U            OSTmrUsed;                /* Number of timers used                           */
-//OS_EXT  INT32U            OSTmrTime;                /* Current timer time                              */
+#define   OSTmrTime         rt_tick_get()             /* Current timer time                              */
 
 //OS_EXT  OS_EVENT         *OSTmrSem;                 /* Sem. used to gain exclusive access to timers    */
 //OS_EXT  OS_EVENT         *OSTmrSemSignal;           /* Sem. used to signal the update of timers        */
@@ -779,7 +779,7 @@ OS_EXT  OS_MEM            OSMemTbl[OS_MAX_MEM_PART];/* Storage for memory partit
 //OS_EXT  OS_STK            OSTmrTaskStk[OS_TASK_TMR_STK_SIZE];
 
 //OS_EXT  OS_TMR_WHEEL      OSTmrWheelTbl[OS_TMR_CFG_WHEEL_SIZE];
-//#endif
+#endif
 
 //extern  INT8U   const     OSUnMapTbl[256];          /* Priority->Index    lookup table                 */
 
