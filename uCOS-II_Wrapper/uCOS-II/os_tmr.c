@@ -280,15 +280,16 @@ BOOLEAN  OSTmrDel (OS_TMR  *ptmr,
         OS_TRACE_TMR_DEL_EXIT(*perr);
         return (OS_FALSE);
     }
-    if (ptmr->OSTmrState == OS_TMR_STATE_UNUSED){           /* Already deleted                                        */
-        *perr = OS_ERR_TMR_INACTIVE;
-        OS_TRACE_TMR_DEL_EXIT(*perr);
-        return (OS_FALSE);
-    }
+    /*没有意义*/
+//    if (ptmr->OSTmrState == OS_TMR_STATE_UNUSED){           /* Already deleted                                        */
+//        *perr = OS_ERR_TMR_INACTIVE;
+//        OS_TRACE_TMR_DEL_EXIT(*perr);
+//        return (OS_FALSE);
+//    }
 
-    OSSchedLock();
-    ptmr->OSTmrState = OS_TMR_STATE_UNUSED;
-    OSSchedUnlock();
+//    OSSchedLock();
+//    ptmr->OSTmrState = OS_TMR_STATE_UNUSED;
+//    OSSchedUnlock();
     
     rt_timer_detach(&ptmr->OSTmr);                          /* 删除rt-thread定时器,并对结构体清零                     */
     rt_memset(ptmr,0,sizeof(OS_TMR));
