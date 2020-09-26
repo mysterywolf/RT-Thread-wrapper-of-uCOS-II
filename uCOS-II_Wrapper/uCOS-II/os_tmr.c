@@ -280,19 +280,18 @@ BOOLEAN  OSTmrDel (OS_TMR  *ptmr,
         OS_TRACE_TMR_DEL_EXIT(*perr);
         return (OS_FALSE);
     }
-    /*没有意义*/
-//    if (ptmr->OSTmrState == OS_TMR_STATE_UNUSED){           /* Already deleted                                        */
-//        *perr = OS_ERR_TMR_INACTIVE;
-//        OS_TRACE_TMR_DEL_EXIT(*perr);
-//        return (OS_FALSE);
-//    }
+    if (ptmr->OSTmrState == OS_TMR_STATE_UNUSED){           /* Already deleted                                        */
+        *perr = OS_ERR_TMR_INACTIVE;
+        OS_TRACE_TMR_DEL_EXIT(*perr);
+        return (OS_FALSE);
+    }
 
-//    OSSchedLock();
-//    ptmr->OSTmrState = OS_TMR_STATE_UNUSED;
-//    OSSchedUnlock();
+    OSSchedLock();
+    ptmr->OSTmrState = OS_TMR_STATE_UNUSED;
+    OSSchedUnlock();
     
-    rt_timer_detach(&ptmr->OSTmr);                          /* 删除rt-thread定时器,并对结构体清零                     */
-    rt_memset(ptmr,0,sizeof(OS_TMR));
+    rt_timer_detach(&ptmr->OSTmr);                          /* 删除rt-thread定时器                                    */
+
     RT_KERNEL_FREE(ptmr);
     OS_TRACE_TMR_DEL_EXIT(*perr);
     return (OS_TRUE);
@@ -578,8 +577,88 @@ BOOLEAN  OSTmrStop (OS_TMR  *ptmr,
                     void    *callback_arg,
                     INT8U   *perr)
 {
-    /*TODO*/
-    return OS_TRUE;
+    OS_TMR_CALLBACK  pfnct;
+    
+#ifdef OS_SAFETY_CRITICAL
+    if (perr == (INT8U *)0) {
+        OS_SAFETY_CRITICAL_EXCEPTION();
+        return (OS_FALSE);
+    }
+#endif
+
+#if OS_ARG_CHK_EN > 0u
+    if (ptmr == (OS_TMR *)0) {
+        *perr = OS_ERR_TMR_INVALID;
+        return (OS_FALSE);
+    }
+#endif
+
+    OS_TRACE_TMR_STOP_ENTER(ptmr);
+
+    if (ptmr->OSTmrType != OS_TMR_TYPE) {                         /* Validate timer structure                         */
+        *perr = OS_ERR_TMR_INVALID_TYPE;
+        OS_TRACE_TMR_STOP_EXIT(*perr);
+        return (OS_FALSE);
+    }
+    if (OSIntNesting > 0u) {                                      /* See if trying to call from an ISR                */
+        *perr  = OS_ERR_TMR_ISR;
+        OS_TRACE_TMR_STOP_EXIT(*perr);
+        return (OS_FALSE);
+    }
+
+    OSSchedLock();
+    switch (ptmr->OSTmrState) {
+        case OS_TMR_STATE_RUNNING:
+             *perr = OS_ERR_NONE;
+             switch (opt) {
+                 case OS_TMR_OPT_CALLBACK:
+                      pfnct = ptmr->OSTmrCallback;                /* Execute callback function if available ...       */
+                      if (pfnct != (OS_TMR_CALLBACK)0) {
+                          (*pfnct)((void *)ptmr, ptmr->OSTmrCallbackArg);  /* Use callback arg when timer was created */
+                      } else {
+                          *perr = OS_ERR_TMR_NO_CALLBACK;
+                      }
+                      break;
+
+                 case OS_TMR_OPT_CALLBACK_ARG:
+                      pfnct = ptmr->OSTmrCallback;                /* Execute callback function if available ...       */
+                      if (pfnct != (OS_TMR_CALLBACK)0) {
+                          (*pfnct)((void *)ptmr, callback_arg);   /* ... using the 'callback_arg' provided in call    */
+                      } else {
+                          *perr = OS_ERR_TMR_NO_CALLBACK;
+                      }
+                      break;
+
+                 case OS_TMR_OPT_NONE:
+                      break;
+
+                 default:
+                     *perr = OS_ERR_TMR_INVALID_OPT;
+                     break;
+             }
+             OSSchedUnlock();
+             OS_TRACE_TMR_STOP_EXIT(*perr);
+             return (OS_TRUE);
+
+        case OS_TMR_STATE_COMPLETED:                              /* Timer has already completed the ONE-SHOT or ...  */
+        case OS_TMR_STATE_STOPPED:                                /* ... timer has not started yet.                   */
+             OSSchedUnlock();
+             *perr = OS_ERR_TMR_STOPPED;
+             OS_TRACE_TMR_STOP_EXIT(*perr);
+             return (OS_TRUE);
+
+        case OS_TMR_STATE_UNUSED:                                 /* Timer was not created                            */
+             OSSchedUnlock();
+             *perr = OS_ERR_TMR_INACTIVE;
+             OS_TRACE_TMR_STOP_EXIT(*perr);
+             return (OS_FALSE);
+
+        default:
+             OSSchedUnlock();
+             *perr = OS_ERR_TMR_INVALID_STATE;
+             OS_TRACE_TMR_STOP_EXIT(*perr);
+             return (OS_FALSE);
+    }
 }
 #endif
 
@@ -596,7 +675,7 @@ BOOLEAN  OSTmrStop (OS_TMR  *ptmr,
 * Returns    : none
 *********************************************************************************************************
 */
-// 注意：该函数尚未被调用
+
 #if OS_TMR_EN > 0u
 void  OSTmr_Init (void)
 {
