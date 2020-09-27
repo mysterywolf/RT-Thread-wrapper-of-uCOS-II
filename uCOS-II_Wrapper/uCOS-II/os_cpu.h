@@ -167,7 +167,7 @@ typedef rt_ubase_t     OS_CPU_SR;                /* Define size of CPU status re
 *********************************************************************************************************
 */
 
-#define  OS_CRITICAL_METHOD   3u                 /* 只读,不要修改*/
+#define  OS_CRITICAL_METHOD   3u                 /* 只读,不要修改                                      */
 
 #if OS_CRITICAL_METHOD == 3u
                                                  /* Save current BASEPRI priority lvl for exception... */

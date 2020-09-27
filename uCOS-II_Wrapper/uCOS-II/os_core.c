@@ -45,6 +45,13 @@
 
 /*
 *********************************************************************************************************
+*                                         FUNCTION PROTOTYPES
+*********************************************************************************************************
+*/
+
+
+/*
+*********************************************************************************************************
 *                                             INITIALIZATION
 *                                    INITIALIZE MISCELLANEOUS VARIABLES
 *
@@ -58,7 +65,7 @@
 
 static  void  OS_InitMisc (void)
 {
-    OSRunning                 = OS_FALSE;                  /* Indicate that multitasking not started   */    
+    OSRunning                 = OS_TRUE;                   /* 初始化时,rt-thread已经启动因此直接为OS_TRUE*/    
 
 //#if OS_TASK_STAT_EN > 0u
 //    OSIdleCtrRun              = 0uL;
@@ -74,6 +81,48 @@ static  void  OS_InitMisc (void)
 //    OSTaskRegNextAvailID      = 0u;                        /* Initialize the task register ID          */
 //#endif
 }
+
+
+/*
+*********************************************************************************************************
+*                                             INITIALIZATION
+*                            INITIALIZE THE FREE LIST OF TASK CONTROL BLOCKS
+*
+* Description: This function is called by OSInit() to initialize the free list of OS_TCBs.
+*
+* Arguments  : none
+*
+* Returns    : none
+*********************************************************************************************************
+*/
+
+static  void  OS_InitTCBList (void)
+{
+    INT8U    ix;
+    INT8U    ix_next;
+    OS_TCB  *ptcb1;
+    OS_TCB  *ptcb2;
+    
+    OS_MemClr((INT8U *)&OSTCBPrioTbl[0], sizeof(OSTCBPrioTbl));  /* Clear the priority table           */    
+    OS_MemClr((INT8U *)&OSTCBTbl[0],     sizeof(OSTCBTbl));      /* Clear all the TCBs                 */
+    for (ix = 0u; ix < (OS_MAX_TASKS + OS_N_SYS_TASKS - 1u); ix++) {    /* Init. list of free TCBs     */
+        ix_next =  ix + 1u;
+        ptcb1   = &OSTCBTbl[ix];
+        ptcb2   = &OSTCBTbl[ix_next];
+        ptcb1->OSTCBNext = ptcb2;
+#if OS_TASK_NAME_EN > 0u
+        ptcb1->OSTCBTaskName = (INT8U *)(void *)"?";             /* Unknown name                       */
+#endif
+    }
+    ptcb1                   = &OSTCBTbl[ix];
+    ptcb1->OSTCBNext        = (OS_TCB *)0;                       /* Last OS_TCB                        */
+#if OS_TASK_NAME_EN > 0u
+    ptcb1->OSTCBTaskName    = (INT8U *)(void *)"?";              /* Unknown name                       */
+#endif
+//    OSTCBList               = (OS_TCB *)0;                       /* TCB lists initializations          */
+//    OSTCBFreeList           = &OSTCBTbl[0];
+}
+
 
 /*
 *********************************************************************************************************
@@ -96,10 +145,11 @@ void  OSInit (void)
 #endif
 #endif
 
+    OSSchedLock();
+    
     OSInitHookBegin();                                           /* Call port specific initialization code   */
-
     OS_InitMisc();                                               /* Initialize miscellaneous variables       */
-
+    OS_InitTCBList();                                            /* Initialize the free list of OS_TCBs      */
 
 #if (OS_MEM_EN > 0u) && (OS_MAX_MEM_PART > 0u)
     OS_MemInit();                                                /* Initialize the memory manager            */
@@ -115,7 +165,9 @@ void  OSInit (void)
 
 #if OS_DEBUG_EN > 0u
 //    OSDebugInit();
-#endif    
+#endif
+ 
+    OSSchedUnlock();
 }
 
 
@@ -278,9 +330,7 @@ void  OSSchedUnlock (void)
 
 void  OSStart (void)
 {
-    if (OSRunning == OS_FALSE) {
-        OSRunning = OS_TRUE;
-    }
+    /*do nothing*/
 }
 
 
@@ -350,6 +400,7 @@ INT16U  OSVersion (void)
 {
     return (OS_VERSION);
 }
+
 
 /*
 *********************************************************************************************************

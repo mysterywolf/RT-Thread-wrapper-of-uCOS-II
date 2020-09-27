@@ -83,9 +83,9 @@ extern "C" {
 #define  OS_PRIO_MUTEX_CEIL_DIS      0xFFu              /* Disable mutex priority ceiling promotion    */
 
 #if OS_TASK_STAT_EN > 0u
-#define  OS_N_SYS_TASKS                 2u              /* Number of system tasks                      */
+#define  OS_N_SYS_TASKS                 1u              /* Number of system tasks                      */
 #else
-#define  OS_N_SYS_TASKS                 1u
+#define  OS_N_SYS_TASKS                 0u
 #endif
 
 #define  OS_TASK_STAT_PRIO  (OS_LOWEST_PRIO - 1u)       /* Statistic task priority                     */
@@ -570,74 +570,74 @@ typedef struct os_stk_data {
 
 typedef struct os_tcb {
     struct rt_thread OSTask;
-//    OS_STK          *OSTCBStkPtr;           /* Pointer to current top of stack                         */
+    OS_STK          *OSTCBStkPtr;           /* Pointer to current top of stack                         */
 
-//#if OS_TASK_CREATE_EXT_EN > 0u
-//    void            *OSTCBExtPtr;           /* Pointer to user definable data for TCB extension        */
-//    OS_STK          *OSTCBStkBottom;        /* Pointer to bottom of stack                              */
-//    INT32U           OSTCBStkSize;          /* Size of task stack (in number of stack elements)        */
-//    INT16U           OSTCBOpt;              /* Task options as passed by OSTaskCreateExt()             */
-//    INT16U           OSTCBId;               /* Task ID (0..65535)                                      */
-//#endif
+#if OS_TASK_CREATE_EXT_EN > 0u
+    void            *OSTCBExtPtr;           /* Pointer to user definable data for TCB extension        */
+    OS_STK          *OSTCBStkBottom;        /* Pointer to bottom of stack                              */
+    INT32U           OSTCBStkSize;          /* Size of task stack (in number of stack elements)        */
+    INT16U           OSTCBOpt;              /* Task options as passed by OSTaskCreateExt()             */
+    INT16U           OSTCBId;               /* Task ID (0..65535)                                      */
+#endif
 
-//    struct os_tcb   *OSTCBNext;             /* Pointer to next     TCB in the TCB list                 */
-//    struct os_tcb   *OSTCBPrev;             /* Pointer to previous TCB in the TCB list                 */
+    struct os_tcb   *OSTCBNext;             /* Pointer to next     TCB in the TCB list                 */
+    struct os_tcb   *OSTCBPrev;             /* Pointer to previous TCB in the TCB list                 */
 
-//#if OS_TASK_CREATE_EXT_EN > 0u
-//#if defined(OS_TLS_TBL_SIZE) && (OS_TLS_TBL_SIZE > 0u)
-//    OS_TLS           OSTCBTLSTbl[OS_TLS_TBL_SIZE];
-//#endif
-//#endif
+#if OS_TASK_CREATE_EXT_EN > 0u
+#if defined(OS_TLS_TBL_SIZE) && (OS_TLS_TBL_SIZE > 0u)
+    OS_TLS           OSTCBTLSTbl[OS_TLS_TBL_SIZE];
+#endif
+#endif
 
-//#if (OS_EVENT_EN)
-//    OS_EVENT        *OSTCBEventPtr;         /* Pointer to           event control block                */
-//#endif
+#if (OS_EVENT_EN)
+    OS_EVENT        *OSTCBEventPtr;         /* Pointer to           event control block                */
+#endif
 
-//#if (OS_EVENT_EN) && (OS_EVENT_MULTI_EN > 0u)
-//    OS_EVENT       **OSTCBEventMultiPtr;    /* Pointer to multiple  event control blocks               */
-//    OS_EVENT        *OSTCBEventMultiRdy;    /* Pointer to the first event control block readied        */
-//#endif
+#if (OS_EVENT_EN) && (OS_EVENT_MULTI_EN > 0u)
+    OS_EVENT       **OSTCBEventMultiPtr;    /* Pointer to multiple  event control blocks               */
+    OS_EVENT        *OSTCBEventMultiRdy;    /* Pointer to the first event control block readied        */
+#endif
 
-//#if ((OS_Q_EN > 0u) && (OS_MAX_QS > 0u)) || (OS_MBOX_EN > 0u)
-//    void            *OSTCBMsg;              /* Message received from OSMboxPost() or OSQPost()         */
-//#endif
+#if ((OS_Q_EN > 0u) && (OS_MAX_QS > 0u)) || (OS_MBOX_EN > 0u)
+    void            *OSTCBMsg;              /* Message received from OSMboxPost() or OSQPost()         */
+#endif
 
-//#if (OS_FLAG_EN > 0u) && (OS_MAX_FLAGS > 0u)
-//#if OS_TASK_DEL_EN > 0u
-//    OS_FLAG_NODE    *OSTCBFlagNode;         /* Pointer to event flag node                              */
-//#endif
-//    OS_FLAGS         OSTCBFlagsRdy;         /* Event flags that made task ready to run                 */
-//#endif
+#if (OS_FLAG_EN > 0u) && (OS_MAX_FLAGS > 0u)
+#if OS_TASK_DEL_EN > 0u
+    OS_FLAG_NODE    *OSTCBFlagNode;         /* Pointer to event flag node                              */
+#endif
+    OS_FLAGS         OSTCBFlagsRdy;         /* Event flags that made task ready to run                 */
+#endif
 
-//    INT32U           OSTCBDly;              /* Nbr ticks to delay task or, timeout waiting for event   */
-//    INT8U            OSTCBStat;             /* Task      status                                        */
-//    INT8U            OSTCBStatPend;         /* Task PEND status                                        */
-//    INT8U            OSTCBPrio;             /* Task priority (0 == highest)                            */
+    INT32U           OSTCBDly;              /* Nbr ticks to delay task or, timeout waiting for event   */
+    INT8U            OSTCBStat;             /* Task      status                                        */
+    INT8U            OSTCBStatPend;         /* Task PEND status                                        */
+    INT8U            OSTCBPrio;             /* Task priority (0 == highest)                            */
 
-//    INT8U            OSTCBX;                /* Bit position in group  corresponding to task priority   */
-//    INT8U            OSTCBY;                /* Index into ready table corresponding to task priority   */
-//    OS_PRIO          OSTCBBitX;             /* Bit mask to access bit position in ready table          */
-//    OS_PRIO          OSTCBBitY;             /* Bit mask to access bit position in ready group          */
+    INT8U            OSTCBX;                /* Bit position in group  corresponding to task priority   */
+    INT8U            OSTCBY;                /* Index into ready table corresponding to task priority   */
+    OS_PRIO          OSTCBBitX;             /* Bit mask to access bit position in ready table          */
+    OS_PRIO          OSTCBBitY;             /* Bit mask to access bit position in ready group          */
 
-//#if OS_TASK_DEL_EN > 0u
-//    INT8U            OSTCBDelReq;           /* Indicates whether a task needs to delete itself         */
-//#endif
+#if OS_TASK_DEL_EN > 0u
+    INT8U            OSTCBDelReq;           /* Indicates whether a task needs to delete itself         */
+#endif
 
-//#if OS_TASK_PROFILE_EN > 0u
-//    INT32U           OSTCBCtxSwCtr;         /* Number of time the task was switched in                 */
-//    INT32U           OSTCBCyclesTot;        /* Total number of clock cycles the task has been running  */
-//    INT32U           OSTCBCyclesStart;      /* Snapshot of cycle counter at start of task resumption   */
-//    OS_STK          *OSTCBStkBase;          /* Pointer to the beginning of the task stack              */
-//    INT32U           OSTCBStkUsed;          /* Number of bytes used from the stack                     */
-//#endif
+#if OS_TASK_PROFILE_EN > 0u
+    INT32U           OSTCBCtxSwCtr;         /* Number of time the task was switched in                 */
+    INT32U           OSTCBCyclesTot;        /* Total number of clock cycles the task has been running  */
+    INT32U           OSTCBCyclesStart;      /* Snapshot of cycle counter at start of task resumption   */
+    OS_STK          *OSTCBStkBase;          /* Pointer to the beginning of the task stack              */
+    INT32U           OSTCBStkUsed;          /* Number of bytes used from the stack                     */
+#endif
 
-//#if OS_TASK_NAME_EN > 0u
-//    INT8U           *OSTCBTaskName;
-//#endif
+#if OS_TASK_NAME_EN > 0u
+    INT8U           *OSTCBTaskName;
+#endif
 
-//#if OS_TASK_REG_TBL_SIZE > 0u
-//    INT32U           OSTCBRegTbl[OS_TASK_REG_TBL_SIZE];
-//#endif
+#if OS_TASK_REG_TBL_SIZE > 0u
+    INT32U           OSTCBRegTbl[OS_TASK_REG_TBL_SIZE];
+#endif
 } OS_TCB;
 
 
@@ -742,8 +742,8 @@ OS_EXT  BOOLEAN           OSRunning;                       /* Flag indicating th
 //OS_EXT  OS_TCB           *OSTCBFreeList;                   /* Pointer to list of free TCBs             */
 //OS_EXT  OS_TCB           *OSTCBHighRdy;                    /* Pointer to highest priority TCB R-to-R   */
 //OS_EXT  OS_TCB           *OSTCBList;                       /* Pointer to doubly linked list of TCBs    */
-//OS_EXT  OS_TCB           *OSTCBPrioTbl[OS_LOWEST_PRIO + 1u];    /* Table of pointers to created TCBs   */
-//OS_EXT  OS_TCB            OSTCBTbl[OS_MAX_TASKS + OS_N_SYS_TASKS];   /* Table of TCBs                  */
+OS_EXT  OS_TCB           *OSTCBPrioTbl[OS_LOWEST_PRIO + 1u];    /* Table of pointers to created TCBs   */
+OS_EXT  OS_TCB            OSTCBTbl[OS_MAX_TASKS + OS_N_SYS_TASKS];   /* Table of TCBs                  */
 
 //#if OS_TICK_STEP_EN > 0u
 //OS_EXT  INT8U             OSTickStepState;          /* Indicates the state of the tick step feature    */
