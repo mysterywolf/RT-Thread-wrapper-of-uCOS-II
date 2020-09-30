@@ -65,6 +65,7 @@
 
 static  void  OS_InitMisc (void)
 {
+    OSTaskCtr                 = 0u;                        /* Clear the number of tasks                */
     OSRunning                 = OS_TRUE;                   /* 初始化时,rt-thread已经启动因此直接为OS_TRUE*/    
 
 //#if OS_TASK_STAT_EN > 0u
@@ -121,6 +122,8 @@ static  void  OS_InitTCBList (void)
 #endif
 //    OSTCBList               = (OS_TCB *)0;                       /* TCB lists initializations          */
 //    OSTCBFreeList           = &OSTCBTbl[0];
+
+    OSTCBPrioTbl[OS_MAX_TASKS + OS_N_SYS_TASKS - 1u] = OS_TCB_RESERVED; /* 空闲任务标记为已经使用      */
 }
 
 

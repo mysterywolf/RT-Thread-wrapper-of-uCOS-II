@@ -223,57 +223,14 @@
 */
 
 #if OS_TASK_CREATE_EN > 0u
-INT8U  OSTaskCreate (void   (*task)(void *p_arg),
-                     void    *p_arg,
-                     OS_STK  *ptos,
-                     INT8U    prio)
-{
-    OS_STK     *psp;
-    INT8U       err;
-    OS_TCB     *ptcb;
-    char        name[32];
-#if OS_CRITICAL_METHOD == 3u                 /* Allocate storage for CPU status register               */
-    OS_CPU_SR   cpu_sr = 0u;
-#endif
-
-
-
-#ifdef OS_SAFETY_CRITICAL_IEC61508
-    if (OSSafetyCriticalStartFlag == OS_TRUE) {
-        OS_SAFETY_CRITICAL_EXCEPTION();
-        return (OS_ERR_ILLEGAL_CREATE_RUN_TIME);
-    }
-#endif
-
-#if OS_ARG_CHK_EN > 0u
-    if (prio > OS_LOWEST_PRIO) {             /* Make sure priority is within allowable range           */
-        return (OS_ERR_PRIO_INVALID);
-    }
-#endif
-    OS_ENTER_CRITICAL();
-    if (OSIntNesting > 0u) {                 /* Make sure we don't create the task from within an ISR  */
-        OS_EXIT_CRITICAL();
-        return (OS_ERR_TASK_CREATE_ISR);
-    }
-    if (OSTCBPrioTbl[prio] == (OS_TCB *)0) { /* Make sure task doesn't already exist at this priority  */
-        OSTCBPrioTbl[prio] = OS_TCB_RESERVED;/* Reserve the priority to prevent others from doing ...  */
-    }else{
-        return (OS_ERR_PRIO_EXIST);
-    }
-    
-    ptcb = &OSTCBTbl[prio];
-    snprintf(name,32,"uCOS-II Task%d",prio);
-    
-    /*??? 这个函数的堆栈大小怎么搞？？*/
-    if(rt_thread_init(&ptcb->OSTask,name,task,p_arg,ptos,,prio,0) != RT_EOK){
-        return OS_ERR_TASK_NO_MORE_TCB;
-    }
-    
-    
-    
-    OS_EXIT_CRITICAL();
-    return (OS_ERR_NONE);
-}
+//INT8U  OSTaskCreate (void   (*task)(void *p_arg),
+//                     void    *p_arg,
+//                     OS_STK  *ptos,
+//                     INT8U    prio)
+//{
+//    /*TODO*/
+//    return OS_ERR_TASK_NO_MORE_TCB;
+//}
 #endif
 
 
@@ -344,7 +301,7 @@ INT8U  OSTaskCreate (void   (*task)(void *p_arg),
 *              OS_ERR_PRIO_INVALID             if the priority you specify is higher that the maximum
 *                                              allowed (i.e. > OS_LOWEST_PRIO)
 *              OS_ERR_TASK_CREATE_ISR          if you tried to create a task from an ISR.
-*              OS_ERR_ILLEGAL_CREATE_RUN_TIME  if you tried to create a task after safety critical
+*            - OS_ERR_ILLEGAL_CREATE_RUN_TIME  if you tried to create a task after safety critical
 *                                              operation started.
 *********************************************************************************************************
 */
@@ -360,8 +317,8 @@ INT8U  OSTaskCreateExt (void   (*task)(void *p_arg),
                         void    *pext,
                         INT16U   opt)
 {
-    OS_STK     *psp;
-    INT8U       err;
+    OS_TCB     *ptcb;
+    char        name[RT_NAME_MAX];
 #if OS_CRITICAL_METHOD == 3u                 /* Allocate storage for CPU status register               */
     OS_CPU_SR   cpu_sr = 0u;
 #endif
@@ -387,29 +344,34 @@ INT8U  OSTaskCreateExt (void   (*task)(void *p_arg),
     }
     if (OSTCBPrioTbl[prio] == (OS_TCB *)0) { /* Make sure task doesn't already exist at this priority  */
         OSTCBPrioTbl[prio] = OS_TCB_RESERVED;/* Reserve the priority to prevent others from doing ...  */
-                                             /* ... the same thing until task is created.              */
-        OS_EXIT_CRITICAL();
-
-#if (OS_TASK_STAT_STK_CHK_EN > 0u)
-        OS_TaskStkClr(pbos, stk_size, opt);                    /* Clear the task stack (if needed)     */
-#endif
-
-        psp = OSTaskStkInit(task, p_arg, ptos, opt);           /* Initialize the task's stack          */
-        err = OS_TCBInit(prio, psp, pbos, id, stk_size, pext, opt);
-        if (err == OS_ERR_NONE) {
-            OS_TRACE_TASK_CREATE(OSTCBPrioTbl[prio]);
-            if (OSRunning == OS_TRUE) {                        /* Find HPT if multitasking has started */
-                OS_Sched();
-            }
-        } else {
-            OS_ENTER_CRITICAL();
-            OSTCBPrioTbl[prio] = (OS_TCB *)0;                  /* Make this priority avail. to others  */
-            OS_EXIT_CRITICAL();
-        }
-        return (err);
+    }else{
+        return (OS_ERR_PRIO_EXIST);
     }
     OS_EXIT_CRITICAL();
-    return (OS_ERR_PRIO_EXIST);
+
+#if (OS_TASK_STAT_STK_CHK_EN > 0u)
+    OS_TaskStkClr(pbos, stk_size, opt);      /* Clear the task stack (if needed)                       */
+#endif
+    
+//    err = OS_TCBInit(prio, psp, pbos, id, stk_size, pext, opt); 
+//   if (err == OS_ERR_NONE) {
+//        OS_TRACE_TASK_CREATE(OSTCBPrioTbl[prio]);
+//    } else {
+//        OS_ENTER_CRITICAL();
+//        OSTCBPrioTbl[prio] = (OS_TCB *)0;                  /* Make this priority avail. to others    */
+//        OS_EXIT_CRITICAL();
+//        return (err); 
+//    }
+     
+    ptcb = &OSTCBTbl[prio];
+    snprintf(name,RT_NAME_MAX,"uCTask%02d",prio);
+    
+    if(rt_thread_init(&ptcb->OSTask,name,task,p_arg,ptos,stk_size*sizeof(OS_STK),prio,0) != RT_EOK){
+        return OS_ERR_TASK_NO_MORE_TCB;
+    }
+    rt_thread_startup(&ptcb->OSTask);
+    
+    return (OS_ERR_NONE);
 }
 #endif
 
@@ -452,119 +414,119 @@ INT8U  OSTaskCreateExt (void   (*task)(void *p_arg),
 *********************************************************************************************************
 */
 
-#if OS_TASK_DEL_EN > 0u
-INT8U  OSTaskDel (INT8U prio)
-{
-#if (OS_FLAG_EN > 0u) && (OS_MAX_FLAGS > 0u)
-    OS_FLAG_NODE *pnode;
-#endif
-    OS_TCB       *ptcb;
-#if OS_CRITICAL_METHOD == 3u                            /* Allocate storage for CPU status register    */
-    OS_CPU_SR     cpu_sr = 0u;
-#endif
+//#if OS_TASK_DEL_EN > 0u
+//INT8U  OSTaskDel (INT8U prio)
+//{
+//#if (OS_FLAG_EN > 0u) && (OS_MAX_FLAGS > 0u)
+//    OS_FLAG_NODE *pnode;
+//#endif
+//    OS_TCB       *ptcb;
+//#if OS_CRITICAL_METHOD == 3u                            /* Allocate storage for CPU status register    */
+//    OS_CPU_SR     cpu_sr = 0u;
+//#endif
 
 
 
-#ifdef OS_SAFETY_CRITICAL_IEC61508
-    if (OSSafetyCriticalStartFlag == OS_TRUE) {
-        OS_SAFETY_CRITICAL_EXCEPTION();
-        return (OS_ERR_ILLEGAL_DEL_RUN_TIME);
-    }
-#endif
+//#ifdef OS_SAFETY_CRITICAL_IEC61508
+//    if (OSSafetyCriticalStartFlag == OS_TRUE) {
+//        OS_SAFETY_CRITICAL_EXCEPTION();
+//        return (OS_ERR_ILLEGAL_DEL_RUN_TIME);
+//    }
+//#endif
 
-    if (OSIntNesting > 0u) {                            /* See if trying to delete from ISR            */
-        return (OS_ERR_TASK_DEL_ISR);
-    }
-    if (prio == OS_TASK_IDLE_PRIO) {                    /* Not allowed to delete idle task             */
-        return (OS_ERR_TASK_DEL_IDLE);
-    }
-#if OS_ARG_CHK_EN > 0u
-    if (prio >= OS_LOWEST_PRIO) {                       /* Task priority valid ?                       */
-        if (prio != OS_PRIO_SELF) {
-            return (OS_ERR_PRIO_INVALID);
-        }
-    }
-#endif
+//    if (OSIntNesting > 0u) {                            /* See if trying to delete from ISR            */
+//        return (OS_ERR_TASK_DEL_ISR);
+//    }
+//    if (prio == OS_TASK_IDLE_PRIO) {                    /* Not allowed to delete idle task             */
+//        return (OS_ERR_TASK_DEL_IDLE);
+//    }
+//#if OS_ARG_CHK_EN > 0u
+//    if (prio >= OS_LOWEST_PRIO) {                       /* Task priority valid ?                       */
+//        if (prio != OS_PRIO_SELF) {
+//            return (OS_ERR_PRIO_INVALID);
+//        }
+//    }
+//#endif
 
-    OS_ENTER_CRITICAL();
-    if (prio == OS_PRIO_SELF) {                         /* See if requesting to delete self            */
-        prio = OSTCBCur->OSTCBPrio;                     /* Set priority to delete to current           */
-    }
-    ptcb = OSTCBPrioTbl[prio];
-    if (ptcb == (OS_TCB *)0) {                          /* Task to delete must exist                   */
-        OS_EXIT_CRITICAL();
-        return (OS_ERR_TASK_NOT_EXIST);
-    }
-    if (ptcb == OS_TCB_RESERVED) {                      /* Must not be assigned to Mutex               */
-        OS_EXIT_CRITICAL();
-        return (OS_ERR_TASK_DEL);
-    }
+//    OS_ENTER_CRITICAL();
+//    if (prio == OS_PRIO_SELF) {                         /* See if requesting to delete self            */
+//        prio = OSTCBCur->OSTCBPrio;                     /* Set priority to delete to current           */
+//    }
+//    ptcb = OSTCBPrioTbl[prio];
+//    if (ptcb == (OS_TCB *)0) {                          /* Task to delete must exist                   */
+//        OS_EXIT_CRITICAL();
+//        return (OS_ERR_TASK_NOT_EXIST);
+//    }
+//    if (ptcb == OS_TCB_RESERVED) {                      /* Must not be assigned to Mutex               */
+//        OS_EXIT_CRITICAL();
+//        return (OS_ERR_TASK_DEL);
+//    }
 
-    OSRdyTbl[ptcb->OSTCBY] &= (OS_PRIO)~ptcb->OSTCBBitX;
-    OS_TRACE_TASK_SUSPENDED(ptcb);
-    if (OSRdyTbl[ptcb->OSTCBY] == 0u) {                 /* Make task not ready                         */
-        OSRdyGrp           &= (OS_PRIO)~ptcb->OSTCBBitY;
-    }
+//    OSRdyTbl[ptcb->OSTCBY] &= (OS_PRIO)~ptcb->OSTCBBitX;
+//    OS_TRACE_TASK_SUSPENDED(ptcb);
+//    if (OSRdyTbl[ptcb->OSTCBY] == 0u) {                 /* Make task not ready                         */
+//        OSRdyGrp           &= (OS_PRIO)~ptcb->OSTCBBitY;
+//    }
 
-#if (OS_EVENT_EN)
-    if (ptcb->OSTCBEventPtr != (OS_EVENT *)0) {
-        OS_EventTaskRemove(ptcb, ptcb->OSTCBEventPtr);  /* Remove this task from any event   wait list */
-    }
-#if (OS_EVENT_MULTI_EN > 0u)
-    if (ptcb->OSTCBEventMultiPtr != (OS_EVENT **)0) {   /* Remove this task from any events' wait lists*/
-        OS_EventTaskRemoveMulti(ptcb, ptcb->OSTCBEventMultiPtr);
-    }
-#endif
-#endif
+//#if (OS_EVENT_EN)
+//    if (ptcb->OSTCBEventPtr != (OS_EVENT *)0) {
+//        OS_EventTaskRemove(ptcb, ptcb->OSTCBEventPtr);  /* Remove this task from any event   wait list */
+//    }
+//#if (OS_EVENT_MULTI_EN > 0u)
+//    if (ptcb->OSTCBEventMultiPtr != (OS_EVENT **)0) {   /* Remove this task from any events' wait lists*/
+//        OS_EventTaskRemoveMulti(ptcb, ptcb->OSTCBEventMultiPtr);
+//    }
+//#endif
+//#endif
 
-#if (OS_FLAG_EN > 0u) && (OS_MAX_FLAGS > 0u)
-    pnode = ptcb->OSTCBFlagNode;
-    if (pnode != (OS_FLAG_NODE *)0) {                   /* If task is waiting on event flag            */
-        OS_FlagUnlink(pnode);                           /* Remove from wait list                       */
-    }
-#endif
+//#if (OS_FLAG_EN > 0u) && (OS_MAX_FLAGS > 0u)
+//    pnode = ptcb->OSTCBFlagNode;
+//    if (pnode != (OS_FLAG_NODE *)0) {                   /* If task is waiting on event flag            */
+//        OS_FlagUnlink(pnode);                           /* Remove from wait list                       */
+//    }
+//#endif
 
-    ptcb->OSTCBDly      = 0u;                           /* Prevent OSTimeTick() from updating          */
-    ptcb->OSTCBStat     = OS_STAT_RDY;                  /* Prevent task from being resumed             */
-    ptcb->OSTCBStatPend = OS_STAT_PEND_OK;
-    if (OSLockNesting < 255u) {                         /* Make sure we don't context switch           */
-        OSLockNesting++;
-    }
-    OS_EXIT_CRITICAL();                                 /* Enabling INT. ignores next instruc.         */
-    OS_Dummy();                                         /* ... Dummy ensures that INTs will be         */
-    OS_ENTER_CRITICAL();                                /* ... disabled HERE!                          */
-    if (OSLockNesting > 0u) {                           /* Remove context switch lock                  */
-        OSLockNesting--;
-    }
-    OSTaskDelHook(ptcb);                                /* Call user defined hook                      */
+//    ptcb->OSTCBDly      = 0u;                           /* Prevent OSTimeTick() from updating          */
+//    ptcb->OSTCBStat     = OS_STAT_RDY;                  /* Prevent task from being resumed             */
+//    ptcb->OSTCBStatPend = OS_STAT_PEND_OK;
+//    if (OSLockNesting < 255u) {                         /* Make sure we don't context switch           */
+//        OSLockNesting++;
+//    }
+//    OS_EXIT_CRITICAL();                                 /* Enabling INT. ignores next instruc.         */
+//    OS_Dummy();                                         /* ... Dummy ensures that INTs will be         */
+//    OS_ENTER_CRITICAL();                                /* ... disabled HERE!                          */
+//    if (OSLockNesting > 0u) {                           /* Remove context switch lock                  */
+//        OSLockNesting--;
+//    }
+//    OSTaskDelHook(ptcb);                                /* Call user defined hook                      */
 
-#if OS_TASK_CREATE_EXT_EN > 0u
-#if defined(OS_TLS_TBL_SIZE) && (OS_TLS_TBL_SIZE > 0u)
-    OS_TLS_TaskDel(ptcb);                               /* Call TLS hook                               */
-#endif
-#endif
+//#if OS_TASK_CREATE_EXT_EN > 0u
+//#if defined(OS_TLS_TBL_SIZE) && (OS_TLS_TBL_SIZE > 0u)
+//    OS_TLS_TaskDel(ptcb);                               /* Call TLS hook                               */
+//#endif
+//#endif
 
-    OSTaskCtr--;                                        /* One less task being managed                 */
-    OSTCBPrioTbl[prio] = (OS_TCB *)0;                   /* Clear old priority entry                    */
-    if (ptcb->OSTCBPrev == (OS_TCB *)0) {               /* Remove from TCB chain                       */
-        ptcb->OSTCBNext->OSTCBPrev = (OS_TCB *)0;
-        OSTCBList                  = ptcb->OSTCBNext;
-    } else {
-        ptcb->OSTCBPrev->OSTCBNext = ptcb->OSTCBNext;
-        ptcb->OSTCBNext->OSTCBPrev = ptcb->OSTCBPrev;
-    }
-    ptcb->OSTCBNext     = OSTCBFreeList;                /* Return TCB to free TCB list                 */
-    OSTCBFreeList       = ptcb;
-#if OS_TASK_NAME_EN > 0u
-    ptcb->OSTCBTaskName = (INT8U *)(void *)"?";
-#endif
-    OS_EXIT_CRITICAL();
-    if (OSRunning == OS_TRUE) {
-        OS_Sched();                                     /* Find new highest priority task              */
-    }
-    return (OS_ERR_NONE);
-}
-#endif
+//    OSTaskCtr--;                                        /* One less task being managed                 */
+//    OSTCBPrioTbl[prio] = (OS_TCB *)0;                   /* Clear old priority entry                    */
+//    if (ptcb->OSTCBPrev == (OS_TCB *)0) {               /* Remove from TCB chain                       */
+//        ptcb->OSTCBNext->OSTCBPrev = (OS_TCB *)0;
+//        OSTCBList                  = ptcb->OSTCBNext;
+//    } else {
+//        ptcb->OSTCBPrev->OSTCBNext = ptcb->OSTCBNext;
+//        ptcb->OSTCBNext->OSTCBPrev = ptcb->OSTCBPrev;
+//    }
+//    ptcb->OSTCBNext     = OSTCBFreeList;                /* Return TCB to free TCB list                 */
+//    OSTCBFreeList       = ptcb;
+//#if OS_TASK_NAME_EN > 0u
+//    ptcb->OSTCBTaskName = (INT8U *)(void *)"?";
+//#endif
+//    OS_EXIT_CRITICAL();
+//    if (OSRunning == OS_TRUE) {
+//        OS_Sched();                                     /* Find new highest priority task              */
+//    }
+//    return (OS_ERR_NONE);
+//}
+//#endif
 
 
 /*
@@ -615,55 +577,55 @@ INT8U  OSTaskDel (INT8U prio)
 *********************************************************************************************************
 */
 
-#if OS_TASK_DEL_EN > 0u
-INT8U  OSTaskDelReq (INT8U prio)
-{
-    INT8U      stat;
-    OS_TCB    *ptcb;
-#if OS_CRITICAL_METHOD == 3u                     /* Allocate storage for CPU status register           */
-    OS_CPU_SR  cpu_sr = 0u;
-#endif
+//#if OS_TASK_DEL_EN > 0u
+//INT8U  OSTaskDelReq (INT8U prio)
+//{
+//    INT8U      stat;
+//    OS_TCB    *ptcb;
+//#if OS_CRITICAL_METHOD == 3u                     /* Allocate storage for CPU status register           */
+//    OS_CPU_SR  cpu_sr = 0u;
+//#endif
 
 
 
-#ifdef OS_SAFETY_CRITICAL_IEC61508
-    if (OSSafetyCriticalStartFlag == OS_TRUE) {
-        OS_SAFETY_CRITICAL_EXCEPTION();
-        return (OS_ERR_ILLEGAL_DEL_RUN_TIME);
-    }
-#endif
+//#ifdef OS_SAFETY_CRITICAL_IEC61508
+//    if (OSSafetyCriticalStartFlag == OS_TRUE) {
+//        OS_SAFETY_CRITICAL_EXCEPTION();
+//        return (OS_ERR_ILLEGAL_DEL_RUN_TIME);
+//    }
+//#endif
 
-    if (prio == OS_TASK_IDLE_PRIO) {                            /* Not allowed to delete idle task     */
-        return (OS_ERR_TASK_DEL_IDLE);
-    }
-#if OS_ARG_CHK_EN > 0u
-    if (prio >= OS_LOWEST_PRIO) {                               /* Task priority valid ?               */
-        if (prio != OS_PRIO_SELF) {
-            return (OS_ERR_PRIO_INVALID);
-        }
-    }
-#endif
-    if (prio == OS_PRIO_SELF) {                                 /* See if a task is requesting to ...  */
-        OS_ENTER_CRITICAL();                                    /* ... this task to delete itself      */
-        stat = OSTCBCur->OSTCBDelReq;                           /* Return request status to caller     */
-        OS_EXIT_CRITICAL();
-        return (stat);
-    }
-    OS_ENTER_CRITICAL();
-    ptcb = OSTCBPrioTbl[prio];
-    if (ptcb == (OS_TCB *)0) {                                  /* Task to delete must exist           */
-        OS_EXIT_CRITICAL();
-        return (OS_ERR_TASK_NOT_EXIST);                         /* Task must already be deleted        */
-    }
-    if (ptcb == OS_TCB_RESERVED) {                              /* Must NOT be assigned to a Mutex     */
-        OS_EXIT_CRITICAL();
-        return (OS_ERR_TASK_DEL);
-    }
-    ptcb->OSTCBDelReq = OS_ERR_TASK_DEL_REQ;                    /* Set flag indicating task to be DEL. */
-    OS_EXIT_CRITICAL();
-    return (OS_ERR_NONE);
-}
-#endif
+//    if (prio == OS_TASK_IDLE_PRIO) {                            /* Not allowed to delete idle task     */
+//        return (OS_ERR_TASK_DEL_IDLE);
+//    }
+//#if OS_ARG_CHK_EN > 0u
+//    if (prio >= OS_LOWEST_PRIO) {                               /* Task priority valid ?               */
+//        if (prio != OS_PRIO_SELF) {
+//            return (OS_ERR_PRIO_INVALID);
+//        }
+//    }
+//#endif
+//    if (prio == OS_PRIO_SELF) {                                 /* See if a task is requesting to ...  */
+//        OS_ENTER_CRITICAL();                                    /* ... this task to delete itself      */
+//        stat = OSTCBCur->OSTCBDelReq;                           /* Return request status to caller     */
+//        OS_EXIT_CRITICAL();
+//        return (stat);
+//    }
+//    OS_ENTER_CRITICAL();
+//    ptcb = OSTCBPrioTbl[prio];
+//    if (ptcb == (OS_TCB *)0) {                                  /* Task to delete must exist           */
+//        OS_EXIT_CRITICAL();
+//        return (OS_ERR_TASK_NOT_EXIST);                         /* Task must already be deleted        */
+//    }
+//    if (ptcb == OS_TCB_RESERVED) {                              /* Must NOT be assigned to a Mutex     */
+//        OS_EXIT_CRITICAL();
+//        return (OS_ERR_TASK_DEL);
+//    }
+//    ptcb->OSTCBDelReq = OS_ERR_TASK_DEL_REQ;                    /* Set flag indicating task to be DEL. */
+//    OS_EXIT_CRITICAL();
+//    return (OS_ERR_NONE);
+//}
+//#endif
 
 
 /*
@@ -690,64 +652,64 @@ INT8U  OSTaskDelReq (INT8U prio)
 *********************************************************************************************************
 */
 
-#if OS_TASK_NAME_EN > 0u
-INT8U  OSTaskNameGet (INT8U    prio,
-                      INT8U  **pname,
-                      INT8U   *perr)
-{
-    OS_TCB    *ptcb;
-    INT8U      len;
-#if OS_CRITICAL_METHOD == 3u                             /* Allocate storage for CPU status register   */
-    OS_CPU_SR  cpu_sr = 0u;
-#endif
+//#if OS_TASK_NAME_EN > 0u
+//INT8U  OSTaskNameGet (INT8U    prio,
+//                      INT8U  **pname,
+//                      INT8U   *perr)
+//{
+//    OS_TCB    *ptcb;
+//    INT8U      len;
+//#if OS_CRITICAL_METHOD == 3u                             /* Allocate storage for CPU status register   */
+//    OS_CPU_SR  cpu_sr = 0u;
+//#endif
 
 
 
-#ifdef OS_SAFETY_CRITICAL
-    if (perr == (INT8U *)0) {
-        OS_SAFETY_CRITICAL_EXCEPTION();
-        return (0u);
-    }
-#endif
+//#ifdef OS_SAFETY_CRITICAL
+//    if (perr == (INT8U *)0) {
+//        OS_SAFETY_CRITICAL_EXCEPTION();
+//        return (0u);
+//    }
+//#endif
 
-#if OS_ARG_CHK_EN > 0u
-    if (prio > OS_LOWEST_PRIO) {                         /* Task priority valid ?                      */
-        if (prio != OS_PRIO_SELF) {
-            *perr = OS_ERR_PRIO_INVALID;                 /* No                                         */
-            return (0u);
-        }
-    }
-    if (pname == (INT8U **)0) {                          /* Is 'pname' a NULL pointer?                 */
-        *perr = OS_ERR_PNAME_NULL;                       /* Yes                                        */
-        return (0u);
-    }
-#endif
-    if (OSIntNesting > 0u) {                              /* See if trying to call from an ISR          */
-        *perr = OS_ERR_NAME_GET_ISR;
-        return (0u);
-    }
-    OS_ENTER_CRITICAL();
-    if (prio == OS_PRIO_SELF) {                          /* See if caller desires it's own name        */
-        prio = OSTCBCur->OSTCBPrio;
-    }
-    ptcb = OSTCBPrioTbl[prio];
-    if (ptcb == (OS_TCB *)0) {                           /* Does task exist?                           */
-        OS_EXIT_CRITICAL();                              /* No                                         */
-        *perr = OS_ERR_TASK_NOT_EXIST;
-        return (0u);
-    }
-    if (ptcb == OS_TCB_RESERVED) {                       /* Task assigned to a Mutex?                  */
-        OS_EXIT_CRITICAL();                              /* Yes                                        */
-        *perr = OS_ERR_TASK_NOT_EXIST;
-        return (0u);
-    }
-    *pname = ptcb->OSTCBTaskName;
-    len    = OS_StrLen(*pname);
-    OS_EXIT_CRITICAL();
-    *perr  = OS_ERR_NONE;
-    return (len);
-}
-#endif
+//#if OS_ARG_CHK_EN > 0u
+//    if (prio > OS_LOWEST_PRIO) {                         /* Task priority valid ?                      */
+//        if (prio != OS_PRIO_SELF) {
+//            *perr = OS_ERR_PRIO_INVALID;                 /* No                                         */
+//            return (0u);
+//        }
+//    }
+//    if (pname == (INT8U **)0) {                          /* Is 'pname' a NULL pointer?                 */
+//        *perr = OS_ERR_PNAME_NULL;                       /* Yes                                        */
+//        return (0u);
+//    }
+//#endif
+//    if (OSIntNesting > 0u) {                              /* See if trying to call from an ISR          */
+//        *perr = OS_ERR_NAME_GET_ISR;
+//        return (0u);
+//    }
+//    OS_ENTER_CRITICAL();
+//    if (prio == OS_PRIO_SELF) {                          /* See if caller desires it's own name        */
+//        prio = OSTCBCur->OSTCBPrio;
+//    }
+//    ptcb = OSTCBPrioTbl[prio];
+//    if (ptcb == (OS_TCB *)0) {                           /* Does task exist?                           */
+//        OS_EXIT_CRITICAL();                              /* No                                         */
+//        *perr = OS_ERR_TASK_NOT_EXIST;
+//        return (0u);
+//    }
+//    if (ptcb == OS_TCB_RESERVED) {                       /* Task assigned to a Mutex?                  */
+//        OS_EXIT_CRITICAL();                              /* Yes                                        */
+//        *perr = OS_ERR_TASK_NOT_EXIST;
+//        return (0u);
+//    }
+//    *pname = ptcb->OSTCBTaskName;
+//    len    = OS_StrLen(*pname);
+//    OS_EXIT_CRITICAL();
+//    *perr  = OS_ERR_NONE;
+//    return (len);
+//}
+//#endif
 
 
 /*
@@ -772,62 +734,62 @@ INT8U  OSTaskNameGet (INT8U    prio,
 * Returns    : None
 *********************************************************************************************************
 */
-#if OS_TASK_NAME_EN > 0u
-void  OSTaskNameSet (INT8U   prio,
-                     INT8U  *pname,
-                     INT8U  *perr)
-{
-    OS_TCB    *ptcb;
-#if OS_CRITICAL_METHOD == 3u                         /* Allocate storage for CPU status register       */
-    OS_CPU_SR  cpu_sr = 0u;
-#endif
+//#if OS_TASK_NAME_EN > 0u
+//void  OSTaskNameSet (INT8U   prio,
+//                     INT8U  *pname,
+//                     INT8U  *perr)
+//{
+//    OS_TCB    *ptcb;
+//#if OS_CRITICAL_METHOD == 3u                         /* Allocate storage for CPU status register       */
+//    OS_CPU_SR  cpu_sr = 0u;
+//#endif
 
 
 
-#ifdef OS_SAFETY_CRITICAL
-    if (perr == (INT8U *)0) {
-        OS_SAFETY_CRITICAL_EXCEPTION();
-        return;
-    }
-#endif
+//#ifdef OS_SAFETY_CRITICAL
+//    if (perr == (INT8U *)0) {
+//        OS_SAFETY_CRITICAL_EXCEPTION();
+//        return;
+//    }
+//#endif
 
-#if OS_ARG_CHK_EN > 0u
-    if (prio > OS_LOWEST_PRIO) {                     /* Task priority valid ?                          */
-        if (prio != OS_PRIO_SELF) {
-            *perr = OS_ERR_PRIO_INVALID;             /* No                                             */
-            return;
-        }
-    }
-    if (pname == (INT8U *)0) {                       /* Is 'pname' a NULL pointer?                     */
-        *perr = OS_ERR_PNAME_NULL;                   /* Yes                                            */
-        return;
-    }
-#endif
-    if (OSIntNesting > 0u) {                         /* See if trying to call from an ISR              */
-        *perr = OS_ERR_NAME_SET_ISR;
-        return;
-    }
-    OS_ENTER_CRITICAL();
-    if (prio == OS_PRIO_SELF) {                      /* See if caller desires to set it's own name     */
-        prio = OSTCBCur->OSTCBPrio;
-    }
-    ptcb = OSTCBPrioTbl[prio];
-    if (ptcb == (OS_TCB *)0) {                       /* Does task exist?                               */
-        OS_EXIT_CRITICAL();                          /* No                                             */
-        *perr = OS_ERR_TASK_NOT_EXIST;
-        return;
-    }
-    if (ptcb == OS_TCB_RESERVED) {                   /* Task assigned to a Mutex?                      */
-        OS_EXIT_CRITICAL();                          /* Yes                                            */
-        *perr = OS_ERR_TASK_NOT_EXIST;
-        return;
-    }
-    ptcb->OSTCBTaskName = pname;
-    OS_TRACE_TASK_NAME_SET(ptcb);
-    OS_EXIT_CRITICAL();
-    *perr               = OS_ERR_NONE;
-}
-#endif
+//#if OS_ARG_CHK_EN > 0u
+//    if (prio > OS_LOWEST_PRIO) {                     /* Task priority valid ?                          */
+//        if (prio != OS_PRIO_SELF) {
+//            *perr = OS_ERR_PRIO_INVALID;             /* No                                             */
+//            return;
+//        }
+//    }
+//    if (pname == (INT8U *)0) {                       /* Is 'pname' a NULL pointer?                     */
+//        *perr = OS_ERR_PNAME_NULL;                   /* Yes                                            */
+//        return;
+//    }
+//#endif
+//    if (OSIntNesting > 0u) {                         /* See if trying to call from an ISR              */
+//        *perr = OS_ERR_NAME_SET_ISR;
+//        return;
+//    }
+//    OS_ENTER_CRITICAL();
+//    if (prio == OS_PRIO_SELF) {                      /* See if caller desires to set it's own name     */
+//        prio = OSTCBCur->OSTCBPrio;
+//    }
+//    ptcb = OSTCBPrioTbl[prio];
+//    if (ptcb == (OS_TCB *)0) {                       /* Does task exist?                               */
+//        OS_EXIT_CRITICAL();                          /* No                                             */
+//        *perr = OS_ERR_TASK_NOT_EXIST;
+//        return;
+//    }
+//    if (ptcb == OS_TCB_RESERVED) {                   /* Task assigned to a Mutex?                      */
+//        OS_EXIT_CRITICAL();                          /* Yes                                            */
+//        *perr = OS_ERR_TASK_NOT_EXIST;
+//        return;
+//    }
+//    ptcb->OSTCBTaskName = pname;
+//    OS_TRACE_TASK_NAME_SET(ptcb);
+//    OS_EXIT_CRITICAL();
+//    *perr               = OS_ERR_NONE;
+//}
+//#endif
 
 
 /*
@@ -848,55 +810,55 @@ void  OSTaskNameSet (INT8U   prio,
 *********************************************************************************************************
 */
 
-#if OS_TASK_SUSPEND_EN > 0u
-INT8U  OSTaskResume (INT8U prio)
-{
-    OS_TCB    *ptcb;
-#if OS_CRITICAL_METHOD == 3u                                  /* Storage for CPU status register       */
-    OS_CPU_SR  cpu_sr = 0u;
-#endif
+//#if OS_TASK_SUSPEND_EN > 0u
+//INT8U  OSTaskResume (INT8U prio)
+//{
+//    OS_TCB    *ptcb;
+//#if OS_CRITICAL_METHOD == 3u                                  /* Storage for CPU status register       */
+//    OS_CPU_SR  cpu_sr = 0u;
+//#endif
 
 
 
-#if OS_ARG_CHK_EN > 0u
-    if (prio >= OS_LOWEST_PRIO) {                             /* Make sure task priority is valid      */
-        return (OS_ERR_PRIO_INVALID);
-    }
-#endif
-    OS_ENTER_CRITICAL();
-    ptcb = OSTCBPrioTbl[prio];
-    if (ptcb == (OS_TCB *)0) {                                /* Task to suspend must exist            */
-        OS_EXIT_CRITICAL();
-        return (OS_ERR_TASK_RESUME_PRIO);
-    }
-    if (ptcb == OS_TCB_RESERVED) {                            /* See if assigned to Mutex              */
-        OS_EXIT_CRITICAL();
-        return (OS_ERR_TASK_NOT_EXIST);
-    }
-    if ((ptcb->OSTCBStat & OS_STAT_SUSPEND) != OS_STAT_RDY) { /* Task must be suspended                */
-        ptcb->OSTCBStat &= (INT8U)~(INT8U)OS_STAT_SUSPEND;    /* Remove suspension                     */
-        if ((ptcb->OSTCBStat & OS_STAT_PEND_ANY) == OS_STAT_RDY) { /* See if task is now ready         */
-            if (ptcb->OSTCBDly == 0u) {
-                OSRdyGrp               |= ptcb->OSTCBBitY;    /* Yes, Make task ready to run           */
-                OSRdyTbl[ptcb->OSTCBY] |= ptcb->OSTCBBitX;
-                OS_TRACE_TASK_READY(ptcb);
-                OS_EXIT_CRITICAL();
-                if (OSRunning == OS_TRUE) {
-                    OS_TRACE_TASK_RESUME(ptcb);
-                    OS_Sched();                               /* Find new highest priority task        */
-                }
-            } else {
-                OS_EXIT_CRITICAL();
-            }
-        } else {                                              /* Must be pending on event              */
-            OS_EXIT_CRITICAL();
-        }
-        return (OS_ERR_NONE);
-    }
-    OS_EXIT_CRITICAL();
-    return (OS_ERR_TASK_NOT_SUSPENDED);
-}
-#endif
+//#if OS_ARG_CHK_EN > 0u
+//    if (prio >= OS_LOWEST_PRIO) {                             /* Make sure task priority is valid      */
+//        return (OS_ERR_PRIO_INVALID);
+//    }
+//#endif
+//    OS_ENTER_CRITICAL();
+//    ptcb = OSTCBPrioTbl[prio];
+//    if (ptcb == (OS_TCB *)0) {                                /* Task to suspend must exist            */
+//        OS_EXIT_CRITICAL();
+//        return (OS_ERR_TASK_RESUME_PRIO);
+//    }
+//    if (ptcb == OS_TCB_RESERVED) {                            /* See if assigned to Mutex              */
+//        OS_EXIT_CRITICAL();
+//        return (OS_ERR_TASK_NOT_EXIST);
+//    }
+//    if ((ptcb->OSTCBStat & OS_STAT_SUSPEND) != OS_STAT_RDY) { /* Task must be suspended                */
+//        ptcb->OSTCBStat &= (INT8U)~(INT8U)OS_STAT_SUSPEND;    /* Remove suspension                     */
+//        if ((ptcb->OSTCBStat & OS_STAT_PEND_ANY) == OS_STAT_RDY) { /* See if task is now ready         */
+//            if (ptcb->OSTCBDly == 0u) {
+//                OSRdyGrp               |= ptcb->OSTCBBitY;    /* Yes, Make task ready to run           */
+//                OSRdyTbl[ptcb->OSTCBY] |= ptcb->OSTCBBitX;
+//                OS_TRACE_TASK_READY(ptcb);
+//                OS_EXIT_CRITICAL();
+//                if (OSRunning == OS_TRUE) {
+//                    OS_TRACE_TASK_RESUME(ptcb);
+//                    OS_Sched();                               /* Find new highest priority task        */
+//                }
+//            } else {
+//                OS_EXIT_CRITICAL();
+//            }
+//        } else {                                              /* Must be pending on event              */
+//            OS_EXIT_CRITICAL();
+//        }
+//        return (OS_ERR_NONE);
+//    }
+//    OS_EXIT_CRITICAL();
+//    return (OS_ERR_TASK_NOT_SUSPENDED);
+//}
+//#endif
 
 
 /*
@@ -918,67 +880,67 @@ INT8U  OSTaskResume (INT8U prio)
 *              OS_ERR_PDATA_NULL      if 'p_stk_data' is a NULL pointer
 *********************************************************************************************************
 */
-#if (OS_TASK_STAT_STK_CHK_EN > 0u) && (OS_TASK_CREATE_EXT_EN > 0u)
-INT8U  OSTaskStkChk (INT8U         prio,
-                     OS_STK_DATA  *p_stk_data)
-{
-    OS_TCB    *ptcb;
-    OS_STK    *pchk;
-    INT32U     nfree;
-    INT32U     size;
-#if OS_CRITICAL_METHOD == 3u                           /* Allocate storage for CPU status register     */
-    OS_CPU_SR  cpu_sr = 0u;
-#endif
+//#if (OS_TASK_STAT_STK_CHK_EN > 0u) && (OS_TASK_CREATE_EXT_EN > 0u)
+//INT8U  OSTaskStkChk (INT8U         prio,
+//                     OS_STK_DATA  *p_stk_data)
+//{
+//    OS_TCB    *ptcb;
+//    OS_STK    *pchk;
+//    INT32U     nfree;
+//    INT32U     size;
+//#if OS_CRITICAL_METHOD == 3u                           /* Allocate storage for CPU status register     */
+//    OS_CPU_SR  cpu_sr = 0u;
+//#endif
 
 
 
-#if OS_ARG_CHK_EN > 0u
-    if (prio > OS_LOWEST_PRIO) {                       /* Make sure task priority is valid             */
-        if (prio != OS_PRIO_SELF) {
-            return (OS_ERR_PRIO_INVALID);
-        }
-    }
-    if (p_stk_data == (OS_STK_DATA *)0) {              /* Validate 'p_stk_data'                        */
-        return (OS_ERR_PDATA_NULL);
-    }
-#endif
-    p_stk_data->OSFree = 0u;                           /* Assume failure, set to 0 size                */
-    p_stk_data->OSUsed = 0u;
-    OS_ENTER_CRITICAL();
-    if (prio == OS_PRIO_SELF) {                        /* See if check for SELF                        */
-        prio = OSTCBCur->OSTCBPrio;
-    }
-    ptcb = OSTCBPrioTbl[prio];
-    if (ptcb == (OS_TCB *)0) {                         /* Make sure task exist                         */
-        OS_EXIT_CRITICAL();
-        return (OS_ERR_TASK_NOT_EXIST);
-    }
-    if (ptcb == OS_TCB_RESERVED) {
-        OS_EXIT_CRITICAL();
-        return (OS_ERR_TASK_NOT_EXIST);
-    }
-    if ((ptcb->OSTCBOpt & OS_TASK_OPT_STK_CHK) == 0u) { /* Make sure stack checking option is set      */
-        OS_EXIT_CRITICAL();
-        return (OS_ERR_TASK_OPT);
-    }
-    nfree = 0u;
-    size  = ptcb->OSTCBStkSize;
-    pchk  = ptcb->OSTCBStkBottom;
-    OS_EXIT_CRITICAL();
-#if OS_STK_GROWTH == 1u
-    while (*pchk++ == (OS_STK)0) {                    /* Compute the number of zero entries on the stk */
-        nfree++;
-    }
-#else
-    while (*pchk-- == (OS_STK)0) {
-        nfree++;
-    }
-#endif
-    p_stk_data->OSFree = nfree;                       /* Store   number of free entries on the stk     */
-    p_stk_data->OSUsed = size - nfree;                /* Compute number of entries used on the stk     */
-    return (OS_ERR_NONE);
-}
-#endif
+//#if OS_ARG_CHK_EN > 0u
+//    if (prio > OS_LOWEST_PRIO) {                       /* Make sure task priority is valid             */
+//        if (prio != OS_PRIO_SELF) {
+//            return (OS_ERR_PRIO_INVALID);
+//        }
+//    }
+//    if (p_stk_data == (OS_STK_DATA *)0) {              /* Validate 'p_stk_data'                        */
+//        return (OS_ERR_PDATA_NULL);
+//    }
+//#endif
+//    p_stk_data->OSFree = 0u;                           /* Assume failure, set to 0 size                */
+//    p_stk_data->OSUsed = 0u;
+//    OS_ENTER_CRITICAL();
+//    if (prio == OS_PRIO_SELF) {                        /* See if check for SELF                        */
+//        prio = OSTCBCur->OSTCBPrio;
+//    }
+//    ptcb = OSTCBPrioTbl[prio];
+//    if (ptcb == (OS_TCB *)0) {                         /* Make sure task exist                         */
+//        OS_EXIT_CRITICAL();
+//        return (OS_ERR_TASK_NOT_EXIST);
+//    }
+//    if (ptcb == OS_TCB_RESERVED) {
+//        OS_EXIT_CRITICAL();
+//        return (OS_ERR_TASK_NOT_EXIST);
+//    }
+//    if ((ptcb->OSTCBOpt & OS_TASK_OPT_STK_CHK) == 0u) { /* Make sure stack checking option is set      */
+//        OS_EXIT_CRITICAL();
+//        return (OS_ERR_TASK_OPT);
+//    }
+//    nfree = 0u;
+//    size  = ptcb->OSTCBStkSize;
+//    pchk  = ptcb->OSTCBStkBottom;
+//    OS_EXIT_CRITICAL();
+//#if OS_STK_GROWTH == 1u
+//    while (*pchk++ == (OS_STK)0) {                    /* Compute the number of zero entries on the stk */
+//        nfree++;
+//    }
+//#else
+//    while (*pchk-- == (OS_STK)0) {
+//        nfree++;
+//    }
+//#endif
+//    p_stk_data->OSFree = nfree;                       /* Store   number of free entries on the stk     */
+//    p_stk_data->OSUsed = size - nfree;                /* Compute number of entries used on the stk     */
+//    return (OS_ERR_NONE);
+//}
+//#endif
 
 
 /*
@@ -1004,61 +966,61 @@ INT8U  OSTaskStkChk (INT8U         prio,
 *********************************************************************************************************
 */
 
-#if OS_TASK_SUSPEND_EN > 0u
-INT8U  OSTaskSuspend (INT8U prio)
-{
-    BOOLEAN    self;
-    OS_TCB    *ptcb;
-    INT8U      y;
-#if OS_CRITICAL_METHOD == 3u                     /* Allocate storage for CPU status register           */
-    OS_CPU_SR  cpu_sr = 0u;
-#endif
+//#if OS_TASK_SUSPEND_EN > 0u
+//INT8U  OSTaskSuspend (INT8U prio)
+//{
+//    BOOLEAN    self;
+//    OS_TCB    *ptcb;
+//    INT8U      y;
+//#if OS_CRITICAL_METHOD == 3u                     /* Allocate storage for CPU status register           */
+//    OS_CPU_SR  cpu_sr = 0u;
+//#endif
 
 
 
-#if OS_ARG_CHK_EN > 0u
-    if (prio == OS_TASK_IDLE_PRIO) {                            /* Not allowed to suspend idle task    */
-        return (OS_ERR_TASK_SUSPEND_IDLE);
-    }
-    if (prio >= OS_LOWEST_PRIO) {                               /* Task priority valid ?               */
-        if (prio != OS_PRIO_SELF) {
-            return (OS_ERR_PRIO_INVALID);
-        }
-    }
-#endif
-    OS_ENTER_CRITICAL();
-    if (prio == OS_PRIO_SELF) {                                 /* See if suspend SELF                 */
-        prio = OSTCBCur->OSTCBPrio;
-        self = OS_TRUE;
-    } else if (prio == OSTCBCur->OSTCBPrio) {                   /* See if suspending self              */
-        self = OS_TRUE;
-    } else {
-        self = OS_FALSE;                                        /* No suspending another task          */
-    }
-    ptcb = OSTCBPrioTbl[prio];
-    if (ptcb == (OS_TCB *)0) {                                  /* Task to suspend must exist          */
-        OS_EXIT_CRITICAL();
-        return (OS_ERR_TASK_SUSPEND_PRIO);
-    }
-    if (ptcb == OS_TCB_RESERVED) {                              /* See if assigned to Mutex            */
-        OS_EXIT_CRITICAL();
-        return (OS_ERR_TASK_NOT_EXIST);
-    }
-    y            = ptcb->OSTCBY;
-    OSRdyTbl[y] &= (OS_PRIO)~ptcb->OSTCBBitX;                   /* Make task not ready                 */
-    if (OSRdyTbl[y] == 0u) {
-        OSRdyGrp &= (OS_PRIO)~ptcb->OSTCBBitY;
-    }
-    ptcb->OSTCBStat |= OS_STAT_SUSPEND;                         /* Status of task is 'SUSPENDED'       */
-    OS_EXIT_CRITICAL();
-    OS_TRACE_TASK_SUSPEND(ptcb);
-    OS_TRACE_TASK_SUSPENDED(ptcb);
-    if (self == OS_TRUE) {                                      /* Context switch only if SELF         */
-        OS_Sched();                                             /* Find new highest priority task      */
-    }
-    return (OS_ERR_NONE);
-}
-#endif
+//#if OS_ARG_CHK_EN > 0u
+//    if (prio == OS_TASK_IDLE_PRIO) {                            /* Not allowed to suspend idle task    */
+//        return (OS_ERR_TASK_SUSPEND_IDLE);
+//    }
+//    if (prio >= OS_LOWEST_PRIO) {                               /* Task priority valid ?               */
+//        if (prio != OS_PRIO_SELF) {
+//            return (OS_ERR_PRIO_INVALID);
+//        }
+//    }
+//#endif
+//    OS_ENTER_CRITICAL();
+//    if (prio == OS_PRIO_SELF) {                                 /* See if suspend SELF                 */
+//        prio = OSTCBCur->OSTCBPrio;
+//        self = OS_TRUE;
+//    } else if (prio == OSTCBCur->OSTCBPrio) {                   /* See if suspending self              */
+//        self = OS_TRUE;
+//    } else {
+//        self = OS_FALSE;                                        /* No suspending another task          */
+//    }
+//    ptcb = OSTCBPrioTbl[prio];
+//    if (ptcb == (OS_TCB *)0) {                                  /* Task to suspend must exist          */
+//        OS_EXIT_CRITICAL();
+//        return (OS_ERR_TASK_SUSPEND_PRIO);
+//    }
+//    if (ptcb == OS_TCB_RESERVED) {                              /* See if assigned to Mutex            */
+//        OS_EXIT_CRITICAL();
+//        return (OS_ERR_TASK_NOT_EXIST);
+//    }
+//    y            = ptcb->OSTCBY;
+//    OSRdyTbl[y] &= (OS_PRIO)~ptcb->OSTCBBitX;                   /* Make task not ready                 */
+//    if (OSRdyTbl[y] == 0u) {
+//        OSRdyGrp &= (OS_PRIO)~ptcb->OSTCBBitY;
+//    }
+//    ptcb->OSTCBStat |= OS_STAT_SUSPEND;                         /* Status of task is 'SUSPENDED'       */
+//    OS_EXIT_CRITICAL();
+//    OS_TRACE_TASK_SUSPEND(ptcb);
+//    OS_TRACE_TASK_SUSPENDED(ptcb);
+//    if (self == OS_TRUE) {                                      /* Context switch only if SELF         */
+//        OS_Sched();                                             /* Find new highest priority task      */
+//    }
+//    return (OS_ERR_NONE);
+//}
+//#endif
 
 
 /*
@@ -1080,46 +1042,46 @@ INT8U  OSTaskSuspend (INT8U prio)
 *********************************************************************************************************
 */
 
-#if OS_TASK_QUERY_EN > 0u
-INT8U  OSTaskQuery (INT8U    prio,
-                    OS_TCB  *p_task_data)
-{
-    OS_TCB    *ptcb;
-#if OS_CRITICAL_METHOD == 3u                     /* Allocate storage for CPU status register           */
-    OS_CPU_SR  cpu_sr = 0u;
-#endif
+//#if OS_TASK_QUERY_EN > 0u
+//INT8U  OSTaskQuery (INT8U    prio,
+//                    OS_TCB  *p_task_data)
+//{
+//    OS_TCB    *ptcb;
+//#if OS_CRITICAL_METHOD == 3u                     /* Allocate storage for CPU status register           */
+//    OS_CPU_SR  cpu_sr = 0u;
+//#endif
 
 
 
-#if OS_ARG_CHK_EN > 0u
-    if (prio > OS_LOWEST_PRIO) {                 /* Task priority valid ?                              */
-        if (prio != OS_PRIO_SELF) {
-            return (OS_ERR_PRIO_INVALID);
-        }
-    }
-    if (p_task_data == (OS_TCB *)0) {            /* Validate 'p_task_data'                             */
-        return (OS_ERR_PDATA_NULL);
-    }
-#endif
-    OS_ENTER_CRITICAL();
-    if (prio == OS_PRIO_SELF) {                  /* See if suspend SELF                                */
-        prio = OSTCBCur->OSTCBPrio;
-    }
-    ptcb = OSTCBPrioTbl[prio];
-    if (ptcb == (OS_TCB *)0) {                   /* Task to query must exist                           */
-        OS_EXIT_CRITICAL();
-        return (OS_ERR_PRIO);
-    }
-    if (ptcb == OS_TCB_RESERVED) {               /* Task to query must not be assigned to a Mutex      */
-        OS_EXIT_CRITICAL();
-        return (OS_ERR_TASK_NOT_EXIST);
-    }
-                                                 /* Copy TCB into user storage area                    */
-    OS_MemCopy((INT8U *)p_task_data, (INT8U *)ptcb, sizeof(OS_TCB));
-    OS_EXIT_CRITICAL();
-    return (OS_ERR_NONE);
-}
-#endif
+//#if OS_ARG_CHK_EN > 0u
+//    if (prio > OS_LOWEST_PRIO) {                 /* Task priority valid ?                              */
+//        if (prio != OS_PRIO_SELF) {
+//            return (OS_ERR_PRIO_INVALID);
+//        }
+//    }
+//    if (p_task_data == (OS_TCB *)0) {            /* Validate 'p_task_data'                             */
+//        return (OS_ERR_PDATA_NULL);
+//    }
+//#endif
+//    OS_ENTER_CRITICAL();
+//    if (prio == OS_PRIO_SELF) {                  /* See if suspend SELF                                */
+//        prio = OSTCBCur->OSTCBPrio;
+//    }
+//    ptcb = OSTCBPrioTbl[prio];
+//    if (ptcb == (OS_TCB *)0) {                   /* Task to query must exist                           */
+//        OS_EXIT_CRITICAL();
+//        return (OS_ERR_PRIO);
+//    }
+//    if (ptcb == OS_TCB_RESERVED) {               /* Task to query must not be assigned to a Mutex      */
+//        OS_EXIT_CRITICAL();
+//        return (OS_ERR_TASK_NOT_EXIST);
+//    }
+//                                                 /* Copy TCB into user storage area                    */
+//    OS_MemCopy((INT8U *)p_task_data, (INT8U *)ptcb, sizeof(OS_TCB));
+//    OS_EXIT_CRITICAL();
+//    return (OS_ERR_NONE);
+//}
+//#endif
 
 
 /*
@@ -1148,50 +1110,50 @@ INT8U  OSTaskQuery (INT8U    prio,
 *********************************************************************************************************
 */
 
-#if OS_TASK_REG_TBL_SIZE > 0u
-INT32U  OSTaskRegGet (INT8U   prio,
-                      INT8U   id,
-                      INT8U  *perr)
-{
-#if OS_CRITICAL_METHOD == 3u                     /* Allocate storage for CPU status register           */
-    OS_CPU_SR  cpu_sr = 0u;
-#endif
-    INT32U     value;
-    OS_TCB    *ptcb;
+//#if OS_TASK_REG_TBL_SIZE > 0u
+//INT32U  OSTaskRegGet (INT8U   prio,
+//                      INT8U   id,
+//                      INT8U  *perr)
+//{
+//#if OS_CRITICAL_METHOD == 3u                     /* Allocate storage for CPU status register           */
+//    OS_CPU_SR  cpu_sr = 0u;
+//#endif
+//    INT32U     value;
+//    OS_TCB    *ptcb;
 
 
 
-#ifdef OS_SAFETY_CRITICAL
-    if (perr == (INT8U *)0) {
-        OS_SAFETY_CRITICAL_EXCEPTION();
-        return (0u);
-    }
-#endif
+//#ifdef OS_SAFETY_CRITICAL
+//    if (perr == (INT8U *)0) {
+//        OS_SAFETY_CRITICAL_EXCEPTION();
+//        return (0u);
+//    }
+//#endif
 
-#if OS_ARG_CHK_EN > 0u
-    if (prio >= OS_LOWEST_PRIO) {
-        if (prio != OS_PRIO_SELF) {
-            *perr = OS_ERR_PRIO_INVALID;
-            return (0u);
-        }
-    }
-    if (id >= OS_TASK_REG_TBL_SIZE) {
-        *perr = OS_ERR_ID_INVALID;
-        return (0u);
-    }
-#endif
-    OS_ENTER_CRITICAL();
-    if (prio == OS_PRIO_SELF) {                  /* See if need to get register from current task      */
-        ptcb = OSTCBCur;
-    } else {
-        ptcb = OSTCBPrioTbl[prio];
-    }
-    value = ptcb->OSTCBRegTbl[id];
-    OS_EXIT_CRITICAL();
-    *perr = OS_ERR_NONE;
-    return (value);
-}
-#endif
+//#if OS_ARG_CHK_EN > 0u
+//    if (prio >= OS_LOWEST_PRIO) {
+//        if (prio != OS_PRIO_SELF) {
+//            *perr = OS_ERR_PRIO_INVALID;
+//            return (0u);
+//        }
+//    }
+//    if (id >= OS_TASK_REG_TBL_SIZE) {
+//        *perr = OS_ERR_ID_INVALID;
+//        return (0u);
+//    }
+//#endif
+//    OS_ENTER_CRITICAL();
+//    if (prio == OS_PRIO_SELF) {                  /* See if need to get register from current task      */
+//        ptcb = OSTCBCur;
+//    } else {
+//        ptcb = OSTCBPrioTbl[prio];
+//    }
+//    value = ptcb->OSTCBRegTbl[id];
+//    OS_EXIT_CRITICAL();
+//    *perr = OS_ERR_NONE;
+//    return (value);
+//}
+//#endif
 
 
 /*
@@ -1211,36 +1173,36 @@ INT32U  OSTaskRegGet (INT8U   prio,
 ************************************************************************************************************************
 */
 
-#if OS_TASK_REG_TBL_SIZE > 0u
-INT8U  OSTaskRegGetID (INT8U  *perr)
-{
-#if OS_CRITICAL_METHOD == 3u                                    /* Allocate storage for CPU status register           */
-    OS_CPU_SR  cpu_sr = 0u;
-#endif
-    INT8U      id;
+//#if OS_TASK_REG_TBL_SIZE > 0u
+//INT8U  OSTaskRegGetID (INT8U  *perr)
+//{
+//#if OS_CRITICAL_METHOD == 3u                                    /* Allocate storage for CPU status register           */
+//    OS_CPU_SR  cpu_sr = 0u;
+//#endif
+//    INT8U      id;
 
 
-#ifdef OS_SAFETY_CRITICAL
-    if (perr == (INT8U *)0) {
-        OS_SAFETY_CRITICAL_EXCEPTION();
-        return ((INT8U)OS_TASK_REG_TBL_SIZE);
-    }
-#endif
+//#ifdef OS_SAFETY_CRITICAL
+//    if (perr == (INT8U *)0) {
+//        OS_SAFETY_CRITICAL_EXCEPTION();
+//        return ((INT8U)OS_TASK_REG_TBL_SIZE);
+//    }
+//#endif
 
-    OS_ENTER_CRITICAL();
-    if (OSTaskRegNextAvailID >= OS_TASK_REG_TBL_SIZE) {         /* See if we exceeded the number of IDs available     */
-       *perr = OS_ERR_NO_MORE_ID_AVAIL;                         /* Yes, cannot allocate more task register IDs        */
-        OS_EXIT_CRITICAL();
-        return ((INT8U)OS_TASK_REG_TBL_SIZE);
-    }
+//    OS_ENTER_CRITICAL();
+//    if (OSTaskRegNextAvailID >= OS_TASK_REG_TBL_SIZE) {         /* See if we exceeded the number of IDs available     */
+//       *perr = OS_ERR_NO_MORE_ID_AVAIL;                         /* Yes, cannot allocate more task register IDs        */
+//        OS_EXIT_CRITICAL();
+//        return ((INT8U)OS_TASK_REG_TBL_SIZE);
+//    }
 
-    id   = OSTaskRegNextAvailID;                                /* Assign the next available ID                       */
-    OSTaskRegNextAvailID++;                                     /* Increment available ID for next request            */
-    OS_EXIT_CRITICAL();
-   *perr = OS_ERR_NONE;
-    return (id);
-}
-#endif
+//    id   = OSTaskRegNextAvailID;                                /* Assign the next available ID                       */
+//    OSTaskRegNextAvailID++;                                     /* Increment available ID for next request            */
+//    OS_EXIT_CRITICAL();
+//   *perr = OS_ERR_NONE;
+//    return (id);
+//}
+//#endif
 
 
 /*
@@ -1271,48 +1233,48 @@ INT8U  OSTaskRegGetID (INT8U  *perr)
 *********************************************************************************************************
 */
 
-#if OS_TASK_REG_TBL_SIZE > 0u
-void  OSTaskRegSet (INT8U    prio,
-                    INT8U    id,
-                    INT32U   value,
-                    INT8U   *perr)
-{
-#if OS_CRITICAL_METHOD == 3u                     /* Allocate storage for CPU status register           */
-    OS_CPU_SR  cpu_sr = 0u;
-#endif
-    OS_TCB    *ptcb;
+//#if OS_TASK_REG_TBL_SIZE > 0u
+//void  OSTaskRegSet (INT8U    prio,
+//                    INT8U    id,
+//                    INT32U   value,
+//                    INT8U   *perr)
+//{
+//#if OS_CRITICAL_METHOD == 3u                     /* Allocate storage for CPU status register           */
+//    OS_CPU_SR  cpu_sr = 0u;
+//#endif
+//    OS_TCB    *ptcb;
 
 
-#ifdef OS_SAFETY_CRITICAL
-    if (perr == (INT8U *)0) {
-        OS_SAFETY_CRITICAL_EXCEPTION();
-        return;
-    }
-#endif
+//#ifdef OS_SAFETY_CRITICAL
+//    if (perr == (INT8U *)0) {
+//        OS_SAFETY_CRITICAL_EXCEPTION();
+//        return;
+//    }
+//#endif
 
-#if OS_ARG_CHK_EN > 0u
-    if (prio >= OS_LOWEST_PRIO) {
-        if (prio != OS_PRIO_SELF) {
-            *perr = OS_ERR_PRIO_INVALID;
-            return;
-        }
-    }
-    if (id >= OS_TASK_REG_TBL_SIZE) {
-        *perr = OS_ERR_ID_INVALID;
-        return;
-    }
-#endif
-    OS_ENTER_CRITICAL();
-    if (prio == OS_PRIO_SELF) {                  /* See if need to get register from current task      */
-        ptcb = OSTCBCur;
-    } else {
-        ptcb = OSTCBPrioTbl[prio];
-    }
-    ptcb->OSTCBRegTbl[id] = value;
-    OS_EXIT_CRITICAL();
-    *perr                 = OS_ERR_NONE;
-}
-#endif
+//#if OS_ARG_CHK_EN > 0u
+//    if (prio >= OS_LOWEST_PRIO) {
+//        if (prio != OS_PRIO_SELF) {
+//            *perr = OS_ERR_PRIO_INVALID;
+//            return;
+//        }
+//    }
+//    if (id >= OS_TASK_REG_TBL_SIZE) {
+//        *perr = OS_ERR_ID_INVALID;
+//        return;
+//    }
+//#endif
+//    OS_ENTER_CRITICAL();
+//    if (prio == OS_PRIO_SELF) {                  /* See if need to get register from current task      */
+//        ptcb = OSTCBCur;
+//    } else {
+//        ptcb = OSTCBPrioTbl[prio];
+//    }
+//    ptcb->OSTCBRegTbl[id] = value;
+//    OS_EXIT_CRITICAL();
+//    *perr                 = OS_ERR_NONE;
+//}
+//#endif
 
 
 /*
@@ -1330,18 +1292,18 @@ void  OSTaskRegSet (INT8U    prio,
 *********************************************************************************************************
 */
 
-void  OS_TaskReturn (void)
-{
-    OSTaskReturnHook(OSTCBCur);                   /* Call hook to let user decide on what to do        */
+//void  OS_TaskReturn (void)
+//{
+//    OSTaskReturnHook(OSTCBCur);                   /* Call hook to let user decide on what to do        */
 
-#if OS_TASK_DEL_EN > 0u
-    (void)OSTaskDel(OS_PRIO_SELF);                /* Delete task if it accidentally returns!           */
-#else
-    for (;;) {
-        OSTimeDly(OS_TICKS_PER_SEC);
-    }
-#endif
-}
+//#if OS_TASK_DEL_EN > 0u
+//    (void)OSTaskDel(OS_PRIO_SELF);                /* Delete task if it accidentally returns!           */
+//#else
+//    for (;;) {
+//        OSTimeDly(OS_TICKS_PER_SEC);
+//    }
+//#endif
+//}
 
 
 /*

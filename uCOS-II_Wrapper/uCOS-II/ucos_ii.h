@@ -727,7 +727,7 @@ typedef  void                      (*OS_TLS_DESTRUCT_PTR)(OS_TCB    *ptcb,
 
 OS_EXT  BOOLEAN           OSRunning;                       /* Flag indicating that kernel is running   */
 
-//OS_EXT  INT8U             OSTaskCtr;                       /* Number of tasks created                  */
+OS_EXT  INT8U             OSTaskCtr;                       /* Number of tasks created                  */
 
 //OS_EXT  volatile  INT32U  OSIdleCtr;                                 /* Idle counter                   */
 

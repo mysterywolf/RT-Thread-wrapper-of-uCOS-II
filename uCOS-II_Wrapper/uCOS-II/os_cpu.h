@@ -183,8 +183,11 @@ typedef rt_ubase_t     OS_CPU_SR;                /* Define size of CPU status re
 *                                        Cortex-M Miscellaneous
 *********************************************************************************************************
 */
-
+#if defined(ARCH_CPU_STACK_GROWS_UPWARD)
 #define  OS_STK_GROWTH        1u                 /* Stack grows from HIGH to LOW memory on ARM         */
+#else
+#define  OS_STK_GROWTH        0u 
+#endif
 
 #define  OS_TASK_SW()         OSCtxSw()
 
