@@ -349,9 +349,10 @@ INT8U  OSTaskCreateExt (void   (*task)(void *p_arg),
     }
     OS_EXIT_CRITICAL();
 
-#if (OS_TASK_STAT_STK_CHK_EN > 0u)
-    OS_TaskStkClr(pbos, stk_size, opt);      /* Clear the task stack (if needed)                       */
-#endif
+    /*don't need to clear the task stack*/
+//#if (OS_TASK_STAT_STK_CHK_EN > 0u)
+//    OS_TaskStkClr(pbos, stk_size, opt);      /* Clear the task stack (if needed)                       */
+//#endif
     
 //    err = OS_TCBInit(prio, psp, pbos, id, stk_size, pext, opt); 
 //   if (err == OS_ERR_NONE) {

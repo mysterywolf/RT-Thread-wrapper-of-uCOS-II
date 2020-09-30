@@ -14,9 +14,24 @@
 
 #include <os.h>
 
+void timer_example (void);
+
+OS_STK task_stack [256];
+void   task(void *p_arg)
+{
+    while(1)
+    {
+//        rt_kprintf("hahha");
+        rt_thread_delay(500);
+    }
+}
+
 int main(void)/*RT-Thread mainœﬂ≥Ã*/
 {
     OSInit();
     
     OSStart();
+    
+    timer_example();
+    OSTaskCreateExt(task,0,task_stack,5,0,0,256,0,0);
 }
