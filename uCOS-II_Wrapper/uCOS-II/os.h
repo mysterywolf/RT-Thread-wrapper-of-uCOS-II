@@ -39,7 +39,6 @@
 
 #include  "ucos_ii.h"
 
-
 typedef  INT8U  OS_ERR;
 
 #endif

@@ -317,12 +317,13 @@ INT8U  OSTaskCreateExt (void   (*task)(void *p_arg),
                         void    *pext,
                         INT16U   opt)
 {
+    OS_STK     *psp;
+    INT8U       err;
     OS_TCB     *ptcb;
     char        name[RT_NAME_MAX];
 #if OS_CRITICAL_METHOD == 3u                 /* Allocate storage for CPU status register               */
     OS_CPU_SR   cpu_sr = 0u;
 #endif
-
 
 
 #ifdef OS_SAFETY_CRITICAL_IEC61508
@@ -349,28 +350,24 @@ INT8U  OSTaskCreateExt (void   (*task)(void *p_arg),
     }
     OS_EXIT_CRITICAL();
 
-    /*don't need to clear the task stack*/
-//#if (OS_TASK_STAT_STK_CHK_EN > 0u)
-//    OS_TaskStkClr(pbos, stk_size, opt);      /* Clear the task stack (if needed)                       */
-//#endif
-    
-//    err = OS_TCBInit(prio, psp, pbos, id, stk_size, pext, opt); 
-//   if (err == OS_ERR_NONE) {
-//        OS_TRACE_TASK_CREATE(OSTCBPrioTbl[prio]);
-//    } else {
-//        OS_ENTER_CRITICAL();
-//        OSTCBPrioTbl[prio] = (OS_TCB *)0;                  /* Make this priority avail. to others    */
-//        OS_EXIT_CRITICAL();
-//        return (err); 
-//    }
-     
     ptcb = &OSTCBTbl[prio];
+    psp = 0;/*该参数暂时没啥用*/
+    err = OS_TCBInit(ptcb, prio, psp, pbos, id, stk_size, pext, opt); 
+    if (err == OS_ERR_NONE) {
+        OS_TRACE_TASK_CREATE(OSTCBPrioTbl[prio]);
+    } else {
+        OS_ENTER_CRITICAL();
+        OSTCBPrioTbl[prio] = (OS_TCB *)0;                  /* Make this priority avail. to others    */
+        OS_EXIT_CRITICAL();
+        return (err); 
+    }
+     
     snprintf(name,RT_NAME_MAX,"uCTask%02d",prio);
     
     if(rt_thread_init(&ptcb->OSTask,name,task,p_arg,ptos,stk_size*sizeof(OS_STK),prio,0) != RT_EOK){
         return OS_ERR_TASK_NO_MORE_TCB;
     }
-    rt_thread_startup(&ptcb->OSTask);
+    rt_thread_startup(&ptcb->OSTask);                      /*start the task                          */
     
     return (OS_ERR_NONE);
 }
@@ -1306,50 +1303,4 @@ INT8U  OSTaskCreateExt (void   (*task)(void *p_arg),
 //#endif
 //}
 
-
-/*
-*********************************************************************************************************
-*                                          CLEAR TASK STACK
-*
-* Description: This function is used to clear the stack of a task (i.e. write all zeros)
-*
-* Arguments  : pbos     is a pointer to the task's bottom of stack.  If the configuration constant
-*                       OS_STK_GROWTH is set to 1, the stack is assumed to grow downward (i.e. from high
-*                       memory to low memory).  'pbos' will thus point to the lowest (valid) memory
-*                       location of the stack.  If OS_STK_GROWTH is set to 0, 'pbos' will point to the
-*                       highest memory location of the stack and the stack will grow with increasing
-*                       memory locations.  'pbos' MUST point to a valid 'free' data item.
-*
-*              size     is the number of 'stack elements' to clear.
-*
-*              opt      contains additional information (or options) about the behavior of the task.  The
-*                       LOWER 8-bits are reserved by uC/OS-II while the upper 8 bits can be application
-*                       specific.  See OS_TASK_OPT_??? in uCOS-II.H.
-*
-* Returns    : none
-*********************************************************************************************************
-*/
-#if (OS_TASK_STAT_STK_CHK_EN > 0u) && (OS_TASK_CREATE_EXT_EN > 0u)
-void  OS_TaskStkClr (OS_STK  *pbos,
-                     INT32U   size,
-                     INT16U   opt)
-{
-    if ((opt & OS_TASK_OPT_STK_CHK) != 0x0000u) {      /* See if stack checking has been enabled       */
-        if ((opt & OS_TASK_OPT_STK_CLR) != 0x0000u) {  /* See if stack needs to be cleared             */
-#if OS_STK_GROWTH == 1u
-            while (size > 0u) {                        /* Stack grows from HIGH to LOW memory          */
-                size--;
-                *pbos++ = (OS_STK)0;                   /* Clear from bottom of stack and up!           */
-            }
-#else
-            while (size > 0u) {                        /* Stack grows from LOW to HIGH memory          */
-                size--;
-                *pbos-- = (OS_STK)0;                   /* Clear from bottom of stack and down          */
-            }
-#endif
-        }
-    }
-}
-
-#endif
 #endif                                                 /* OS_TASK_C                                    */

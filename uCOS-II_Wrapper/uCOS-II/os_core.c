@@ -120,8 +120,7 @@ static  void  OS_InitTCBList (void)
 #if OS_TASK_NAME_EN > 0u
     ptcb1->OSTCBTaskName    = (INT8U *)(void *)"?";              /* Unknown name                       */
 #endif
-//    OSTCBList               = (OS_TCB *)0;                       /* TCB lists initializations          */
-//    OSTCBFreeList           = &OSTCBTbl[0];
+    OSTCBList               = (OS_TCB *)0;                       /* TCB lists initializations          */
 
     OSTCBPrioTbl[OS_MAX_TASKS + OS_N_SYS_TASKS - 1u] = OS_TCB_RESERVED; /* 空闲任务标记为已经使用      */
 }
@@ -511,4 +510,178 @@ INT8U  OS_StrLen (INT8U *psrc)
 void  OS_Sched (void)
 {
     rt_schedule();
+}
+
+
+/*
+*********************************************************************************************************
+*                                           INITIALIZE TCB
+*
+* Description: This function is internal to uC/OS-II and is used to initialize a Task Control Block when
+*              a task is created (see OSTaskCreate() and OSTaskCreateExt()).
+*
+* Arguments  : ptcb          兼容层新增参数
+*
+*              prio          is the priority of the task being created
+*
+*              ptos          is a pointer to the task's top-of-stack assuming that the CPU registers
+*                            have been placed on the stack.  Note that the top-of-stack corresponds to a
+*                            'high' memory location is OS_STK_GROWTH is set to 1 and a 'low' memory
+*                            location if OS_STK_GROWTH is set to 0.  Note that stack growth is CPU
+*                            specific.
+*
+*              pbos          is a pointer to the bottom of stack.  A NULL pointer is passed if called by
+*                            'OSTaskCreate()'.
+*
+*              id            is the task's ID (0..65535)
+*
+*              stk_size      is the size of the stack (in 'stack units').  If the stack units are INT8Us
+*                            then, 'stk_size' contains the number of bytes for the stack.  If the stack
+*                            units are INT32Us then, the stack contains '4 * stk_size' bytes.  The stack
+*                            units are established by the #define constant OS_STK which is CPU
+*                            specific.  'stk_size' is 0 if called by 'OSTaskCreate()'.
+*
+*              pext          is a pointer to a user supplied memory area that is used to extend the task
+*                            control block.  This allows you to store the contents of floating-point
+*                            registers, MMU registers or anything else you could find useful during a
+*                            context switch.  You can even assign a name to each task and store this name
+*                            in this TCB extension.  A NULL pointer is passed if called by OSTaskCreate().
+*
+*              opt           options as passed to 'OSTaskCreateExt()' or,
+*                            0 if called from 'OSTaskCreate()'.
+*
+* Returns    : OS_ERR_NONE              if the call was successful
+*              OS_ERR_TASK_NO_MORE_TCB  if there are no more free TCBs to be allocated and thus, the task
+*                                       cannot be created.
+*
+* Note       : This function is INTERNAL to uC/OS-II and your application should not call it.
+*********************************************************************************************************
+*/
+INT8U  OS_TCBInit (OS_TCB  *ptcb,
+                   INT8U    prio,
+                   OS_STK  *ptos,
+                   OS_STK  *pbos,
+                   INT16U   id,
+                   INT32U   stk_size,
+                   void    *pext,
+                   INT16U   opt)
+{
+#if OS_CRITICAL_METHOD == 3u                               /* Allocate storage for CPU status register */
+    OS_CPU_SR  cpu_sr = 0u;
+#endif
+#if OS_TASK_REG_TBL_SIZE > 0u
+    INT8U      i;
+#endif
+#if OS_TASK_CREATE_EXT_EN > 0u
+#if defined(OS_TLS_TBL_SIZE) && (OS_TLS_TBL_SIZE > 0u)
+    INT8U      j;
+#endif
+#endif
+
+
+    OS_ENTER_CRITICAL();
+    if (ptcb != (OS_TCB *)0) {
+        OS_EXIT_CRITICAL();
+        ptcb->OSTCBStkPtr        = ptos;                   /* Load Stack pointer in TCB                */
+        ptcb->OSTCBPrio          = prio;                   /* Load task priority into TCB              */
+        ptcb->OSTCBStat          = OS_STAT_RDY;            /* Task is ready to run                     */
+        ptcb->OSTCBStatPend      = OS_STAT_PEND_OK;        /* Clear pend status                        */
+        ptcb->OSTCBDly           = 0u;                     /* Task is not delayed                      */
+
+#if OS_TASK_CREATE_EXT_EN > 0u
+        ptcb->OSTCBExtPtr        = pext;                   /* Store pointer to TCB extension           */
+        ptcb->OSTCBStkSize       = stk_size;               /* Store stack size                         */
+        ptcb->OSTCBStkBottom     = pbos;                   /* Store pointer to bottom of stack         */
+        ptcb->OSTCBOpt           = opt;                    /* Store task options                       */
+        ptcb->OSTCBId            = id;                     /* Store task ID                            */
+#else
+        pext                     = pext;                   /* Prevent compiler warning if not used     */
+        stk_size                 = stk_size;
+        pbos                     = pbos;
+        opt                      = opt;
+        id                       = id;
+#endif
+
+#if OS_TASK_DEL_EN > 0u
+        ptcb->OSTCBDelReq        = OS_ERR_NONE;
+#endif
+
+#if OS_LOWEST_PRIO <= 63u                                         /* Pre-compute X, Y                  */
+        ptcb->OSTCBY             = (INT8U)(prio >> 3u);
+        ptcb->OSTCBX             = (INT8U)(prio & 0x07u);
+#else                                                             /* Pre-compute X, Y                  */
+        ptcb->OSTCBY             = (INT8U)((INT8U)(prio >> 4u) & 0xFFu);
+        ptcb->OSTCBX             = (INT8U) (prio & 0x0Fu);
+#endif
+                                                                  /* Pre-compute BitX and BitY         */
+        ptcb->OSTCBBitY          = (OS_PRIO)(1uL << ptcb->OSTCBY);
+        ptcb->OSTCBBitX          = (OS_PRIO)(1uL << ptcb->OSTCBX);
+
+#if (OS_EVENT_EN)
+        ptcb->OSTCBEventPtr      = (OS_EVENT  *)0;         /* Task is not pending on an  event         */
+#if (OS_EVENT_MULTI_EN > 0u)
+        ptcb->OSTCBEventMultiPtr = (OS_EVENT **)0;         /* Task is not pending on any events        */
+        ptcb->OSTCBEventMultiRdy = (OS_EVENT  *)0;         /* No events readied for Multipend          */
+#endif
+#endif
+
+#if (OS_FLAG_EN > 0u) && (OS_MAX_FLAGS > 0u) && (OS_TASK_DEL_EN > 0u)
+        ptcb->OSTCBFlagNode      = (OS_FLAG_NODE *)0;      /* Task is not pending on an event flag     */
+#endif
+
+#if (OS_MBOX_EN > 0u) || ((OS_Q_EN > 0u) && (OS_MAX_QS > 0u))
+        ptcb->OSTCBMsg           = (void *)0;              /* No message received                      */
+#endif
+
+#if OS_TASK_PROFILE_EN > 0u
+        ptcb->OSTCBCtxSwCtr      = 0uL;                    /* Initialize profiling variables           */
+        ptcb->OSTCBCyclesStart   = 0uL;
+        ptcb->OSTCBCyclesTot     = 0uL;
+        ptcb->OSTCBStkBase       = (OS_STK *)0;
+        ptcb->OSTCBStkUsed       = 0uL;
+#endif
+
+#if OS_TASK_NAME_EN > 0u
+        ptcb->OSTCBTaskName      = (INT8U *)(void *)"?";
+#endif
+
+#if OS_TASK_REG_TBL_SIZE > 0u                              /* Initialize the task variables            */
+        for (i = 0u; i < OS_TASK_REG_TBL_SIZE; i++) {
+            ptcb->OSTCBRegTbl[i] = 0u;
+        }
+#endif
+
+        OSTCBInitHook(ptcb);
+
+        OS_ENTER_CRITICAL();
+        OSTCBPrioTbl[prio] = ptcb;
+        OS_EXIT_CRITICAL();
+
+        OSTaskCreateHook(ptcb);                            /* Call user defined hook                   */
+
+#if OS_TASK_CREATE_EXT_EN > 0u
+#if defined(OS_TLS_TBL_SIZE) && (OS_TLS_TBL_SIZE > 0u)
+        for (j = 0u; j < OS_TLS_TBL_SIZE; j++) {
+            ptcb->OSTCBTLSTbl[j] = (OS_TLS)0;
+        }
+        OS_TLS_TaskCreate(ptcb);                           /* Call TLS hook                            */
+#endif
+#endif
+
+        OS_ENTER_CRITICAL();
+        ptcb->OSTCBNext = OSTCBList;                       /* Link into TCB chain                      */
+        ptcb->OSTCBPrev = (OS_TCB *)0;
+        if (OSTCBList != (OS_TCB *)0) {
+            OSTCBList->OSTCBPrev = ptcb;
+        }
+        OSTCBList               = ptcb;
+//        OSRdyGrp               |= ptcb->OSTCBBitY;         /* Make task ready to run                   */
+//        OSRdyTbl[ptcb->OSTCBY] |= ptcb->OSTCBBitX;
+        OSTaskCtr++;                                       /* Increment the #tasks counter             */
+        OS_TRACE_TASK_READY(ptcb);
+        OS_EXIT_CRITICAL();
+        return (OS_ERR_NONE);
+    }
+    OS_EXIT_CRITICAL();
+    return (OS_ERR_TASK_NO_MORE_TCB);
 }

@@ -738,10 +738,10 @@ OS_EXT  INT8U             OSTaskCtr;                       /* Number of tasks cr
 //OS_EXT  OS_STK            OSTaskIdleStk[OS_TASK_IDLE_STK_SIZE];      /* Idle task stack                */
 
 
-//OS_EXT  OS_TCB           *OSTCBCur;                        /* Pointer to currently running TCB         */
+#define OSTCBCur         ((OS_TCB*)rt_thread_self())                        /* Pointer to currently running TCB         */
 //OS_EXT  OS_TCB           *OSTCBFreeList;                   /* Pointer to list of free TCBs             */
 //OS_EXT  OS_TCB           *OSTCBHighRdy;                    /* Pointer to highest priority TCB R-to-R   */
-//OS_EXT  OS_TCB           *OSTCBList;                       /* Pointer to doubly linked list of TCBs    */
+OS_EXT  OS_TCB           *OSTCBList;                       /* Pointer to doubly linked list of TCBs    */
 OS_EXT  OS_TCB           *OSTCBPrioTbl[OS_LOWEST_PRIO + 1u];    /* Table of pointers to created TCBs   */
 OS_EXT  OS_TCB            OSTCBTbl[OS_MAX_TASKS + OS_N_SYS_TASKS];   /* Table of TCBs                  */
 
@@ -1363,7 +1363,8 @@ void          OS_TaskStkClr           (OS_STK          *pbos,
 void          OS_TaskStatStkChk       (void);
 #endif
 
-INT8U         OS_TCBInit              (INT8U            prio,
+INT8U         OS_TCBInit              (OS_TCB          *ptcb,
+                                       INT8U            prio,
                                        OS_STK          *ptos,
                                        OS_STK          *pbos,
                                        INT16U           id,

@@ -7,7 +7,7 @@
  * Date           Author       Notes
  * 2020-09-30     Meco Man     first version
  */
-#include <os.h>
+#include "ucos_ii.h"
 
 static void tmr_callback (void *ptmr, void *parg)
 {
