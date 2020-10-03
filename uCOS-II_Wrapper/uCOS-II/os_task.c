@@ -458,13 +458,7 @@ INT8U  OSTaskDel (INT8U prio)
     ptcb->OSTCBDly      = 0u;                           /* Prevent OSTimeTick() from updating          */
     ptcb->OSTCBStat     = OS_STAT_RDY;                  /* Prevent task from being resumed             */
     ptcb->OSTCBStatPend = OS_STAT_PEND_OK;
-    OS_EXIT_CRITICAL();                                 /* Enabling INT. ignores next instruc.         */
-    
-    OSSchedLock();
-    OS_Dummy();                                         /* ... Dummy ensures that INTs will be         */
-    OSSchedUnlock();
-    
-    OS_ENTER_CRITICAL();                                /* ... disabled HERE!                          */
+
     OSTaskDelHook(ptcb);                                /* Call user defined hook                      */
 
 #if OS_TASK_CREATE_EXT_EN > 0u
@@ -1244,34 +1238,5 @@ INT8U  OSTaskDel (INT8U prio)
 //    *perr                 = OS_ERR_NONE;
 //}
 //#endif
-
-
-/*
-*********************************************************************************************************
-*                                    CATCH ACCIDENTAL TASK RETURN
-*
-* Description: This function is called if a task accidentally returns without deleting itself.  In other
-*              words, a task should either be an infinite loop or delete itself if it's done.
-*
-* Arguments  : none
-*
-* Returns    : none
-*
-* Note(s)    : This function is INTERNAL to uC/OS-II and your application should not call it.
-*********************************************************************************************************
-*/
-
-//void  OS_TaskReturn (void)
-//{
-//    OSTaskReturnHook(OSTCBCur);                   /* Call hook to let user decide on what to do        */
-
-//#if OS_TASK_DEL_EN > 0u
-//    (void)OSTaskDel(OS_PRIO_SELF);                /* Delete task if it accidentally returns!           */
-//#else
-//    for (;;) {
-//        OSTimeDly(OS_TICKS_PER_SEC);
-//    }
-//#endif
-//}
 
 #endif                                                 /* OS_TASK_C                                    */

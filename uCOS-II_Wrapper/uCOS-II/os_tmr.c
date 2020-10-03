@@ -334,7 +334,7 @@ INT8U  OSTmrNameGet (OS_TMR   *ptmr,
         *perr = OS_ERR_NAME_GET_ISR;
         return (0u);
     }
-    if (ptmr->OSTmrState == OS_TMR_STATE_UNUSED){      /* Already deleted                                        */
+    if (ptmr->OSTmrState == OS_TMR_STATE_UNUSED){      /* Already deleted                                             */
         *perr = OS_ERR_TMR_INACTIVE;
         return (0u);
     }

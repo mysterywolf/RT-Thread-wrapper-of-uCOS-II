@@ -614,11 +614,6 @@ typedef struct os_tcb {
     INT8U            OSTCBStatPend;         /* Task PEND status                                        */
     INT8U            OSTCBPrio;             /* Task priority (0 == highest)                            */
 
-    INT8U            OSTCBX;                /* Bit position in group  corresponding to task priority   */
-    INT8U            OSTCBY;                /* Index into ready table corresponding to task priority   */
-    OS_PRIO          OSTCBBitX;             /* Bit mask to access bit position in ready table          */
-    OS_PRIO          OSTCBBitY;             /* Bit mask to access bit position in ready group          */
-
 #if OS_TASK_DEL_EN > 0u
     INT8U            OSTCBDelReq;           /* Indicates whether a task needs to delete itself         */
 #endif

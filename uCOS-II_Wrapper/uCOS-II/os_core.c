@@ -406,25 +406,6 @@ INT16U  OSVersion (void)
 
 /*
 *********************************************************************************************************
-*                                           DUMMY FUNCTION
-*
-* Description: This function doesn't do anything.  It is called by OSTaskDel().
-*
-* Arguments  : none
-*
-* Returns    : none
-*********************************************************************************************************
-*/
-
-#if OS_TASK_DEL_EN > 0u
-void  OS_Dummy (void)
-{
-}
-#endif
-
-
-/*
-*********************************************************************************************************
 *                                      CLEAR A SECTION OF MEMORY
 *
 * Description: This function is called by other uC/OS-II services to clear a contiguous block of RAM.
@@ -624,17 +605,6 @@ INT8U  OS_TCBInit (OS_TCB  *ptcb,
 #if OS_TASK_DEL_EN > 0u
         ptcb->OSTCBDelReq        = OS_ERR_NONE;
 #endif
-
-#if OS_LOWEST_PRIO <= 63u                                         /* Pre-compute X, Y                  */
-        ptcb->OSTCBY             = (INT8U)(prio >> 3u);
-        ptcb->OSTCBX             = (INT8U)(prio & 0x07u);
-#else                                                             /* Pre-compute X, Y                  */
-        ptcb->OSTCBY             = (INT8U)((INT8U)(prio >> 4u) & 0xFFu);
-        ptcb->OSTCBX             = (INT8U) (prio & 0x0Fu);
-#endif
-                                                                  /* Pre-compute BitX and BitY         */
-        ptcb->OSTCBBitY          = (OS_PRIO)(1uL << ptcb->OSTCBY);
-        ptcb->OSTCBBitX          = (OS_PRIO)(1uL << ptcb->OSTCBX);
 
 #if (OS_EVENT_EN)
         ptcb->OSTCBEventPtr      = (OS_EVENT  *)0;         /* Task is not pending on an  event         */
