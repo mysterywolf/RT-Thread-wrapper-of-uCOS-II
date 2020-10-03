@@ -78,9 +78,9 @@ static  void  OS_InitMisc (void)
     OSSafetyCriticalStartFlag = OS_FALSE;                  /* Still allow creation of objects          */
 #endif
 
-//#if OS_TASK_REG_TBL_SIZE > 0u
-//    OSTaskRegNextAvailID      = 0u;                        /* Initialize the task register ID          */
-//#endif
+#if OS_TASK_REG_TBL_SIZE > 0u
+    OSTaskRegNextAvailID      = 0u;                        /* Initialize the task register ID          */
+#endif
 }
 
 

@@ -754,9 +754,9 @@ OS_EXT  OS_MEM            OSMemTbl[OS_MAX_MEM_PART];/* Storage for memory partit
 //OS_EXT  OS_Q              OSQTbl[OS_MAX_QS];        /* Table of QUEUE control blocks                   */
 //#endif
 
-//#if OS_TASK_REG_TBL_SIZE > 0u
-//OS_EXT  INT8U             OSTaskRegNextAvailID;     /* Next available Task register ID                 */
-//#endif
+#if OS_TASK_REG_TBL_SIZE > 0u
+OS_EXT  INT8U             OSTaskRegNextAvailID;     /* Next available Task register ID                 */
+#endif
 
 //#if OS_TIME_GET_SET_EN > 0u
 //OS_EXT  volatile  INT32U  OSTime;                   /* Current value of system time (in ticks)         */
