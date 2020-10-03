@@ -406,6 +406,25 @@ INT16U  OSVersion (void)
 
 /*
 *********************************************************************************************************
+*                                           DUMMY FUNCTION
+*
+* Description: This function doesn't do anything.  It is called by OSTaskDel().
+*
+* Arguments  : none
+*
+* Returns    : none
+*********************************************************************************************************
+*/
+
+#if OS_TASK_DEL_EN > 0u
+void  OS_Dummy (void)
+{
+}
+#endif
+
+
+/*
+*********************************************************************************************************
 *                                      CLEAR A SECTION OF MEMORY
 *
 * Description: This function is called by other uC/OS-II services to clear a contiguous block of RAM.
