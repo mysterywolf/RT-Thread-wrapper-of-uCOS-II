@@ -1005,46 +1005,46 @@ void  OSTaskNameSet (INT8U   prio,
 *********************************************************************************************************
 */
 
-//#if OS_TASK_QUERY_EN > 0u
-//INT8U  OSTaskQuery (INT8U    prio,
-//                    OS_TCB  *p_task_data)
-//{
-//    OS_TCB    *ptcb;
-//#if OS_CRITICAL_METHOD == 3u                     /* Allocate storage for CPU status register           */
-//    OS_CPU_SR  cpu_sr = 0u;
-//#endif
+#if OS_TASK_QUERY_EN > 0u
+INT8U  OSTaskQuery (INT8U    prio,
+                    OS_TCB  *p_task_data)
+{
+    OS_TCB    *ptcb;
+#if OS_CRITICAL_METHOD == 3u                     /* Allocate storage for CPU status register           */
+    OS_CPU_SR  cpu_sr = 0u;
+#endif
 
 
 
-//#if OS_ARG_CHK_EN > 0u
-//    if (prio > OS_LOWEST_PRIO) {                 /* Task priority valid ?                              */
-//        if (prio != OS_PRIO_SELF) {
-//            return (OS_ERR_PRIO_INVALID);
-//        }
-//    }
-//    if (p_task_data == (OS_TCB *)0) {            /* Validate 'p_task_data'                             */
-//        return (OS_ERR_PDATA_NULL);
-//    }
-//#endif
-//    OS_ENTER_CRITICAL();
-//    if (prio == OS_PRIO_SELF) {                  /* See if suspend SELF                                */
-//        prio = OSTCBCur->OSTCBPrio;
-//    }
-//    ptcb = OSTCBPrioTbl[prio];
-//    if (ptcb == (OS_TCB *)0) {                   /* Task to query must exist                           */
-//        OS_EXIT_CRITICAL();
-//        return (OS_ERR_PRIO);
-//    }
-//    if (ptcb == OS_TCB_RESERVED) {               /* Task to query must not be assigned to a Mutex      */
-//        OS_EXIT_CRITICAL();
-//        return (OS_ERR_TASK_NOT_EXIST);
-//    }
-//                                                 /* Copy TCB into user storage area                    */
-//    OS_MemCopy((INT8U *)p_task_data, (INT8U *)ptcb, sizeof(OS_TCB));
-//    OS_EXIT_CRITICAL();
-//    return (OS_ERR_NONE);
-//}
-//#endif
+#if OS_ARG_CHK_EN > 0u
+    if (prio > OS_LOWEST_PRIO) {                 /* Task priority valid ?                              */
+        if (prio != OS_PRIO_SELF) {
+            return (OS_ERR_PRIO_INVALID);
+        }
+    }
+    if (p_task_data == (OS_TCB *)0) {            /* Validate 'p_task_data'                             */
+        return (OS_ERR_PDATA_NULL);
+    }
+#endif
+    OS_ENTER_CRITICAL();
+    if (prio == OS_PRIO_SELF) {                  /* See if suspend SELF                                */
+        prio = OSTCBCur->OSTCBPrio;
+    }
+    ptcb = OSTCBPrioTbl[prio];
+    if (ptcb == (OS_TCB *)0) {                   /* Task to query must exist                           */
+        OS_EXIT_CRITICAL();
+        return (OS_ERR_PRIO);
+    }
+    if (ptcb == OS_TCB_RESERVED) {               /* Task to query must not be assigned to a Mutex      */
+        OS_EXIT_CRITICAL();
+        return (OS_ERR_TASK_NOT_EXIST);
+    }
+                                                 /* Copy TCB into user storage area                    */
+    OS_MemCopy((INT8U *)p_task_data, (INT8U *)ptcb, sizeof(OS_TCB));
+    OS_EXIT_CRITICAL();
+    return (OS_ERR_NONE);
+}
+#endif
 
 
 /*
