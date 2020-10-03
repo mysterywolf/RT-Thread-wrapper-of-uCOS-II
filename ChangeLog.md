@@ -30,7 +30,7 @@
 
 ### 2020-10-03
 
-- 实现`OSTaskDel()` `OSTaskNameGet()` `OSTaskNameSet()` `OSTaskRegGet()` `OSTaskRegGetID()` `OSTaskRegSet()` 函数
+- 实现`OSTaskDel()` `OSTaskNameGet()` `OSTaskNameSet()` `OSTaskRegGet()` `OSTaskRegGetID()` `OSTaskRegSet()` `OSTaskDelReq()` `OSTaskQuery()` 函数
 
 
 

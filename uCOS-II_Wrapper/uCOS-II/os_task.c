@@ -540,55 +540,55 @@ INT8U  OSTaskDel (INT8U prio)
 *********************************************************************************************************
 */
 
-//#if OS_TASK_DEL_EN > 0u
-//INT8U  OSTaskDelReq (INT8U prio)
-//{
-//    INT8U      stat;
-//    OS_TCB    *ptcb;
-//#if OS_CRITICAL_METHOD == 3u                     /* Allocate storage for CPU status register           */
-//    OS_CPU_SR  cpu_sr = 0u;
-//#endif
+#if OS_TASK_DEL_EN > 0u
+INT8U  OSTaskDelReq (INT8U prio)
+{
+    INT8U      stat;
+    OS_TCB    *ptcb;
+#if OS_CRITICAL_METHOD == 3u                     /* Allocate storage for CPU status register           */
+    OS_CPU_SR  cpu_sr = 0u;
+#endif
 
 
 
-//#ifdef OS_SAFETY_CRITICAL_IEC61508
-//    if (OSSafetyCriticalStartFlag == OS_TRUE) {
-//        OS_SAFETY_CRITICAL_EXCEPTION();
-//        return (OS_ERR_ILLEGAL_DEL_RUN_TIME);
-//    }
-//#endif
+#ifdef OS_SAFETY_CRITICAL_IEC61508
+    if (OSSafetyCriticalStartFlag == OS_TRUE) {
+        OS_SAFETY_CRITICAL_EXCEPTION();
+        return (OS_ERR_ILLEGAL_DEL_RUN_TIME);
+    }
+#endif
 
-//    if (prio == OS_TASK_IDLE_PRIO) {                            /* Not allowed to delete idle task     */
-//        return (OS_ERR_TASK_DEL_IDLE);
-//    }
-//#if OS_ARG_CHK_EN > 0u
-//    if (prio >= OS_LOWEST_PRIO) {                               /* Task priority valid ?               */
-//        if (prio != OS_PRIO_SELF) {
-//            return (OS_ERR_PRIO_INVALID);
-//        }
-//    }
-//#endif
-//    if (prio == OS_PRIO_SELF) {                                 /* See if a task is requesting to ...  */
-//        OS_ENTER_CRITICAL();                                    /* ... this task to delete itself      */
-//        stat = OSTCBCur->OSTCBDelReq;                           /* Return request status to caller     */
-//        OS_EXIT_CRITICAL();
-//        return (stat);
-//    }
-//    OS_ENTER_CRITICAL();
-//    ptcb = OSTCBPrioTbl[prio];
-//    if (ptcb == (OS_TCB *)0) {                                  /* Task to delete must exist           */
-//        OS_EXIT_CRITICAL();
-//        return (OS_ERR_TASK_NOT_EXIST);                         /* Task must already be deleted        */
-//    }
-//    if (ptcb == OS_TCB_RESERVED) {                              /* Must NOT be assigned to a Mutex     */
-//        OS_EXIT_CRITICAL();
-//        return (OS_ERR_TASK_DEL);
-//    }
-//    ptcb->OSTCBDelReq = OS_ERR_TASK_DEL_REQ;                    /* Set flag indicating task to be DEL. */
-//    OS_EXIT_CRITICAL();
-//    return (OS_ERR_NONE);
-//}
-//#endif
+    if (prio == OS_TASK_IDLE_PRIO) {                            /* Not allowed to delete idle task     */
+        return (OS_ERR_TASK_DEL_IDLE);
+    }
+#if OS_ARG_CHK_EN > 0u
+    if (prio >= OS_LOWEST_PRIO) {                               /* Task priority valid ?               */
+        if (prio != OS_PRIO_SELF) {
+            return (OS_ERR_PRIO_INVALID);
+        }
+    }
+#endif
+    if (prio == OS_PRIO_SELF) {                                 /* See if a task is requesting to ...  */
+        OS_ENTER_CRITICAL();                                    /* ... this task to delete itself      */
+        stat = OSTCBCur->OSTCBDelReq;                           /* Return request status to caller     */
+        OS_EXIT_CRITICAL();
+        return (stat);
+    }
+    OS_ENTER_CRITICAL();
+    ptcb = OSTCBPrioTbl[prio];
+    if (ptcb == (OS_TCB *)0) {                                  /* Task to delete must exist           */
+        OS_EXIT_CRITICAL();
+        return (OS_ERR_TASK_NOT_EXIST);                         /* Task must already be deleted        */
+    }
+    if (ptcb == OS_TCB_RESERVED) {                              /* Must NOT be assigned to a Mutex     */
+        OS_EXIT_CRITICAL();
+        return (OS_ERR_TASK_DEL);
+    }
+    ptcb->OSTCBDelReq = OS_ERR_TASK_DEL_REQ;                    /* Set flag indicating task to be DEL. */
+    OS_EXIT_CRITICAL();
+    return (OS_ERR_NONE);
+}
+#endif
 
 
 /*

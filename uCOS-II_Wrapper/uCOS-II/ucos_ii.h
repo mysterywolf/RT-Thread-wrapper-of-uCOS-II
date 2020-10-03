@@ -738,7 +738,7 @@ OS_EXT  INT8U             OSTaskCtr;                       /* Number of tasks cr
 //OS_EXT  OS_TCB           *OSTCBHighRdy;                    /* Pointer to highest priority TCB R-to-R   */
 OS_EXT  OS_TCB           *OSTCBList;                       /* Pointer to doubly linked list of TCBs    */
 OS_EXT  OS_TCB           *OSTCBPrioTbl[OS_LOWEST_PRIO + 1u];    /* Table of pointers to created TCBs   */
-OS_EXT  OS_TCB            OSTCBTbl[OS_MAX_TASKS + OS_N_SYS_TASKS];   /* Table of TCBs                  */
+OS_EXT  OS_TCB            OSTCBTbl[/*OS_MAX_TASKS + OS_N_SYS_TASKS*/OS_LOWEST_PRIO + 1u];   /* Table of TCBs                  */
 
 //#if OS_TICK_STEP_EN > 0u
 //OS_EXT  INT8U             OSTickStepState;          /* Indicates the state of the tick step feature    */
