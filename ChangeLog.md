@@ -34,7 +34,7 @@
 
 ### 2020-10-04
 
-- 实现`OSTaskChangePrio` `OSTaskResume` `OSTaskSuspend`函数
+- 实现`OSTaskChangePrio` `OSTaskResume` `OSTaskSuspend` `OSTaskStkChk`函数, task.c函数全部完成
 
 
 
