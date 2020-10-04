@@ -350,22 +350,24 @@ INT8U  OSTaskCreateExt (void   (*task)(void *p_arg),
     }
     OS_EXIT_CRITICAL();
 
-    ptcb = &OSTCBTbl[prio];
     psp = 0;/*堆栈当前指针 该参数暂时没啥用*/
-    err = OS_TCBInit(ptcb, prio, psp, pbos, id, stk_size, pext, opt); 
+    err = OS_TCBInit(prio, psp, pbos, id, stk_size, pext, opt, &ptcb);
     if (err == OS_ERR_NONE) {
         OS_TRACE_TASK_CREATE(OSTCBPrioTbl[prio]);
+        if (OSRunning == OS_TRUE) {                        /* Find HPT if multitasking has started */
+            OS_Sched();
+        }
     } else {
         OS_ENTER_CRITICAL();
         OSTCBPrioTbl[prio] = (OS_TCB *)0;                  /* Make this priority avail. to others    */
         OS_EXIT_CRITICAL();
         return (err); 
     }
-     
+
     snprintf(name,RT_NAME_MAX,"uCTask%02d",prio);
     rt_thread_init(&ptcb->OSTask,name,task,p_arg,ptos,stk_size*sizeof(OS_STK),prio,0);
     rt_thread_startup(&ptcb->OSTask);                      /*start the task                          */
-    
+
     return (OS_ERR_NONE);
 }
 #endif
@@ -476,7 +478,8 @@ INT8U  OSTaskDel (INT8U prio)
         ptcb->OSTCBPrev->OSTCBNext = ptcb->OSTCBNext;
         ptcb->OSTCBNext->OSTCBPrev = ptcb->OSTCBPrev;
     }
-    
+    ptcb->OSTCBNext     = OSTCBFreeList;                /* Return TCB to free TCB list                 */
+    OSTCBFreeList       = ptcb;    
 #if OS_TASK_NAME_EN > 0u
     ptcb->OSTCBTaskName = (INT8U *)(void *)"?";
 #endif

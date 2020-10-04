@@ -734,11 +734,11 @@ OS_EXT  INT8U             OSTaskCtr;                       /* Number of tasks cr
 
 
 #define OSTCBCur         ((OS_TCB*)rt_thread_self())                        /* Pointer to currently running TCB         */
-//OS_EXT  OS_TCB           *OSTCBFreeList;                   /* Pointer to list of free TCBs             */
+OS_EXT  OS_TCB           *OSTCBFreeList;                   /* Pointer to list of free TCBs             */
 //OS_EXT  OS_TCB           *OSTCBHighRdy;                    /* Pointer to highest priority TCB R-to-R   */
 OS_EXT  OS_TCB           *OSTCBList;                       /* Pointer to doubly linked list of TCBs    */
 OS_EXT  OS_TCB           *OSTCBPrioTbl[OS_LOWEST_PRIO + 1u];    /* Table of pointers to created TCBs   */
-OS_EXT  OS_TCB            OSTCBTbl[/*OS_MAX_TASKS + OS_N_SYS_TASKS*/OS_LOWEST_PRIO + 1u];   /* Table of TCBs                  */
+OS_EXT  OS_TCB            OSTCBTbl[OS_MAX_TASKS + OS_N_SYS_TASKS];   /* Table of TCBs                  */
 
 //#if OS_TICK_STEP_EN > 0u
 //OS_EXT  INT8U             OSTickStepState;          /* Indicates the state of the tick step feature    */
@@ -1358,14 +1358,14 @@ void          OS_TaskStkClr           (OS_STK          *pbos,
 void          OS_TaskStatStkChk       (void);
 #endif
 
-INT8U         OS_TCBInit              (OS_TCB          *ptcb,
-                                       INT8U            prio,
+INT8U         OS_TCBInit              (INT8U            prio,
                                        OS_STK          *ptos,
                                        OS_STK          *pbos,
                                        INT16U           id,
                                        INT32U           stk_size,
                                        void            *pext,
-                                       INT16U           opt);
+                                       INT16U           opt,
+                                       OS_TCB         **pptcb);
 
 #if OS_TMR_EN > 0u
 void          OSTmr_Init              (void);

@@ -121,7 +121,8 @@ static  void  OS_InitTCBList (void)
     ptcb1->OSTCBTaskName    = (INT8U *)(void *)"?";              /* Unknown name                       */
 #endif
     OSTCBList               = (OS_TCB *)0;                       /* TCB lists initializations          */
-
+    OSTCBFreeList           = &OSTCBTbl[0];
+    
     OSTCBPrioTbl[OS_MAX_TASKS + OS_N_SYS_TASKS - 1u] = OS_TCB_RESERVED; /* 空闲任务标记为已经使用      */
 }
 
@@ -557,15 +558,16 @@ void  OS_Sched (void)
 * Note       : This function is INTERNAL to uC/OS-II and your application should not call it.
 *********************************************************************************************************
 */
-INT8U  OS_TCBInit (OS_TCB  *ptcb,
-                   INT8U    prio,
+INT8U  OS_TCBInit (INT8U    prio,
                    OS_STK  *ptos,
                    OS_STK  *pbos,
                    INT16U   id,
                    INT32U   stk_size,
                    void    *pext,
-                   INT16U   opt)
+                   INT16U   opt,
+                   OS_TCB **pptcb)
 {
+    OS_TCB    *ptcb;
 #if OS_CRITICAL_METHOD == 3u                               /* Allocate storage for CPU status register */
     OS_CPU_SR  cpu_sr = 0u;
 #endif
@@ -580,7 +582,9 @@ INT8U  OS_TCBInit (OS_TCB  *ptcb,
 
 
     OS_ENTER_CRITICAL();
+    ptcb = OSTCBFreeList;                                  /* Get a free TCB from the free TCB list    */
     if (ptcb != (OS_TCB *)0) {
+        OSTCBFreeList            = ptcb->OSTCBNext;        /* Update pointer to free TCB list          */
         OS_EXIT_CRITICAL();
         ptcb->OSTCBStkPtr        = ptos;                   /* Load Stack pointer in TCB                */
         ptcb->OSTCBPrio          = prio;                   /* Load task priority into TCB              */
@@ -668,6 +672,7 @@ INT8U  OS_TCBInit (OS_TCB  *ptcb,
 //        OSRdyTbl[ptcb->OSTCBY] |= ptcb->OSTCBBitX;
         OSTaskCtr++;                                       /* Increment the #tasks counter             */
         OS_TRACE_TASK_READY(ptcb);
+        *pptcb = ptcb;
         OS_EXIT_CRITICAL();
         return (OS_ERR_NONE);
     }
