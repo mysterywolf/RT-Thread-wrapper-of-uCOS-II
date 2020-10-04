@@ -63,121 +63,58 @@
 *********************************************************************************************************
 */
 
-//#if OS_TASK_CHANGE_PRIO_EN > 0u
-//INT8U  OSTaskChangePrio (INT8U  oldprio,
-//                         INT8U  newprio)
-//{
-//#if (OS_EVENT_EN)
-//    OS_EVENT  *pevent;
-//#if (OS_EVENT_MULTI_EN > 0u)
-//    OS_EVENT **pevents;
-//#endif
-//#endif
-//    OS_TCB    *ptcb;
-//    INT8U      y_new;
-//    INT8U      x_new;
-//    INT8U      y_old;
-//    OS_PRIO    bity_new;
-//    OS_PRIO    bitx_new;
-//    OS_PRIO    bity_old;
-//    OS_PRIO    bitx_old;
-//#if OS_CRITICAL_METHOD == 3u
-//    OS_CPU_SR  cpu_sr = 0u;                                 /* Storage for CPU status register         */
-//#endif
+#if OS_TASK_CHANGE_PRIO_EN > 0u
+INT8U  OSTaskChangePrio (INT8U  oldprio,
+                         INT8U  newprio)
+{
+    OS_TCB    *ptcb;
+#if OS_CRITICAL_METHOD == 3u
+    OS_CPU_SR  cpu_sr = 0u;                                 /* Storage for CPU status register         */
+#endif
 
 
-//#if OS_ARG_CHK_EN > 0u
-//    if (oldprio >= OS_LOWEST_PRIO) {
-//        if (oldprio != OS_PRIO_SELF) {
-//            return (OS_ERR_PRIO_INVALID);
-//        }
-//    }
-//    if (newprio >= OS_LOWEST_PRIO) {
-//        return (OS_ERR_PRIO_INVALID);
-//    }
-//#endif
-//    OS_ENTER_CRITICAL();
-//    if (OSTCBPrioTbl[newprio] != (OS_TCB *)0) {             /* New priority must not already exist     */
-//        OS_EXIT_CRITICAL();
-//        return (OS_ERR_PRIO_EXIST);
-//    }
-//    if (oldprio == OS_PRIO_SELF) {                          /* See if changing self                    */
-//        oldprio = OSTCBCur->OSTCBPrio;                      /* Yes, get priority                       */
-//    }
-//    ptcb = OSTCBPrioTbl[oldprio];
-//    if (ptcb == (OS_TCB *)0) {                              /* Does task to change exist?              */
-//        OS_EXIT_CRITICAL();                                 /* No, can't change its priority!          */
-//        return (OS_ERR_PRIO);
-//    }
-//    if (ptcb == OS_TCB_RESERVED) {                          /* Is task assigned to Mutex               */
-//        OS_EXIT_CRITICAL();                                 /* No, can't change its priority!          */
-//        return (OS_ERR_TASK_NOT_EXIST);
-//    }
-//#if OS_LOWEST_PRIO <= 63u
-//    y_new                 = (INT8U)(newprio >> 3u);         /* Yes, compute new TCB fields             */
-//    x_new                 = (INT8U)(newprio & 0x07u);
-//#else
-//    y_new                 = (INT8U)((INT8U)(newprio >> 4u) & 0x0Fu);
-//    x_new                 = (INT8U)(newprio & 0x0Fu);
-//#endif
-//    bity_new              = (OS_PRIO)(1uL << y_new);
-//    bitx_new              = (OS_PRIO)(1uL << x_new);
+#if OS_ARG_CHK_EN > 0u
+    if (oldprio >= OS_LOWEST_PRIO) {
+        if (oldprio != OS_PRIO_SELF) {
+            return (OS_ERR_PRIO_INVALID);
+        }
+    }
+    if (newprio >= OS_LOWEST_PRIO) {
+        return (OS_ERR_PRIO_INVALID);
+    }
+#endif
+    OS_ENTER_CRITICAL();
+    if (OSTCBPrioTbl[newprio] != (OS_TCB *)0) {             /* New priority must not already exist     */
+        OS_EXIT_CRITICAL();
+        return (OS_ERR_PRIO_EXIST);
+    }
+    if (oldprio == OS_PRIO_SELF) {                          /* See if changing self                    */
+        oldprio = OSTCBCur->OSTCBPrio;                      /* Yes, get priority                       */
+    }
+    ptcb = OSTCBPrioTbl[oldprio];
+    if (ptcb == (OS_TCB *)0) {                              /* Does task to change exist?              */
+        OS_EXIT_CRITICAL();                                 /* No, can't change its priority!          */
+        return (OS_ERR_PRIO);
+    }
+    if (ptcb == OS_TCB_RESERVED) {                          /* Is task assigned to Mutex               */
+        OS_EXIT_CRITICAL();                                 /* No, can't change its priority!          */
+        return (OS_ERR_TASK_NOT_EXIST);
+    }
 
-//    OSTCBPrioTbl[oldprio] = (OS_TCB *)0;                    /* Remove TCB from old priority            */
-//    OSTCBPrioTbl[newprio] =  ptcb;                          /* Place pointer to TCB @ new priority     */
-//    y_old                 =  ptcb->OSTCBY;
-//    bity_old              =  ptcb->OSTCBBitY;
-//    bitx_old              =  ptcb->OSTCBBitX;
-//    if ((OSRdyTbl[y_old] &   bitx_old) != 0u) {             /* If task is ready make it not            */
-//         OSRdyTbl[y_old] &= (OS_PRIO)~bitx_old;
-//         if (OSRdyTbl[y_old] == 0u) {
-//             OSRdyGrp &= (OS_PRIO)~bity_old;
-//         }
-//         OSRdyGrp        |= bity_new;                       /* Make new priority ready to run          */
-//         OSRdyTbl[y_new] |= bitx_new;
-//         OS_TRACE_TASK_READY(ptcb);
-//    }
+    OSTCBPrioTbl[oldprio] = (OS_TCB *)0;                    /* Remove TCB from old priority            */
+    OSTCBPrioTbl[newprio] =  ptcb;                          /* Place pointer to TCB @ new priority     */
 
-//#if (OS_EVENT_EN)
-//    pevent = ptcb->OSTCBEventPtr;
-//    if (pevent != (OS_EVENT *)0) {
-//        pevent->OSEventTbl[y_old] &= (OS_PRIO)~bitx_old;    /* Remove old task prio from wait list     */
-//        if (pevent->OSEventTbl[y_old] == 0u) {
-//            pevent->OSEventGrp    &= (OS_PRIO)~bity_old;
-//        }
-//        pevent->OSEventGrp        |= bity_new;              /* Add    new task prio to   wait list     */
-//        pevent->OSEventTbl[y_new] |= bitx_new;
-//    }
-//#if (OS_EVENT_MULTI_EN > 0u)
-//    if (ptcb->OSTCBEventMultiPtr != (OS_EVENT **)0) {
-//        pevents =  ptcb->OSTCBEventMultiPtr;
-//        pevent  = *pevents;
-//        while (pevent != (OS_EVENT *)0) {
-//            pevent->OSEventTbl[y_old] &= (OS_PRIO)~bitx_old;   /* Remove old task prio from wait lists */
-//            if (pevent->OSEventTbl[y_old] == 0u) {
-//                pevent->OSEventGrp    &= (OS_PRIO)~bity_old;
-//            }
-//            pevent->OSEventGrp        |= bity_new;          /* Add    new task prio to   wait lists    */
-//            pevent->OSEventTbl[y_new] |= bitx_new;
-//            pevents++;
-//            pevent                     = *pevents;
-//        }
-//    }
-//#endif
-//#endif
-
-//    ptcb->OSTCBPrio = newprio;                              /* Set new task priority                   */
-//    ptcb->OSTCBY    = y_new;
-//    ptcb->OSTCBX    = x_new;
-//    ptcb->OSTCBBitY = bity_new;
-//    ptcb->OSTCBBitX = bitx_new;
-//    OS_EXIT_CRITICAL();
-//    if (OSRunning == OS_TRUE) {
-//        OS_Sched();                                         /* Find new highest priority task          */
-//    }
-//    return (OS_ERR_NONE);
-//}
-//#endif
+    ptcb->OSTCBPrio = newprio;                              /* Set new task priority                   */
+    OS_EXIT_CRITICAL();
+    
+    rt_thread_control(&(ptcb->OSTask), RT_THREAD_CTRL_CHANGE_PRIORITY, &newprio);
+    
+    if (OSRunning == OS_TRUE) {
+        OS_Sched();                                         /* Find new highest priority task          */
+    }
+    return (OS_ERR_NONE);
+}
+#endif
 
 
 /*
@@ -804,7 +741,7 @@ INT8U  OSTaskResume (INT8U prio)
 
     if ((ptcb->OSTCBStat & OS_STAT_SUSPEND) != OS_STAT_RDY) { /* Task must be suspended                */
         ptcb->OSTCBStat &= (INT8U)~(INT8U)OS_STAT_SUSPEND;    /* Remove suspension                     */
-//        if ((ptcb->OSTCBStat & OS_STAT_PEND_ANY) == OS_STAT_RDY) { /* See if task is now ready         */
+        if ((ptcb->OSTCBStat & OS_STAT_PEND_ANY) == OS_STAT_RDY) { /* See if task is now ready         */
             OS_TRACE_TASK_READY(ptcb);
             OS_EXIT_CRITICAL();            
             rt_thread_resume((rt_thread_t)ptcb);              /* rt-thread thread resume API           */               
@@ -812,9 +749,9 @@ INT8U  OSTaskResume (INT8U prio)
                 OS_TRACE_TASK_RESUME(ptcb);
                 OS_Sched();                                   /* Find new highest priority task        */
             }
-//        } else {                                              /* Must be pending on event              */
-//            OS_EXIT_CRITICAL();
-//        }
+        } else {                                              /* Must be pending on event              */
+            OS_EXIT_CRITICAL();
+        }
         return (OS_ERR_NONE);
     }
     OS_EXIT_CRITICAL();

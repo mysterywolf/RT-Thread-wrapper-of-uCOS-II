@@ -32,7 +32,9 @@
 
 - 实现`OSTaskDel()` `OSTaskNameGet()` `OSTaskNameSet()` `OSTaskRegGet()` `OSTaskRegGetID()` `OSTaskRegSet()` `OSTaskDelReq()` `OSTaskQuery()` 函数
 
+### 2020-10-04
 
+- 实现`OSTaskChangePrio` `OSTaskResume` `OSTaskSuspend`函数
 
 
 
