@@ -776,55 +776,51 @@ void  OSTaskNameSet (INT8U   prio,
 *********************************************************************************************************
 */
 
-//#if OS_TASK_SUSPEND_EN > 0u
-//INT8U  OSTaskResume (INT8U prio)
-//{
-//    OS_TCB    *ptcb;
-//#if OS_CRITICAL_METHOD == 3u                                  /* Storage for CPU status register       */
-//    OS_CPU_SR  cpu_sr = 0u;
-//#endif
+#if OS_TASK_SUSPEND_EN > 0u
+INT8U  OSTaskResume (INT8U prio)
+{
+    OS_TCB    *ptcb;
+#if OS_CRITICAL_METHOD == 3u                                  /* Storage for CPU status register       */
+    OS_CPU_SR  cpu_sr = 0u;
+#endif
 
 
 
-//#if OS_ARG_CHK_EN > 0u
-//    if (prio >= OS_LOWEST_PRIO) {                             /* Make sure task priority is valid      */
-//        return (OS_ERR_PRIO_INVALID);
-//    }
-//#endif
-//    OS_ENTER_CRITICAL();
-//    ptcb = OSTCBPrioTbl[prio];
-//    if (ptcb == (OS_TCB *)0) {                                /* Task to suspend must exist            */
-//        OS_EXIT_CRITICAL();
-//        return (OS_ERR_TASK_RESUME_PRIO);
-//    }
-//    if (ptcb == OS_TCB_RESERVED) {                            /* See if assigned to Mutex              */
-//        OS_EXIT_CRITICAL();
-//        return (OS_ERR_TASK_NOT_EXIST);
-//    }
-//    if ((ptcb->OSTCBStat & OS_STAT_SUSPEND) != OS_STAT_RDY) { /* Task must be suspended                */
-//        ptcb->OSTCBStat &= (INT8U)~(INT8U)OS_STAT_SUSPEND;    /* Remove suspension                     */
+#if OS_ARG_CHK_EN > 0u
+    if (prio >= OS_LOWEST_PRIO) {                             /* Make sure task priority is valid      */
+        return (OS_ERR_PRIO_INVALID);
+    }
+#endif
+    OS_ENTER_CRITICAL();
+    ptcb = OSTCBPrioTbl[prio];
+    if (ptcb == (OS_TCB *)0) {                                /* Task to suspend must exist            */
+        OS_EXIT_CRITICAL();
+        return (OS_ERR_TASK_RESUME_PRIO);
+    }
+    if (ptcb == OS_TCB_RESERVED) {                            /* See if assigned to Mutex              */
+        OS_EXIT_CRITICAL();
+        return (OS_ERR_TASK_NOT_EXIST);
+    }
+
+    if ((ptcb->OSTCBStat & OS_STAT_SUSPEND) != OS_STAT_RDY) { /* Task must be suspended                */
+        ptcb->OSTCBStat &= (INT8U)~(INT8U)OS_STAT_SUSPEND;    /* Remove suspension                     */
 //        if ((ptcb->OSTCBStat & OS_STAT_PEND_ANY) == OS_STAT_RDY) { /* See if task is now ready         */
-//            if (ptcb->OSTCBDly == 0u) {
-//                OSRdyGrp               |= ptcb->OSTCBBitY;    /* Yes, Make task ready to run           */
-//                OSRdyTbl[ptcb->OSTCBY] |= ptcb->OSTCBBitX;
-//                OS_TRACE_TASK_READY(ptcb);
-//                OS_EXIT_CRITICAL();
-//                if (OSRunning == OS_TRUE) {
-//                    OS_TRACE_TASK_RESUME(ptcb);
-//                    OS_Sched();                               /* Find new highest priority task        */
-//                }
-//            } else {
-//                OS_EXIT_CRITICAL();
-//            }
+            OS_TRACE_TASK_READY(ptcb);
+            OS_EXIT_CRITICAL();            
+            rt_thread_resume((rt_thread_t)ptcb);              /* rt-thread thread resume API           */               
+            if (OSRunning == OS_TRUE) {
+                OS_TRACE_TASK_RESUME(ptcb);
+                OS_Sched();                                   /* Find new highest priority task        */
+            }
 //        } else {                                              /* Must be pending on event              */
 //            OS_EXIT_CRITICAL();
 //        }
-//        return (OS_ERR_NONE);
-//    }
-//    OS_EXIT_CRITICAL();
-//    return (OS_ERR_TASK_NOT_SUSPENDED);
-//}
-//#endif
+        return (OS_ERR_NONE);
+    }
+    OS_EXIT_CRITICAL();
+    return (OS_ERR_TASK_NOT_SUSPENDED);
+}
+#endif
 
 
 /*
@@ -932,61 +928,56 @@ void  OSTaskNameSet (INT8U   prio,
 *********************************************************************************************************
 */
 
-//#if OS_TASK_SUSPEND_EN > 0u
-//INT8U  OSTaskSuspend (INT8U prio)
-//{
-//    BOOLEAN    self;
-//    OS_TCB    *ptcb;
-//    INT8U      y;
-//#if OS_CRITICAL_METHOD == 3u                     /* Allocate storage for CPU status register           */
-//    OS_CPU_SR  cpu_sr = 0u;
-//#endif
+#if OS_TASK_SUSPEND_EN > 0u
+INT8U  OSTaskSuspend (INT8U prio)
+{
+    BOOLEAN    self;
+    OS_TCB    *ptcb;
+#if OS_CRITICAL_METHOD == 3u                     /* Allocate storage for CPU status register           */
+    OS_CPU_SR  cpu_sr = 0u;
+#endif
 
 
 
-//#if OS_ARG_CHK_EN > 0u
-//    if (prio == OS_TASK_IDLE_PRIO) {                            /* Not allowed to suspend idle task    */
-//        return (OS_ERR_TASK_SUSPEND_IDLE);
-//    }
-//    if (prio >= OS_LOWEST_PRIO) {                               /* Task priority valid ?               */
-//        if (prio != OS_PRIO_SELF) {
-//            return (OS_ERR_PRIO_INVALID);
-//        }
-//    }
-//#endif
-//    OS_ENTER_CRITICAL();
-//    if (prio == OS_PRIO_SELF) {                                 /* See if suspend SELF                 */
-//        prio = OSTCBCur->OSTCBPrio;
-//        self = OS_TRUE;
-//    } else if (prio == OSTCBCur->OSTCBPrio) {                   /* See if suspending self              */
-//        self = OS_TRUE;
-//    } else {
-//        self = OS_FALSE;                                        /* No suspending another task          */
-//    }
-//    ptcb = OSTCBPrioTbl[prio];
-//    if (ptcb == (OS_TCB *)0) {                                  /* Task to suspend must exist          */
-//        OS_EXIT_CRITICAL();
-//        return (OS_ERR_TASK_SUSPEND_PRIO);
-//    }
-//    if (ptcb == OS_TCB_RESERVED) {                              /* See if assigned to Mutex            */
-//        OS_EXIT_CRITICAL();
-//        return (OS_ERR_TASK_NOT_EXIST);
-//    }
-//    y            = ptcb->OSTCBY;
-//    OSRdyTbl[y] &= (OS_PRIO)~ptcb->OSTCBBitX;                   /* Make task not ready                 */
-//    if (OSRdyTbl[y] == 0u) {
-//        OSRdyGrp &= (OS_PRIO)~ptcb->OSTCBBitY;
-//    }
-//    ptcb->OSTCBStat |= OS_STAT_SUSPEND;                         /* Status of task is 'SUSPENDED'       */
-//    OS_EXIT_CRITICAL();
-//    OS_TRACE_TASK_SUSPEND(ptcb);
-//    OS_TRACE_TASK_SUSPENDED(ptcb);
-//    if (self == OS_TRUE) {                                      /* Context switch only if SELF         */
-//        OS_Sched();                                             /* Find new highest priority task      */
-//    }
-//    return (OS_ERR_NONE);
-//}
-//#endif
+#if OS_ARG_CHK_EN > 0u
+    if (prio == OS_TASK_IDLE_PRIO) {                            /* Not allowed to suspend idle task    */
+        return (OS_ERR_TASK_SUSPEND_IDLE);
+    }
+    if (prio >= OS_LOWEST_PRIO) {                               /* Task priority valid ?               */
+        if (prio != OS_PRIO_SELF) {
+            return (OS_ERR_PRIO_INVALID);
+        }
+    }
+#endif
+    OS_ENTER_CRITICAL();
+    if (prio == OS_PRIO_SELF) {                                 /* See if suspend SELF                 */
+        prio = OSTCBCur->OSTCBPrio;
+        self = OS_TRUE;
+    } else if (prio == OSTCBCur->OSTCBPrio) {                   /* See if suspending self              */
+        self = OS_TRUE;
+    } else {
+        self = OS_FALSE;                                        /* No suspending another task          */
+    }
+    ptcb = OSTCBPrioTbl[prio];
+    if (ptcb == (OS_TCB *)0) {                                  /* Task to suspend must exist          */
+        OS_EXIT_CRITICAL();
+        return (OS_ERR_TASK_SUSPEND_PRIO);
+    }
+    if (ptcb == OS_TCB_RESERVED) {                              /* See if assigned to Mutex            */
+        OS_EXIT_CRITICAL();
+        return (OS_ERR_TASK_NOT_EXIST);
+    }
+    ptcb->OSTCBStat |= OS_STAT_SUSPEND;                         /* Status of task is 'SUSPENDED'       */
+    OS_EXIT_CRITICAL();
+    rt_thread_suspend((rt_thread_t)ptcb);                       /* rt-thread thread suspend API        */
+    OS_TRACE_TASK_SUSPEND(ptcb);
+    OS_TRACE_TASK_SUSPENDED(ptcb);
+    if (self == OS_TRUE) {                                      /* Context switch only if SELF         */
+        OS_Sched();                                             /* Find new highest priority task      */
+    }
+    return (OS_ERR_NONE);
+}
+#endif
 
 
 /*
