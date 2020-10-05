@@ -41,6 +41,7 @@
 - 修复`OSTaskCreateExt`函数堆栈增长方向兼容RT-Thread的问题
 - 修复`OSTaskStkChk`函数计算任务堆栈大小错误的问题
 - 实现`OSTimeDlyResume`函数
+- 实现统计任务以及CPU使用率计算
 
 
 

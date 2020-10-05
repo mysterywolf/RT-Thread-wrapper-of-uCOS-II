@@ -23,7 +23,15 @@ int main(void)/*RT-Thread mainœﬂ≥Ã*/
 {
     OSInit();    
     OSStart();
+    OSStatInit();
     
     task_example();
 //    timer_example();
+    
+    while(1)
+    {
+        
+        rt_thread_delay(100);
+    }
+    
 }

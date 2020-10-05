@@ -702,13 +702,13 @@ typedef  void                      (*OS_TLS_DESTRUCT_PTR)(OS_TCB    *ptcb,
 //OS_EXT  OS_FLAG_GRP      *OSFlagFreeList;           /* Pointer to free list of event flag groups       */
 //#endif
 
-//#if OS_TASK_STAT_EN > 0u
-//OS_EXT  INT8U             OSCPUUsage;               /* Percentage of CPU used                          */
-//OS_EXT  INT32U            OSIdleCtrMax;             /* Max. value that idle ctr can take in 1 sec.     */
-//OS_EXT  INT32U            OSIdleCtrRun;             /* Val. reached by idle ctr at run time in 1 sec.  */
-//OS_EXT  BOOLEAN           OSStatRdy;                /* Flag indicating that the statistic task is rdy  */
-//OS_EXT  OS_STK            OSTaskStatStk[OS_TASK_STAT_STK_SIZE];      /* Statistics task stack          */
-//#endif
+#if OS_TASK_STAT_EN > 0u
+OS_EXT  INT8U             OSCPUUsage;               /* Percentage of CPU used                          */
+OS_EXT  INT32U            OSIdleCtrMax;             /* Max. value that idle ctr can take in 1 sec.     */
+OS_EXT  INT32U            OSIdleCtrRun;             /* Val. reached by idle ctr at run time in 1 sec.  */
+OS_EXT  BOOLEAN           OSStatRdy;                /* Flag indicating that the statistic task is rdy  */
+OS_EXT  OS_STK            OSTaskStatStk[OS_TASK_STAT_STK_SIZE];      /* Statistics task stack          */
+#endif
 
 #define OSIntNesting      rt_interrupt_get_nest()   /* Interrupt nesting level                         */
 
@@ -724,7 +724,7 @@ OS_EXT  BOOLEAN           OSRunning;                       /* Flag indicating th
 
 OS_EXT  INT8U             OSTaskCtr;                       /* Number of tasks created                  */
 
-//OS_EXT  volatile  INT32U  OSIdleCtr;                                 /* Idle counter                   */
+OS_EXT  volatile  INT32U  OSIdleCtr;                                 /* Idle counter                   */
 
 //#ifdef OS_SAFETY_CRITICAL_IEC61508
 //OS_EXT  BOOLEAN           OSSafetyCriticalStartFlag;
@@ -1340,7 +1340,7 @@ void          OS_Sched                (void);
 INT8U         OS_StrLen               (INT8U           *psrc);
 #endif
 
-void          OS_TaskIdle             (void            *p_arg);
+void          OS_TaskIdle             (void);
 
 void          OS_TaskReturn           (void);
 

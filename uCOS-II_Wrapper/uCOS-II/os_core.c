@@ -127,6 +127,91 @@ static  void  OS_InitTCBList (void)
 }
 
 
+#if OS_TASK_STAT_EN > 0u
+/*
+*********************************************************************************************************
+*                                             INITIALIZATION
+*                                         CREATING THE IDLE TASK
+*
+* Description: This function creates the Idle Task.
+*
+* Arguments  : none
+*
+* Returns    : none
+*********************************************************************************************************
+*/
+
+static  void  OS_InitTaskIdle (void)
+{
+    rt_thread_idle_sethook(OS_TaskIdle);                    /*向RTT注册μCOS-III兼容层空闲任务(实则为回调函数)         */ 
+}
+#endif
+
+
+/*
+*********************************************************************************************************
+*                                             INITIALIZATION
+*                                      CREATING THE STATISTIC TASK
+*
+* Description: This function creates the Statistic Task.
+*
+* Arguments  : none
+*
+* Returns    : none
+*********************************************************************************************************
+*/
+
+#if OS_TASK_STAT_EN > 0u
+static  void  OS_InitTaskStat (void)
+{
+#if OS_TASK_NAME_EN > 0u
+    INT8U  err;
+#endif
+
+
+#if OS_TASK_CREATE_EXT_EN > 0u
+    #if OS_STK_GROWTH == 1u
+    (void)OSTaskCreateExt(OS_TaskStat,
+                          (void *)0,                                   /* No args passed to OS_TaskStat()*/
+                          &OSTaskStatStk[OS_TASK_STAT_STK_SIZE - 1u],  /* Set Top-Of-Stack               */
+                          OS_TASK_STAT_PRIO,                           /* One higher than the idle task  */
+                          OS_TASK_STAT_ID,
+                          &OSTaskStatStk[0],                           /* Set Bottom-Of-Stack            */
+                          OS_TASK_STAT_STK_SIZE,
+                          (void *)0,                                   /* No TCB extension               */
+                          OS_TASK_OPT_STK_CHK | OS_TASK_OPT_STK_CLR);  /* Enable stack checking + clear  */
+    #else
+    (void)OSTaskCreateExt(OS_TaskStat,
+                          (void *)0,                                   /* No args passed to OS_TaskStat()*/
+                          &OSTaskStatStk[0],                           /* Set Top-Of-Stack               */
+                          OS_TASK_STAT_PRIO,                           /* One higher than the idle task  */
+                          OS_TASK_STAT_ID,
+                          &OSTaskStatStk[OS_TASK_STAT_STK_SIZE - 1u],  /* Set Bottom-Of-Stack            */
+                          OS_TASK_STAT_STK_SIZE,
+                          (void *)0,                                   /* No TCB extension               */
+                          OS_TASK_OPT_STK_CHK | OS_TASK_OPT_STK_CLR);  /* Enable stack checking + clear  */
+    #endif
+#else
+    #if OS_STK_GROWTH == 1u
+    (void)OSTaskCreate(OS_TaskStat,
+                       (void *)0,                                      /* No args passed to OS_TaskStat()*/
+                       &OSTaskStatStk[OS_TASK_STAT_STK_SIZE - 1u],     /* Set Top-Of-Stack               */
+                       OS_TASK_STAT_PRIO);                             /* One higher than the idle task  */
+    #else
+    (void)OSTaskCreate(OS_TaskStat,
+                       (void *)0,                                      /* No args passed to OS_TaskStat()*/
+                       &OSTaskStatStk[0],                              /* Set Top-Of-Stack               */
+                       OS_TASK_STAT_PRIO);                             /* One higher than the idle task  */
+    #endif
+#endif
+
+#if OS_TASK_NAME_EN > 0u
+    OSTaskNameSet(OS_TASK_STAT_PRIO, (INT8U *)(void *)"uC/OS-II Stat", &err);
+#endif
+}
+#endif
+
+
 /*
 *********************************************************************************************************
 *                                           INITIALIZATION
@@ -158,7 +243,10 @@ void  OSInit (void)
     OS_MemInit();                                                /* Initialize the memory manager            */
 #endif
  
-
+#if OS_TASK_STAT_EN > 0u
+    OS_InitTaskIdle();                                           /* Create the Idle Task                     */
+    OS_InitTaskStat();                                           /* Create the Statistic Task                */
+#endif
 
 #if OS_TMR_EN > 0u
     OSTmr_Init();                                                /* Initialize the Timer Manager             */
@@ -167,7 +255,7 @@ void  OSInit (void)
     OSInitHookEnd();                                             /* Call port specific init. code            */
 
 #if OS_DEBUG_EN > 0u
-//    OSDebugInit();
+    OSDebugInit();
 #endif
  
     OSSchedUnlock();
@@ -360,7 +448,20 @@ void  OSStart (void)
 #if OS_TASK_STAT_EN > 0u
 void  OSStatInit (void)
 {
+#if OS_CRITICAL_METHOD == 3u                     /* Allocate storage for CPU status register           */
+    OS_CPU_SR  cpu_sr = 0u;
+#endif
 
+
+    OSTimeDly(2u);                               /* Synchronize with clock tick                        */
+    OS_ENTER_CRITICAL();
+    OSIdleCtr    = 0uL;                          /* Clear idle counter                                 */
+    OS_EXIT_CRITICAL();
+    OSTimeDly(OS_TICKS_PER_SEC / 10u);           /* Determine MAX. idle counter value for 1/10 second  */
+    OS_ENTER_CRITICAL();
+    OSIdleCtrMax = OSIdleCtr;                    /* Store maximum idle counter count in 1/10 second    */
+    OSStatRdy    = OS_TRUE;
+    OS_EXIT_CRITICAL();
 }
 #endif
 
@@ -512,6 +613,168 @@ void  OS_Sched (void)
 {
     rt_schedule();
 }
+
+
+#if OS_TASK_STAT_EN > 0u
+/*
+*********************************************************************************************************
+*                                              IDLE TASK
+*
+* Description: This task is internal to uC/OS-II and executes whenever no other higher priority tasks
+*              executes because they are ALL waiting for event(s) to occur.
+*
+* Arguments  : none
+*
+* Returns    : none
+*
+* Note(s)    : 1) OSTaskIdleHook() is called after the critical section to ensure that interrupts will be
+*                 enabled for at least a few instructions.  On some processors (ex. Philips XA), enabling
+*                 and then disabling interrupts didn't allow the processor enough time to have interrupts
+*                 enabled before they were disabled again.  uC/OS-II would thus never recognize
+*                 interrupts.
+*              2) This hook has been added to allow you to do such things as STOP the CPU to conserve
+*                 power.
+*              3) 在μCOS-II兼容层中，OS_TaskIdle不再是一个函数，而是一个RT-Thread操作系统Idle任务的回调函数
+*********************************************************************************************************
+*/
+
+void  OS_TaskIdle (void)
+{
+#if OS_CRITICAL_METHOD == 3u                     /* Allocate storage for CPU status register           */
+    OS_CPU_SR  cpu_sr = 0u;
+#endif
+
+    OS_ENTER_CRITICAL();
+    OSIdleCtr++;
+    OS_EXIT_CRITICAL();
+    OSTaskIdleHook();                            /* Call user definable HOOK                           */
+}
+#endif
+
+
+/*
+*********************************************************************************************************
+*                                           STATISTICS TASK
+*
+* Description: This task is internal to uC/OS-II and is used to compute some statistics about the
+*              multitasking environment.  Specifically, OS_TaskStat() computes the CPU usage.
+*              CPU usage is determined by:
+*
+*                                          OSIdleCtr
+*                 OSCPUUsage = 100 * (1 - ------------)     (units are in %)
+*                                         OSIdleCtrMax
+*
+* Arguments  : parg     this pointer is not used at this time.
+*
+* Returns    : none
+*
+* Notes      : 1) This task runs at a priority level higher than the idle task.  In fact, it runs at the
+*                 next higher priority, OS_TASK_IDLE_PRIO-1.
+*              2) You can disable this task by setting the configuration #define OS_TASK_STAT_EN to 0.
+*              3) You MUST have at least a delay of 2/10 seconds to allow for the system to establish the
+*                 maximum value for the idle counter.
+*********************************************************************************************************
+*/
+
+#if OS_TASK_STAT_EN > 0u
+void  OS_TaskStat (void *p_arg)
+{
+    INT8S  usage;
+#if OS_CRITICAL_METHOD == 3u                     /* Allocate storage for CPU status register           */
+    OS_CPU_SR  cpu_sr = 0u;
+#endif
+
+
+
+    p_arg = p_arg;                               /* Prevent compiler warning for not using 'p_arg'     */
+    while (OSStatRdy == OS_FALSE) {
+        OSTimeDly(2u * OS_TICKS_PER_SEC / 10u);  /* Wait until statistic task is ready                 */
+    }
+    OSIdleCtrMax /= 100uL;
+    if (OSIdleCtrMax == 0uL) {
+        OSCPUUsage = 0u;
+#if OS_TASK_SUSPEND_EN > 0u
+        (void)OSTaskSuspend(OS_PRIO_SELF);
+#else
+        for (;;) {
+            OSTimeDly(OS_TICKS_PER_SEC);
+        }
+#endif
+    }
+    OS_ENTER_CRITICAL();
+    OSIdleCtr = OSIdleCtrMax * 100uL;            /* Set initial CPU usage as 0%                        */
+    OS_EXIT_CRITICAL();
+    for (;;) {
+        OSTimeDly(1);                            /* Synchronize with clock tick                        */
+
+        OS_ENTER_CRITICAL();
+        OSIdleCtr = 0uL;                        /* Reset the idle counter for the next second         */
+        OS_EXIT_CRITICAL();
+
+        OSTimeDly(OS_TICKS_PER_SEC / 10u);       /* Accumulate OSIdleCtr for the next 1/10 second      */
+
+        OS_ENTER_CRITICAL();
+        OSIdleCtrRun = OSIdleCtr;                /* Store number of cycles which elapsed while idle    */
+        OS_EXIT_CRITICAL();
+
+        usage            = 100 - (INT8S)(OSIdleCtrRun / OSIdleCtrMax);
+        if (usage >= 0) {                        /* Make sure we don't have a negative percentage      */
+            OSCPUUsage   = (INT8U)usage;
+        } else {
+            OSCPUUsage   = 0u;
+            OSIdleCtrMax = OSIdleCtrRun / 100uL; /* Update max counter value to current one            */
+        }
+
+        OSTaskStatHook();                        /* Invoke user definable hook                         */
+#if (OS_TASK_STAT_STK_CHK_EN > 0u) && (OS_TASK_CREATE_EXT_EN > 0u)
+        OS_TaskStatStkChk();                     /* Check the stacks for each task                     */
+#endif
+    }
+}
+#endif
+
+
+/*
+*********************************************************************************************************
+*                                        CHECK ALL TASK STACKS
+*
+* Description: This function is called by OS_TaskStat() to check the stacks of each active task.
+*
+* Arguments  : none
+*
+* Returns    : none
+*********************************************************************************************************
+*/
+
+#if (OS_TASK_STAT_STK_CHK_EN > 0u) && (OS_TASK_CREATE_EXT_EN > 0u)
+void  OS_TaskStatStkChk (void)
+{
+    OS_TCB      *ptcb;
+    OS_STK_DATA  stk_data;
+    INT8U        err;
+    INT8U        prio;
+
+
+    for (prio = 0u; prio <= OS_TASK_IDLE_PRIO; prio++) {
+        err = OSTaskStkChk(prio, &stk_data);
+        if (err == OS_ERR_NONE) {
+            ptcb = OSTCBPrioTbl[prio];
+            if (ptcb != (OS_TCB *)0) {                               /* Make sure task 'ptcb' is ...   */
+                if (ptcb != OS_TCB_RESERVED) {                       /* ... still valid.               */
+#if OS_TASK_PROFILE_EN > 0u
+                    #if OS_STK_GROWTH == 1u
+                    ptcb->OSTCBStkBase = ptcb->OSTCBStkBottom + ptcb->OSTCBStkSize;
+                    #else
+                    ptcb->OSTCBStkBase = ptcb->OSTCBStkBottom - ptcb->OSTCBStkSize;
+                    #endif
+                    ptcb->OSTCBStkUsed = stk_data.OSUsed;            /* Store number of entries used   */
+#endif
+                }
+            }
+        }
+    }
+}
+#endif
 
 
 /*
