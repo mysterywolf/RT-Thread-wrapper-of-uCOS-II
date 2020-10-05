@@ -40,9 +40,9 @@
 #include <rtconfig.h>
                                        /* ---------------------- MISCELLANEOUS ----------------------- */
 #if defined RT_USING_HOOK && defined RT_USING_IDLE_HOOK
-#define OS_APP_HOOKS_EN           1u   /* Application-defined hooks are called from the uC/OS-II hooks */
+#define OS_APP_HOOKS_EN           1u   /* 读写 Application-defined hooks are called from the uC/OS-II hooks */
 #else
-#define OS_APP_HOOKS_EN           0u   /* Application-defined hooks are called from the uC/OS-II hooks */
+#define OS_APP_HOOKS_EN           0u   /* 只读 Application-defined hooks are called from the uC/OS-II hooks */
 #endif
 #define OS_ARG_CHK_EN             1u   /* Enable (1) or Disable (0) argument checking                  */
 #define OS_CPU_HOOKS_EN           1u   /* uC/OS-II hooks are found in the processor port files         */
@@ -52,7 +52,7 @@
 #define OS_EVENT_MULTI_EN         1u   /* Include code for OSEventPendMulti()                          */
 #define OS_EVENT_NAME_EN          1u   /* Enable names for Sem, Mutex, Mbox and Q                      */
 
-#define OS_LOWEST_PRIO    RT_THREAD_PRIORITY_MAX /* Defines the lowest priority that can be assigned...*/
+#define OS_LOWEST_PRIO    RT_THREAD_PRIORITY_MAX /* 只读 Defines the lowest priority that can be assigned...*/
                                        /* ... MUST NEVER be higher than 254!                           */
 
 #define OS_MAX_EVENTS            10u   /* Max. number of event control blocks in your application      */
@@ -64,7 +64,7 @@
 #define OS_SCHED_LOCK_EN          1u   /* Include code for OSSchedLock() and OSSchedUnlock()           */
 
 #define OS_TICK_STEP_EN           1u   /* Enable tick stepping feature for uC/OS-View                  */
-#define OS_TICKS_PER_SEC  RT_TICK_PER_SECOND   /* Set the number of ticks in one second                */
+#define OS_TICKS_PER_SEC  RT_TICK_PER_SECOND   /* 只读 Set the number of ticks in one second           */
 
 #define OS_TLS_TBL_SIZE           0u   /* Size of Thread-Local Storage Table                           */
 
@@ -91,7 +91,7 @@
 
 
                                        /* ----------------------- EVENT FLAGS ------------------------ */
-#ifdef RT_USING_EVENT 
+#ifdef RT_USING_EVENT                  /* 是否开启由RT-Thread接管                                      */
 #define OS_FLAG_EN                1u   /* Enable (1) or Disable (0) code generation for EVENT FLAGS    */
 #else
 #define OS_FLAG_EN                0u   /* Enable (1) or Disable (0) code generation for EVENT FLAGS    */
@@ -121,7 +121,7 @@
 
 
                                        /* ---------------- MUTUAL EXCLUSION SEMAPHORES --------------- */
-#ifdef RT_USING_MUTEX
+#ifdef RT_USING_MUTEX                  /* 是否开启由RT-Thread接管                                      */
 #define OS_MUTEX_EN               1u   /* Enable (1) or Disable (0) code generation for MUTEX          */
 #else
 #define OS_MUTEX_EN               0u   /* Enable (1) or Disable (0) code generation for MUTEX          */
@@ -132,7 +132,7 @@
 
 
                                        /* ---------------------- MESSAGE QUEUES ---------------------- */
-#ifdef RT_USING_MESSAGEQUEUE
+#ifdef RT_USING_MESSAGEQUEUE           /* 是否开启由RT-Thread接管                                      */
 #define OS_Q_EN                   1u   /* Enable (1) or Disable (0) code generation for QUEUES         */
 #else
 #define OS_Q_EN                   0u   /* Enable (1) or Disable (0) code generation for QUEUES         */
@@ -148,7 +148,7 @@
 
 
                                        /* ------------------------ SEMAPHORES ------------------------ */
-#ifdef RT_USING_SEMAPHORE 
+#ifdef RT_USING_SEMAPHORE              /* 是否开启由RT-Thread接管                                      */
 #define OS_SEM_EN                 1u   /* Enable (1) or Disable (0) code generation for SEMAPHORES     */
 #else
 #define OS_SEM_EN                 0u   /* Enable (1) or Disable (0) code generation for SEMAPHORES     */
@@ -168,7 +168,7 @@
 
 
                                        /* --------------------- TIMER MANAGEMENT --------------------- */
-#ifdef RT_USING_TIMER_SOFT
+#ifdef RT_USING_TIMER_SOFT             /* 是否开启由RT-Thread接管                                      */
 #define OS_TMR_EN                 1u   /* Enable (1) or Disable (0) code generation for TIMERS         */
 #else
 #define OS_TMR_EN                 0u   /* Enable (1) or Disable (0) code generation for TIMERS         */
