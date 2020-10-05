@@ -551,6 +551,8 @@ void  OS_Sched (void)
 *              opt           options as passed to 'OSTaskCreateExt()' or,
 *                            0 if called from 'OSTaskCreate()'.
 *
+*              pptcb         ∑µªÿptcb÷∏’Î
+*
 * Returns    : OS_ERR_NONE              if the call was successful
 *              OS_ERR_TASK_NO_MORE_TCB  if there are no more free TCBs to be allocated and thus, the task
 *                                       cannot be created.

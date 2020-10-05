@@ -254,9 +254,9 @@ INT8U  OSTaskCreateExt (void   (*task)(void *p_arg),
                         void    *pext,
                         INT16U   opt)
 {
-    OS_STK     *psp;
     INT8U       err;
     OS_TCB     *ptcb;
+    OS_STK     *convert;
     char        name[RT_NAME_MAX];
 #if OS_CRITICAL_METHOD == 3u                 /* Allocate storage for CPU status register               */
     OS_CPU_SR   cpu_sr = 0u;
@@ -287,23 +287,26 @@ INT8U  OSTaskCreateExt (void   (*task)(void *p_arg),
     }
     OS_EXIT_CRITICAL();
 
-    psp = 0;/*堆栈当前指针 该参数暂时没啥用*/
-    err = OS_TCBInit(prio, psp, pbos, id, stk_size, pext, opt, &ptcb);
+#if OS_STK_GROWTH == 1u                      /* 若为向下增长需要将堆栈首地址转换一下                   */
+    convert = ptos - (stk_size - 1);
+#endif
+    
+    err = OS_TCBInit(prio, ptos, pbos, id, stk_size, pext, opt, &ptcb);
     if (err == OS_ERR_NONE) {
         OS_TRACE_TASK_CREATE(OSTCBPrioTbl[prio]);
-        if (OSRunning == OS_TRUE) {                        /* Find HPT if multitasking has started */
+        if (OSRunning == OS_TRUE) {          /* Find HPT if multitasking has started                   */
             OS_Sched();
         }
     } else {
         OS_ENTER_CRITICAL();
-        OSTCBPrioTbl[prio] = (OS_TCB *)0;                  /* Make this priority avail. to others    */
+        OSTCBPrioTbl[prio] = (OS_TCB *)0;    /* Make this priority avail. to others                    */
         OS_EXIT_CRITICAL();
         return (err); 
     }
 
     snprintf(name,RT_NAME_MAX,"uCTask%02d",prio);
-    rt_thread_init(&ptcb->OSTask,name,task,p_arg,ptos,stk_size*sizeof(OS_STK),prio,0);
-    rt_thread_startup(&ptcb->OSTask);                      /*start the task                          */
+    rt_thread_init(&ptcb->OSTask,name,task,p_arg,convert,stk_size*sizeof(OS_STK),prio,0);
+    rt_thread_startup(&ptcb->OSTask);        /*start the task                                          */
 
     return (OS_ERR_NONE);
 }

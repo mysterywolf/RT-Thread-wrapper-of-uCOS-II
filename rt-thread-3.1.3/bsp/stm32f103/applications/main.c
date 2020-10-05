@@ -12,26 +12,18 @@
 /*启动以及初始化过程严格遵照官方给出的例程*/
 /*串口使用USART2*/
 
-#include <os.h>
+#include <ucos_ii.h>
 
+void task_example (void);
 void timer_example (void);
 
-OS_STK task_stack [256];
-void   task(void *p_arg)
-{
-    while(1)
-    {
-//        rt_kprintf("hahha");
-        rt_thread_delay(500);
-    }
-}
+
 
 int main(void)/*RT-Thread main线程*/
 {
-    OSInit();
-    
+    OSInit();    
     OSStart();
     
-    timer_example();
-    OSTaskCreateExt(task,0,task_stack,5,0,0,256,0,0);
+    task_example();
+//    timer_example();
 }

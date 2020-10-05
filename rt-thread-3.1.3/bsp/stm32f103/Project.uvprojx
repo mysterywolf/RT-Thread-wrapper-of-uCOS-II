@@ -651,6 +651,11 @@
           <GroupName>uCOS-II_Wrapper/examples</GroupName>
           <Files>
             <File>
+              <FileName>task_example.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\uCOS-II_Wrapper\examples\task_example.c</FilePath>
+            </File>
+            <File>
               <FileName>timer_example.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\uCOS-II_Wrapper\examples\timer_example.c</FilePath>
