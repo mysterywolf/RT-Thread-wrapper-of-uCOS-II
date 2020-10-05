@@ -827,7 +827,7 @@ INT8U  OSTaskStkChk (INT8U         prio,
     pchk  = ptcb->OSTCBStkBottom;
     OS_EXIT_CRITICAL();
 #if OS_STK_GROWTH == 1u
-    while (*pchk++ == '#') {                          /* Compute the number of zero entries on the stk */
+    while (*pchk++ == '#') {                           /* Compute the number of zero entries on the stk */
         nfree++;
     }
 #else

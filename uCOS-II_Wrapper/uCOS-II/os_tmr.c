@@ -147,8 +147,10 @@ OS_TMR  *OSTmrCreate (INT32U           dly,
         return ((OS_TMR *)0);
     }    
 
-    /*uCOS-III原版定时器回调函数就是在定时器线程中调用的,而非在中断中调用,
-    因此要使用RTT的RT_TIMER_FLAG_SOFT_TIMER选项,在此之前应将宏定义RT_USING_TIMER_SOFT置1*/
+    /*
+     * uCOS-III原版定时器回调函数就是在定时器线程中调用的,而非在中断中调用,
+     * 因此要使用RTT的RT_TIMER_FLAG_SOFT_TIMER选项,在此之前应将宏定义RT_USING_TIMER_SOFT置1
+     */
     if(opt == OS_TMR_OPT_ONE_SHOT)
     {
         rt_flag = RT_TIMER_FLAG_ONE_SHOT|RT_TIMER_FLAG_SOFT_TIMER;
