@@ -162,7 +162,7 @@
 
                                        /* --------------------- TIME MANAGEMENT ---------------------- */
 #define OS_TIME_DLY_HMSM_EN       1u   /*     Include code for OSTimeDlyHMSM()                         */
-#define OS_TIME_DLY_RESUME_EN     0u   /*     Include code for OSTimeDlyResume()                       */
+#define OS_TIME_DLY_RESUME_EN     1u   /*     Include code for OSTimeDlyResume()                       */
 #define OS_TIME_GET_SET_EN        1u   /*     Include code for OSTimeGet() and OSTimeSet()             */
 #define OS_TIME_TICK_HOOK_EN      1u   /*     Include code for OSTimeTickHook()                        */
 

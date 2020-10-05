@@ -170,7 +170,6 @@ INT8U  OSTimeDlyResume (INT8U prio)
 #endif
 
 
-
     if (prio >= OS_LOWEST_PRIO) {
         return (OS_ERR_PRIO_INVALID);
     }
@@ -184,7 +183,8 @@ INT8U  OSTimeDlyResume (INT8U prio)
         OS_EXIT_CRITICAL();
         return (OS_ERR_TASK_NOT_EXIST);                        /* The task does not exist              */
     }
-    if (ptcb->OSTCBDly == 0u) {                                /* See if task is delayed               */
+    if (!(ptcb->OSTask.thread_timer.parent.flag 
+            & RT_TIMER_FLAG_ACTIVATED)) {                      /* See if task is delayed               */
         OS_EXIT_CRITICAL();
         return (OS_ERR_TIME_NOT_DLY);                          /* Indicate that task was not delayed   */
     }
@@ -196,15 +196,11 @@ INT8U  OSTimeDlyResume (INT8U prio)
     } else {
         ptcb->OSTCBStatPend  =  OS_STAT_PEND_OK;
     }
-    if ((ptcb->OSTCBStat & OS_STAT_SUSPEND) == OS_STAT_RDY) {  /* Is task suspended?                   */
-        OSRdyGrp               |= ptcb->OSTCBBitY;             /* No,  Make ready                      */
-        OSRdyTbl[ptcb->OSTCBY] |= ptcb->OSTCBBitX;
-        OS_TRACE_TASK_READY(ptcb);
-        OS_EXIT_CRITICAL();
-        OS_Sched();                                            /* See if this is new highest priority  */
-    } else {
-        OS_EXIT_CRITICAL();                                    /* Task may be suspended                */
-    }
+
+    ptcb->OSTask.error = -RT_ETIMEOUT;
+    rt_thread_resume(&ptcb->OSTask);
+    rt_schedule();
+
     return (OS_ERR_NONE);
 }
 #endif
