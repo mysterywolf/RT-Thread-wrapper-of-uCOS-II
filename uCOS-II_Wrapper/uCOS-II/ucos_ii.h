@@ -724,7 +724,9 @@ OS_EXT  BOOLEAN           OSRunning;                       /* Flag indicating th
 
 OS_EXT  INT8U             OSTaskCtr;                       /* Number of tasks created                  */
 
+#if OS_TASK_STAT_EN > 0u
 OS_EXT  volatile  INT32U  OSIdleCtr;                                 /* Idle counter                   */
+#endif
 
 //#ifdef OS_SAFETY_CRITICAL_IEC61508
 //OS_EXT  BOOLEAN           OSSafetyCriticalStartFlag;
@@ -1389,21 +1391,13 @@ void          OSInitHookEnd           (void);
 void          OSTaskCreateHook        (OS_TCB          *ptcb);
 void          OSTaskDelHook           (OS_TCB          *ptcb);
 
+#if OS_TASK_STAT_EN > 0u
 void          OSTaskIdleHook          (void);
-
-void          OSTaskReturnHook        (OS_TCB          *ptcb);
-
 void          OSTaskStatHook          (void);
-
-#if OS_TASK_SW_HOOK_EN > 0u
-void          OSTaskSwHook            (void);
 #endif
 
 void          OSTCBInitHook           (OS_TCB          *ptcb);
 
-#if OS_TIME_TICK_HOOK_EN > 0u
-void          OSTimeTickHook          (void);
-#endif
 
 
 /*
@@ -1416,21 +1410,11 @@ void          OSTimeTickHook          (void);
 #if OS_APP_HOOKS_EN > 0u
 void          App_TaskCreateHook      (OS_TCB          *ptcb);
 void          App_TaskDelHook         (OS_TCB          *ptcb);
+#if OS_TASK_STAT_EN > 0u
 void          App_TaskIdleHook        (void);
-
-void          App_TaskReturnHook      (OS_TCB          *ptcb);
-
 void          App_TaskStatHook        (void);
-
-#if OS_TASK_SW_HOOK_EN > 0u
-void          App_TaskSwHook          (void);
 #endif
-
 void          App_TCBInitHook         (OS_TCB          *ptcb);
-
-#if OS_TIME_TICK_HOOK_EN > 0u
-void          App_TimeTickHook        (void);
-#endif
 #endif
 
 /*

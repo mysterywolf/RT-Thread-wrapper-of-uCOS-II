@@ -122,6 +122,7 @@ void  OSTaskDelHook (OS_TCB *ptcb)
 #endif
 
 
+#if OS_TASK_STAT_EN > 0u
 /*
 *********************************************************************************************************
 *                                             IDLE TASK HOOK
@@ -139,31 +140,6 @@ void  OSTaskIdleHook (void)
 {
 #if OS_APP_HOOKS_EN > 0u
     App_TaskIdleHook();
-#endif
-}
-#endif
-
-
-/*
-*********************************************************************************************************
-*                                            TASK RETURN HOOK
-*
-* Description: This function is called if a task accidentally returns.  In other words, a task should
-*              either be an infinite loop or delete itself when done.
-*
-* Arguments  : ptcb      is a pointer to the task control block of the task that is returning.
-*
-* Note(s)    : none
-*********************************************************************************************************
-*/
-
-#if OS_CPU_HOOKS_EN > 0u
-void  OSTaskReturnHook (OS_TCB  *ptcb)
-{
-#if OS_APP_HOOKS_EN > 0u
-    App_TaskReturnHook(ptcb);
-#else
-    (void)ptcb;
 #endif
 }
 #endif
@@ -189,30 +165,6 @@ void  OSTaskStatHook (void)
 }
 #endif
 
-
-
-/*
-*********************************************************************************************************
-*                                           TASK SWITCH HOOK
-*
-* Description: This function is called when a task switch is performed.  This allows you to perform other
-*              operations during a context switch.
-*
-* Arguments  : none
-*
-* Note(s)    : 1) Interrupts are disabled during this call.
-*              2) It is assumed that the global pointer 'OSTCBHighRdy' points to the TCB of the task that
-*                 will be 'switched in' (i.e. the highest priority task) and, 'OSTCBCur' points to the
-*                 task being switched out (i.e. the preempted task).
-*********************************************************************************************************
-*/
-#if (OS_CPU_HOOKS_EN > 0u) && (OS_TASK_SW_HOOK_EN > 0u)
-void  OSTaskSwHook (void)
-{
-#if OS_APP_HOOKS_EN > 0u
-    App_TaskSwHook();
-#endif
-}
 #endif
 
 
@@ -238,23 +190,3 @@ void  OSTCBInitHook (OS_TCB *ptcb)
 }
 #endif
 
-
-/*
-*********************************************************************************************************
-*                                               TICK HOOK
-*
-* Description: This function is called every tick.
-*
-* Arguments  : none
-*
-* Note(s)    : 1) Interrupts may or may not be ENABLED during this call.
-*********************************************************************************************************
-*/
-#if (OS_CPU_HOOKS_EN > 0u) && (OS_TIME_TICK_HOOK_EN > 0u)
-void  OSTimeTickHook (void)
-{
-#if OS_APP_HOOKS_EN > 0u
-    App_TimeTickHook();
-#endif
-}
-#endif

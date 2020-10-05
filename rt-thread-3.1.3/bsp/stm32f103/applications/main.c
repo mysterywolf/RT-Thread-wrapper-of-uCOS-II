@@ -23,7 +23,10 @@ int main(void)/*RT-Thread mainÏß³Ì*/
 {
     OSInit();    
     OSStart();
+    
+#if OS_TASK_STAT_EN > 0u
     OSStatInit();
+#endif
     
     task_example();
 //    timer_example();

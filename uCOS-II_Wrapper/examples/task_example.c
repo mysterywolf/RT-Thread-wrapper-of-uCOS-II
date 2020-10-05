@@ -12,7 +12,9 @@ static void task(void *p_arg)
     {
         OSTaskStkChk(OS_PRIO_SELF, &stk);
         rt_kprintf("task stack free: %d\r\n", stk.OSFree);
+#if OS_TASK_STAT_EN > 0u
         rt_kprintf("CPU Usage:%d%%\r\n",OSCPUUsage);
+#endif
         rt_thread_delay(500);
     }
 }

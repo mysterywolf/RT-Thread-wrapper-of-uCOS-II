@@ -137,6 +137,7 @@ void  App_TaskDelHook (OS_TCB *ptcb)
 }
 
 
+#if OS_TASK_STAT_EN > 0u
 /*
 *********************************************************************************************************
 *                                    IDLE TASK HOOK (APPLICATION)
@@ -172,51 +173,6 @@ void  App_TaskStatHook (void)
 {
 }
 
-
-/*
-*********************************************************************************************************
-*                                   TASK RETURN HOOK (APPLICATION)
-*
-* Description: This function is called if a task accidentally returns.  In other words, a task should
-*              either be an infinite loop or delete itself when done.
-*
-* Arguments  : ptcb      is a pointer to the task control block of the task that is returning.
-*
-* Note(s)    : none
-*********************************************************************************************************
-*/
-
-
-#if OS_VERSION >= 289
-void  App_TaskReturnHook (OS_TCB  *ptcb)
-{
-    (void)ptcb;
-}
-#endif
-
-
-/*
-*********************************************************************************************************
-*                                   TASK SWITCH HOOK (APPLICATION)
-*
-* Description : This function is called when a task switch is performed.  This allows you to perform other
-*               operations during a context switch.
-*
-* Argument(s) : none.
-*
-* Note(s)     : (1) Interrupts are disabled during this call.
-*
-*               (2) It is assumed that the global pointer 'OSTCBHighRdy' points to the TCB of the task that
-*                   will be 'switched in' (i.e. the highest priority task) and, 'OSTCBCur' points to the
-*                  task being switched out (i.e. the preempted task).
-*********************************************************************************************************
-*/
-
-#if OS_TASK_SW_HOOK_EN > 0
-void  App_TaskSwHook (void)
-{
-
-}
 #endif
 
 
@@ -240,23 +196,4 @@ void  App_TCBInitHook (OS_TCB *ptcb)
 }
 #endif
 
-
-/*
-*********************************************************************************************************
-*                                       TICK HOOK (APPLICATION)
-*
-* Description : This function is called every tick.
-*
-* Argument(s) : none.
-*
-* Note(s)     : (1) Interrupts may or may not be ENABLED during this call.
-*********************************************************************************************************
-*/
-
-#if OS_TIME_TICK_HOOK_EN > 0
-void  App_TimeTickHook (void)
-{
-
-}
-#endif
 #endif

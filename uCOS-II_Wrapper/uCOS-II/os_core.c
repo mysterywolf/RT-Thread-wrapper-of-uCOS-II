@@ -649,7 +649,6 @@ void  OS_TaskIdle (void)
     OS_EXIT_CRITICAL();
     OSTaskIdleHook();                            /* Call user definable HOOK                           */
 }
-#endif
 
 
 /*
@@ -676,7 +675,6 @@ void  OS_TaskIdle (void)
 *********************************************************************************************************
 */
 
-#if OS_TASK_STAT_EN > 0u
 void  OS_TaskStat (void *p_arg)
 {
     INT8S  usage;
