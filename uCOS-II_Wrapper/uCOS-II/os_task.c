@@ -787,7 +787,7 @@ INT8U  OSTaskStkChk (INT8U         prio,
                      OS_STK_DATA  *p_stk_data)
 {
     OS_TCB    *ptcb;
-    OS_STK    *pchk;
+    char      *pchk;
     INT32U     nfree;
     INT32U     size;
 #if OS_CRITICAL_METHOD == 3u                           /* Allocate storage for CPU status register     */
@@ -827,7 +827,7 @@ INT8U  OSTaskStkChk (INT8U         prio,
     }
     nfree = 0u;
     size  = ptcb->OSTCBStkSize;
-    pchk  = ptcb->OSTCBStkBottom;
+    pchk  = (char*)ptcb->OSTCBStkBottom;
     OS_EXIT_CRITICAL();
 #if OS_STK_GROWTH == 1u
     while (*pchk++ == '#') {                           /* Compute the number of zero entries on the stk */
@@ -838,6 +838,7 @@ INT8U  OSTaskStkChk (INT8U         prio,
         nfree++;
     }
 #endif
+    nfree = nfree / sizeof(OS_STK);                   /* RT-Thread与uCOS-II堆栈大小的单位不一样        */
     p_stk_data->OSFree = nfree;                       /* Store   number of free entries on the stk     */
     p_stk_data->OSUsed = size - nfree;                /* Compute number of entries used on the stk     */
     return (OS_ERR_NONE);
