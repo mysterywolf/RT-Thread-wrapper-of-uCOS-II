@@ -400,9 +400,9 @@ INT8U  OSTaskDel (INT8U prio)
     ptcb->OSTCBDly      = 0u;                           /* Prevent OSTimeTick() from updating          */
     ptcb->OSTCBStat     = OS_STAT_RDY;                  /* Prevent task from being resumed             */
     ptcb->OSTCBStatPend = OS_STAT_PEND_OK;
-
+#if OS_CPU_HOOKS_EN > 0u
     OSTaskDelHook(ptcb);                                /* Call user defined hook                      */
-
+#endif
 #if OS_TASK_CREATE_EXT_EN > 0u
 #if defined(OS_TLS_TBL_SIZE) && (OS_TLS_TBL_SIZE > 0u)
     OS_TLS_TaskDel(ptcb);                               /* Call TLS hook                               */

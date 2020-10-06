@@ -17,8 +17,6 @@
 void task_example (void);
 void timer_example (void);
 
-
-
 int main(void)/*RT-Thread main线程*/
 {
     OSInit();    
@@ -28,13 +26,6 @@ int main(void)/*RT-Thread main线程*/
     OSStatInit();
 #endif
     
-    task_example();
-//    timer_example();
-    
-    while(1)
-    {
-        
-        rt_thread_delay(100);
-    }
-    
+//    task_example();
+//    timer_example();    
 }

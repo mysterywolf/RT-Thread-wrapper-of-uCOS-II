@@ -158,22 +158,17 @@
         <Ww>
           <count>0</count>
           <WinNumber>1</WinNumber>
-          <ItemText>task_stack</ItemText>
+          <ItemText>OSIdleCtrRun,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>1</count>
           <WinNumber>1</WinNumber>
-          <ItemText>pchk</ItemText>
+          <ItemText>OSIdleCtrMax,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>2</count>
           <WinNumber>1</WinNumber>
-          <ItemText>OSTCBStkBottom</ItemText>
-        </Ww>
-        <Ww>
-          <count>3</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>OSTCBStkBottom</ItemText>
+          <ItemText>usage,0x0A</ItemText>
         </Ww>
       </WatchWindow1>
       <MemoryWindow1>

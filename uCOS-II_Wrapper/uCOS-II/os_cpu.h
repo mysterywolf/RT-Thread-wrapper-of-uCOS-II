@@ -101,28 +101,6 @@ extern  "C" {                                    /* See Note #1.                
 #define  OS_CPU_EXCEPT_STK_SIZE      256u        /* Default exception stack size is 256 OS_STK entries */
 #endif
 
-#ifndef  __TARGET_FPU_SOFTVFP
-#define  OS_CPU_ARM_FP_EN              1u
-#else
-#define  OS_CPU_ARM_FP_EN              0u
-#endif
-
-//#ifndef CPU_CFG_KA_IPL_BOUNDARY
-//#error  "CPU_CFG_KA_IPL_BOUNDARY        not #define'd in 'app_cfg.h'    "   /* See Note # 1 & 2        */
-//#else
-//#if (CPU_CFG_KA_IPL_BOUNDARY == 0u)
-//#error  "CPU_CFG_KA_IPL_BOUNDARY        should be > 0 "
-//#endif
-//#endif
-
-//#ifndef CPU_CFG_NVIC_PRIO_BITS
-//#error  "CPU_CFG_NVIC_PRIO_BITS         not #define'd in 'app_cfg.h'    "   /* See Note # 3            */
-//#else
-//#if (CPU_CFG_KA_IPL_BOUNDARY >= (1u << CPU_CFG_NVIC_PRIO_BITS))
-//#error  "CPU_CFG_KA_IPL_BOUNDARY        should not be set to higher than max programable priority level "
-//#endif
-//#endif
-
 
 /*
 *********************************************************************************************************
@@ -212,22 +190,6 @@ OS_CPU_EXT  OS_STK  *OS_CPU_ExceptStkBase;
 OS_CPU_SR  OS_CPU_SR_Save         (void);
 void       OS_CPU_SR_Restore      (OS_CPU_SR  cpu_sr);
 #endif
-
-//void       OSCtxSw                (void);
-//void       OSIntCtxSw             (void);
-//void       OSStartHighRdy         (void);
-
-                                                 /* See OS_CPU_C.C                                     */
-//void       OS_CPU_SysTickInit     (INT32U     cnts);
-//void       OS_CPU_SysTickInitFreq (INT32U     cpu_freq);
-
-//void       OS_CPU_SysTickHandler  (void);
-//void       OS_CPU_PendSVHandler   (void);
-
-//#if (OS_CPU_ARM_FP_EN > 0u)
-//void       OS_CPU_FP_Reg_Push     (OS_STK    *stkPtr);
-//void       OS_CPU_FP_Reg_Pop      (OS_STK    *stkPtr);
-//#endif
 
 /*
 *********************************************************************************************************

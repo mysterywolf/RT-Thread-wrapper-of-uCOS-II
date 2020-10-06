@@ -41,11 +41,13 @@
                                        /* ---------------------- MISCELLANEOUS ----------------------- */
 #if defined RT_USING_HOOK && defined RT_USING_IDLE_HOOK
 #define OS_APP_HOOKS_EN           1u   /* ¶ÁÐ´ Application-defined hooks are called from the uC/OS-II hooks */
+#define OS_CPU_HOOKS_EN           1u   /* ¶ÁÐ´ uC/OS-II hooks are found in the processor port files    */
 #else
 #define OS_APP_HOOKS_EN           0u   /* Ö»¶Á Application-defined hooks are called from the uC/OS-II hooks */
+#define OS_CPU_HOOKS_EN           0u   /* Ö»¶Á uC/OS-II hooks are found in the processor port files    */
 #endif
+
 #define OS_ARG_CHK_EN             1u   /* Enable (1) or Disable (0) argument checking                  */
-#define OS_CPU_HOOKS_EN           1u   /* uC/OS-II hooks are found in the processor port files         */
 
 #define OS_DEBUG_EN               0u   /* Enable(1) debug variables                                    */
 
@@ -70,10 +72,7 @@
 
 
                                        /* --------------------- TASK STACK SIZE ---------------------- */
-#define OS_TASK_TMR_STK_SIZE    128u   /* Timer      task stack size (# of OS_STK wide entries)        */
 #define OS_TASK_STAT_STK_SIZE   128u   /* Statistics task stack size (# of OS_STK wide entries)        */
-#define OS_TASK_IDLE_STK_SIZE   128u   /* Idle       task stack size (# of OS_STK wide entries)        */
-
 
                                        /* --------------------- TASK MANAGEMENT ---------------------- */
 #define OS_TASK_CHANGE_PRIO_EN    1u   /*     Include code for OSTaskChangePrio()                      */

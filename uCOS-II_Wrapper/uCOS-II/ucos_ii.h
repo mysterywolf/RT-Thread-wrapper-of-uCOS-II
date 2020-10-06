@@ -1624,10 +1624,6 @@ void          App_TCBInitHook         (OS_TCB          *ptcb);
 #error  "OS_CFG.H,         OS_LOWEST_PRIO must be <= 254 in V2.8x and higher"
 #endif
 
-#ifndef OS_TASK_IDLE_STK_SIZE
-#error  "OS_CFG.H, Missing OS_TASK_IDLE_STK_SIZE: Idle task stack size"
-#endif
-
 #ifndef OS_TASK_STAT_EN
 #error  "OS_CFG.H, Missing OS_TASK_STAT_EN: Enable (1) or Disable(0) the statistics task"
 #endif
@@ -1746,10 +1742,6 @@ void          App_TCBInitHook         (OS_TCB          *ptcb);
 
     #ifndef OS_TMR_CFG_TICKS_PER_SEC
     #error  "OS_CFG.H, Missing OS_TMR_CFG_TICKS_PER_SEC: Determines the rate at which the timer management task will run (Hz)"
-    #endif
-
-    #ifndef OS_TASK_TMR_STK_SIZE
-    #error  "OS_CFG.H, Missing OS_TASK_TMR_STK_SIZE: Determines the size of the Timer Task's stack"
     #endif
 #endif
 

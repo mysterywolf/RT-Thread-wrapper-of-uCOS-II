@@ -234,8 +234,10 @@ void  OSInit (void)
 #endif
 
     OSSchedLock();
-    
+
+#if OS_CPU_HOOKS_EN > 0u    
     OSInitHookBegin();                                           /* Call port specific initialization code   */
+#endif
     OS_InitMisc();                                               /* Initialize miscellaneous variables       */
     OS_InitTCBList();                                            /* Initialize the free list of OS_TCBs      */
 
@@ -252,7 +254,9 @@ void  OSInit (void)
     OSTmr_Init();                                                /* Initialize the Timer Manager             */
 #endif
 
+#if OS_CPU_HOOKS_EN > 0u
     OSInitHookEnd();                                             /* Call port specific init. code            */
+#endif
 
 #if OS_DEBUG_EN > 0u
     OSDebugInit();
@@ -647,7 +651,9 @@ void  OS_TaskIdle (void)
     OS_ENTER_CRITICAL();
     OSIdleCtr++;
     OS_EXIT_CRITICAL();
+#if OS_CPU_HOOKS_EN > 0u
     OSTaskIdleHook();                            /* Call user definable HOOK                           */
+#endif
 }
 
 
@@ -723,7 +729,9 @@ void  OS_TaskStat (void *p_arg)
             OSIdleCtrMax = OSIdleCtrRun / 100uL; /* Update max counter value to current one            */
         }
 
+#if OS_CPU_HOOKS_EN > 0u
         OSTaskStatHook();                        /* Invoke user definable hook                         */
+#endif
 #if (OS_TASK_STAT_STK_CHK_EN > 0u) && (OS_TASK_CREATE_EXT_EN > 0u)
         OS_TaskStatStkChk();                     /* Check the stacks for each task                     */
 #endif
@@ -906,15 +914,15 @@ INT8U  OS_TCBInit (INT8U    prio,
             ptcb->OSTCBRegTbl[i] = 0u;
         }
 #endif
-
+#if OS_CPU_HOOKS_EN > 0u
         OSTCBInitHook(ptcb);
-
+#endif
         OS_ENTER_CRITICAL();
         OSTCBPrioTbl[prio] = ptcb;
         OS_EXIT_CRITICAL();
-
+#if OS_CPU_HOOKS_EN > 0u
         OSTaskCreateHook(ptcb);                            /* Call user defined hook                   */
-
+#endif
 #if OS_TASK_CREATE_EXT_EN > 0u
 #if defined(OS_TLS_TBL_SIZE) && (OS_TLS_TBL_SIZE > 0u)
         for (j = 0u; j < OS_TLS_TBL_SIZE; j++) {
@@ -931,8 +939,6 @@ INT8U  OS_TCBInit (INT8U    prio,
             OSTCBList->OSTCBPrev = ptcb;
         }
         OSTCBList               = ptcb;
-//        OSRdyGrp               |= ptcb->OSTCBBitY;         /* Make task ready to run                   */
-//        OSRdyTbl[ptcb->OSTCBY] |= ptcb->OSTCBBitX;
         OSTaskCtr++;                                       /* Increment the #tasks counter             */
         OS_TRACE_TASK_READY(ptcb);
         *pptcb = ptcb;

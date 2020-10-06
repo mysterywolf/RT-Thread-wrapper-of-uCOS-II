@@ -66,7 +66,7 @@
 #define  OS_TASK_TMR_PRIO                   RT_TIMER_THREAD_PRIO
 #else
 #if OS_TMR_EN
-#error "please enable RT_USING_TIMER_SOFT"
+#error "please enable RT_USING_TIMER_SOFT in rtconfig.h"
 #endif
 #endif
 
