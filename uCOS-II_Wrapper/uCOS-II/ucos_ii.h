@@ -692,11 +692,6 @@ typedef  void                      (*OS_TLS_DESTRUCT_PTR)(OS_TCB    *ptcb,
 
 //OS_EXT  INT32U            OSCtxSwCtr;               /* Counter of number of context switches           */
 
-//#if (OS_EVENT_EN) && (OS_MAX_EVENTS > 0u)
-//OS_EXT  OS_EVENT         *OSEventFreeList;          /* Pointer to list of free EVENT control blocks    */
-//OS_EXT  OS_EVENT          OSEventTbl[OS_MAX_EVENTS];/* Table of EVENT control blocks                   */
-//#endif
-
 //#if (OS_FLAG_EN > 0u) && (OS_MAX_FLAGS > 0u)
 //OS_EXT  OS_FLAG_GRP       OSFlagTbl[OS_MAX_FLAGS];  /* Table containing event flag groups              */
 //OS_EXT  OS_FLAG_GRP      *OSFlagFreeList;           /* Pointer to free list of event flag groups       */
@@ -728,16 +723,12 @@ OS_EXT  INT8U             OSTaskCtr;                       /* Number of tasks cr
 OS_EXT  volatile  INT32U  OSIdleCtr;                                 /* Idle counter                   */
 #endif
 
-//#ifdef OS_SAFETY_CRITICAL_IEC61508
-//OS_EXT  BOOLEAN           OSSafetyCriticalStartFlag;
-//#endif
-
-//OS_EXT  OS_STK            OSTaskIdleStk[OS_TASK_IDLE_STK_SIZE];      /* Idle task stack                */
-
+#ifdef OS_SAFETY_CRITICAL_IEC61508
+OS_EXT  BOOLEAN           OSSafetyCriticalStartFlag;
+#endif
 
 #define OSTCBCur         ((OS_TCB*)rt_thread_self())                        /* Pointer to currently running TCB         */
 OS_EXT  OS_TCB           *OSTCBFreeList;                   /* Pointer to list of free TCBs             */
-//OS_EXT  OS_TCB           *OSTCBHighRdy;                    /* Pointer to highest priority TCB R-to-R   */
 OS_EXT  OS_TCB           *OSTCBList;                       /* Pointer to doubly linked list of TCBs    */
 OS_EXT  OS_TCB           *OSTCBPrioTbl[OS_LOWEST_PRIO + 1u];    /* Table of pointers to created TCBs   */
 OS_EXT  OS_TCB            OSTCBTbl[OS_MAX_TASKS + OS_N_SYS_TASKS];   /* Table of TCBs                  */
@@ -1291,31 +1282,6 @@ INT16U        OSVersion               (void);
 *********************************************************************************************************
 */
 
-#if OS_TASK_DEL_EN > 0u
-void          OS_Dummy                (void);
-#endif
-
-#if (OS_EVENT_EN)
-INT8U         OS_EventTaskRdy         (OS_EVENT        *pevent,
-                                       void            *pmsg,
-                                       INT8U            msk,
-                                       INT8U            pend_stat);
-
-void          OS_EventTaskWait        (OS_EVENT        *pevent);
-
-void          OS_EventTaskRemove      (OS_TCB          *ptcb,
-                                       OS_EVENT        *pevent);
-
-#if (OS_EVENT_MULTI_EN > 0u)
-void          OS_EventTaskWaitMulti   (OS_EVENT       **pevents_wait);
-
-void          OS_EventTaskRemoveMulti (OS_TCB          *ptcb,
-                                       OS_EVENT       **pevents_multi);
-#endif
-
-void          OS_EventWaitListInit    (OS_EVENT        *pevent);
-#endif
-
 #if (OS_FLAG_EN > 0u) && (OS_MAX_FLAGS > 0u)
 void          OS_FlagInit             (void);
 void          OS_FlagUnlink           (OS_FLAG_NODE    *pnode);
@@ -1417,19 +1383,6 @@ void          App_TaskStatHook        (void);
 void          App_TCBInitHook         (OS_TCB          *ptcb);
 #endif
 
-/*
-*********************************************************************************************************
-*                                          FUNCTION PROTOTYPES
-*
-* IMPORTANT: These prototypes MUST be placed in OS_CPU.H
-*********************************************************************************************************
-*/
-
-#if 0
-void          OSStartHighRdy          (void);
-void          OSIntCtxSw              (void);
-void          OSCtxSw                 (void);
-#endif
 
 
 /*
