@@ -196,7 +196,6 @@ OS_TMR  *OSTmrCreate (INT32U           dly,
             OS_TmrCallback, ptmr, time, rt_flag);        
     }
     
-    OS_TRACE_TMR_CREATE(ptmr, ptmr->OSTmrName);
     *perr = OS_ERR_NONE;
     return (ptmr);   
 }
@@ -253,21 +252,16 @@ BOOLEAN  OSTmrDel (OS_TMR  *ptmr,
     }
 #endif
     
-    OS_TRACE_TMR_DEL_ENTER(ptmr);
-    
     if (ptmr->OSTmrType != OS_TMR_TYPE) {                   /* Validate timer structure                               */
         *perr = OS_ERR_TMR_INVALID_TYPE;
-        OS_TRACE_TMR_DEL_EXIT(*perr);
         return (OS_FALSE);
     }
     if (OSIntNesting > 0u) {                                /* See if trying to call from an ISR                      */
         *perr  = OS_ERR_TMR_ISR;
-        OS_TRACE_TMR_DEL_EXIT(*perr);
         return (OS_FALSE);
     }
     if (ptmr->OSTmrState == OS_TMR_STATE_UNUSED){           /* Already deleted                                        */
         *perr = OS_ERR_TMR_INACTIVE;
-        OS_TRACE_TMR_DEL_EXIT(*perr);
         return (OS_FALSE);
     }
 
@@ -277,7 +271,6 @@ BOOLEAN  OSTmrDel (OS_TMR  *ptmr,
     
     rt_timer_detach(&ptmr->OSTmr);                          /* É¾³ýrt-thread¶¨Ê±Æ÷                                    */
     RT_KERNEL_FREE(ptmr);
-    OS_TRACE_TMR_DEL_EXIT(*perr);
     return (OS_TRUE);
 }
 #endif
@@ -556,23 +549,18 @@ BOOLEAN  OSTmrStart (OS_TMR   *ptmr,
         return (OS_FALSE);
     }
 #endif
-
-    OS_TRACE_TMR_START_ENTER(ptmr);
     
     if (ptmr->OSTmrType != OS_TMR_TYPE) {                   /* Validate timer structure                               */
         *perr = OS_ERR_TMR_INVALID_TYPE;
-        OS_TRACE_TMR_START_EXIT(*perr);
         return (OS_FALSE);
     }
     if (OSIntNesting > 0u) {                                /* See if trying to call from an ISR                      */
         *perr  = OS_ERR_TMR_ISR;
-        OS_TRACE_TMR_START_EXIT(*perr);
         return (OS_FALSE);
     }   
     if(ptmr->OSTmrState == OS_TMR_STATE_UNUSED)
     {
         *perr = OS_ERR_TMR_INACTIVE;
-        OS_TRACE_TMR_START_EXIT(*perr);
         return (OS_FALSE);
     }
     
@@ -580,7 +568,6 @@ BOOLEAN  OSTmrStart (OS_TMR   *ptmr,
     OSSchedLock();
     ptmr->OSTmrMatch = ptmr->OSTmr.timeout_tick;
     OSSchedUnlock();
-    OS_TRACE_TMR_START_EXIT(*perr);
     *perr = OS_ERR_NONE;
     return (OS_TRUE);
 }
@@ -646,16 +633,12 @@ BOOLEAN  OSTmrStop (OS_TMR  *ptmr,
     }
 #endif
 
-    OS_TRACE_TMR_STOP_ENTER(ptmr);
-
     if (ptmr->OSTmrType != OS_TMR_TYPE) {                         /* Validate timer structure                         */
         *perr = OS_ERR_TMR_INVALID_TYPE;
-        OS_TRACE_TMR_STOP_EXIT(*perr);
         return (OS_FALSE);
     }
     if (OSIntNesting > 0u) {                                      /* See if trying to call from an ISR                */
         *perr  = OS_ERR_TMR_ISR;
-        OS_TRACE_TMR_STOP_EXIT(*perr);
         return (OS_FALSE);
     }
 
@@ -690,26 +673,22 @@ BOOLEAN  OSTmrStop (OS_TMR  *ptmr,
                      break;
              }
              OSSchedUnlock();
-             OS_TRACE_TMR_STOP_EXIT(*perr);
              return (OS_TRUE);
 
         case OS_TMR_STATE_COMPLETED:                              /* Timer has already completed the ONE-SHOT or ...  */
         case OS_TMR_STATE_STOPPED:                                /* ... timer has not started yet.                   */
              OSSchedUnlock();
              *perr = OS_ERR_TMR_STOPPED;
-             OS_TRACE_TMR_STOP_EXIT(*perr);
              return (OS_TRUE);
 
         case OS_TMR_STATE_UNUSED:                                 /* Timer was not created                            */
              OSSchedUnlock();
              *perr = OS_ERR_TMR_INACTIVE;
-             OS_TRACE_TMR_STOP_EXIT(*perr);
              return (OS_FALSE);
 
         default:
              OSSchedUnlock();
              *perr = OS_ERR_TMR_INVALID_STATE;
-             OS_TRACE_TMR_STOP_EXIT(*perr);
              return (OS_FALSE);
     }
 }

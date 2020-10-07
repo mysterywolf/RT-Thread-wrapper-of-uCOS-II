@@ -148,8 +148,6 @@ OS_MEM  *OSMemCreate (void   *addr,
     pmem->OSMemNBlks    = nblks;
     pmem->OSMemBlkSize  = blksize;                    /* Store block size of each memory blocks        */
 
-    OS_TRACE_MEM_CREATE(pmem);
-
     *perr               = OS_ERR_NONE;
     return (pmem);
 }
@@ -197,9 +195,6 @@ void  *OSMemGet (OS_MEM  *pmem,
         return ((void *)0);
     }
 #endif
-
-    OS_TRACE_MEM_GET_ENTER(pmem);
-
     OS_ENTER_CRITICAL();
     if (pmem->OSMemNFree > 0u) {                      /* See if there are any free memory blocks       */
         pblk                = pmem->OSMemFreeList;    /* Yes, point to next free memory block          */
@@ -207,12 +202,10 @@ void  *OSMemGet (OS_MEM  *pmem,
         pmem->OSMemNFree--;                           /*      One less memory block in this partition  */
         OS_EXIT_CRITICAL();
         *perr = OS_ERR_NONE;                          /*      No error                                 */
-        OS_TRACE_MEM_GET_EXIT(*perr);
         return (pblk);                                /*      Return memory block to caller            */
     }
     OS_EXIT_CRITICAL();
     *perr = OS_ERR_MEM_NO_FREE_BLKS;                  /* No,  Notify caller of empty memory partition  */
-    OS_TRACE_MEM_GET_EXIT(*perr);
     return ((void *)0);                               /*      Return NULL pointer to caller            */
 }
 
@@ -338,7 +331,6 @@ void  OSMemNameSet (OS_MEM  *pmem,
     OS_ENTER_CRITICAL();
     pmem->OSMemName = pname;
     OS_EXIT_CRITICAL();
-    OS_TRACE_EVENT_NAME_SET(pmem, pname);
     *perr           = OS_ERR_NONE;
 }
 #endif
@@ -378,20 +370,15 @@ INT8U  OSMemPut (OS_MEM  *pmem,
         return (OS_ERR_MEM_INVALID_PBLK);
     }
 #endif
-
-    OS_TRACE_MEM_PUT_ENTER(pmem, pblk);
-
     OS_ENTER_CRITICAL();
     if (pmem->OSMemNFree >= pmem->OSMemNBlks) {  /* Make sure all blocks not already returned          */
         OS_EXIT_CRITICAL();
-        OS_TRACE_MEM_PUT_EXIT(OS_ERR_MEM_FULL);
         return (OS_ERR_MEM_FULL);
     }
     *(void **)pblk      = pmem->OSMemFreeList;   /* Insert released block into free block list         */
     pmem->OSMemFreeList = pblk;
     pmem->OSMemNFree++;                          /* One more memory block in this partition            */
     OS_EXIT_CRITICAL();
-    OS_TRACE_MEM_PUT_EXIT(OS_ERR_NONE);
     return (OS_ERR_NONE);                        /* Notify caller that memory block was released       */
 }
 

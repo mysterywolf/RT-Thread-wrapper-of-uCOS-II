@@ -293,7 +293,6 @@ INT8U  OSTaskCreateExt (void   (*task)(void *p_arg),
     
     err = OS_TCBInit(prio, ptos, pbos, id, stk_size, pext, opt, &ptcb);
     if (err == OS_ERR_NONE) {
-        OS_TRACE_TASK_CREATE(OSTCBPrioTbl[prio]);
         if (OSRunning == OS_TRUE) {          /* Find HPT if multitasking has started                   */
             OS_Sched();
         }
@@ -395,7 +394,6 @@ INT8U  OSTaskDel (INT8U prio)
         OS_EXIT_CRITICAL();
         return (OS_ERR_TASK_DEL);
     }
-    OS_TRACE_TASK_SUSPENDED(ptcb);
 
     ptcb->OSTCBDly      = 0u;                           /* Prevent OSTimeTick() from updating          */
     ptcb->OSTCBStat     = OS_STAT_RDY;                  /* Prevent task from being resumed             */
@@ -691,7 +689,6 @@ void  OSTaskNameSet (INT8U   prio,
         return;
     }
     ptcb->OSTCBTaskName = pname;
-    OS_TRACE_TASK_NAME_SET(ptcb);
     OS_EXIT_CRITICAL();
     *perr               = OS_ERR_NONE;
 }
@@ -745,11 +742,9 @@ INT8U  OSTaskResume (INT8U prio)
     if ((ptcb->OSTCBStat & OS_STAT_SUSPEND) != OS_STAT_RDY) { /* Task must be suspended                */
         ptcb->OSTCBStat &= (INT8U)~(INT8U)OS_STAT_SUSPEND;    /* Remove suspension                     */
         if ((ptcb->OSTCBStat & OS_STAT_PEND_ANY) == OS_STAT_RDY) { /* See if task is now ready         */
-            OS_TRACE_TASK_READY(ptcb);
             OS_EXIT_CRITICAL();            
             rt_thread_resume((rt_thread_t)ptcb);              /* rt-thread thread resume API           */               
             if (OSRunning == OS_TRUE) {
-                OS_TRACE_TASK_RESUME(ptcb);
                 OS_Sched();                                   /* Find new highest priority task        */
             }
         } else {                                              /* Must be pending on event              */
@@ -911,8 +906,6 @@ INT8U  OSTaskSuspend (INT8U prio)
     ptcb->OSTCBStat |= OS_STAT_SUSPEND;                         /* Status of task is 'SUSPENDED'       */
     OS_EXIT_CRITICAL();
     rt_thread_suspend((rt_thread_t)ptcb);                       /* rt-thread thread suspend API        */
-    OS_TRACE_TASK_SUSPEND(ptcb);
-    OS_TRACE_TASK_SUSPENDED(ptcb);
     if (self == OS_TRUE) {                                      /* Context switch only if SELF         */
         OS_Sched();                                             /* Find new highest priority task      */
     }

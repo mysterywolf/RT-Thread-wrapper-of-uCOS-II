@@ -54,7 +54,6 @@ extern "C" {
 #include <app_cfg.h>
 #include <os_cfg.h>
 #include <os_cpu.h>
-#include <os_trace.h>
 #include <rtthread.h>
 
 /*
@@ -386,12 +385,9 @@ typedef  INT16U   OS_PRIO;
 
 #if (OS_EVENT_EN) && (OS_MAX_EVENTS > 0u)
 typedef struct os_event {
+    struct rt_ipc_object *OSEventPtr;
     INT8U    OSEventType;                   /* Type of event control block (see OS_EVENT_TYPE_xxxx)    */
-    void    *OSEventPtr;                    /* Pointer to message or queue structure                   */
     INT16U   OSEventCnt;                    /* Semaphore Count (not used if other EVENT type)          */
-    OS_PRIO  OSEventGrp;                    /* Group corresponding to tasks waiting for event to occur */
-    OS_PRIO  OSEventTbl[OS_EVENT_TBL_SIZE]; /* List of tasks waiting for event to occur                */
-
 #if OS_EVENT_NAME_EN > 0u
     INT8U   *OSEventName;
 #endif

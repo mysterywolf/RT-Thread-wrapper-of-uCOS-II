@@ -940,7 +940,6 @@ INT8U  OS_TCBInit (INT8U    prio,
         }
         OSTCBList               = ptcb;
         OSTaskCtr++;                                       /* Increment the #tasks counter             */
-        OS_TRACE_TASK_READY(ptcb);
         *pptcb = ptcb;
         OS_EXIT_CRITICAL();
         return (OS_ERR_NONE);
