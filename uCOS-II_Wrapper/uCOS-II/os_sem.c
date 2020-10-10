@@ -109,7 +109,7 @@ INT16U  OSSemAccept (OS_EVENT *pevent)
 OS_EVENT  *OSSemCreate (INT16U cnt)
 {
     OS_EVENT  *pevent;
-
+    
 #ifdef OS_SAFETY_CRITICAL_IEC61508
     if (OSSafetyCriticalStartFlag == OS_TRUE) {
         OS_SAFETY_CRITICAL_EXCEPTION();
@@ -121,14 +121,18 @@ OS_EVENT  *OSSemCreate (INT16U cnt)
         return ((OS_EVENT *)0);                            /* ... can't CREATE from an ISR             */
     }
 
-    if (pevent != (OS_EVENT *)0) {                         /* Get an event control block               */
-        pevent->OSEventType    = OS_EVENT_TYPE_SEM;
-        pevent->OSEventCnt     = cnt;                      /* Set semaphore value                      */
-        pevent->OSEventPtr     = (void *)0;                /* Unlink from ECB free list                */
-#if OS_EVENT_NAME_EN > 0u
-        pevent->OSEventName    = (INT8U *)(void *)"?";
-#endif
+    /*注意：需要分配两次*/
+    pevent = RT_KERNEL_MALLOC(sizeof(OS_EVENT));    
+    if (pevent == (OS_EVENT *)0) {                         /* Get an event control block               */
+        return ((OS_EVENT *)0);
     }
+    
+    pevent->ipc_ptr = (struct rt_ipc_object *)rt_sem_create("uCOS-II Sem", cnt, RT_IPC_FLAG_PRIO);
+    if(!pevent->ipc_ptr) {
+        RT_KERNEL_FREE(pevent);
+        return ((OS_EVENT *)0);
+    }
+    
     return (pevent);
 }
 
@@ -181,7 +185,7 @@ OS_EVENT  *OSSemDel (OS_EVENT  *pevent,
                      INT8U      opt,
                      INT8U     *perr)
 {
-    BOOLEAN    tasks_waiting;
+    rt_sem_t   psem;
     OS_EVENT  *pevent_return;
 #if OS_CRITICAL_METHOD == 3u                               /* Allocate storage for CPU status register */
     OS_CPU_SR  cpu_sr = 0u;
@@ -209,73 +213,51 @@ OS_EVENT  *OSSemDel (OS_EVENT  *pevent,
         return (pevent);
     }
 #endif
-
-    OS_TRACE_SEM_DEL_ENTER(pevent, opt);
-
-    if (pevent->OSEventType != OS_EVENT_TYPE_SEM) {        /* Validate event block type                */
+    
+    psem = (rt_sem_t)pevent->ipc_ptr;
+    
+    /*判断内核对象是否为信号量*/
+    if(rt_object_get_type(&psem->parent.parent) != RT_Object_Class_Semaphore)
+    {
         *perr = OS_ERR_EVENT_TYPE;
-        OS_TRACE_SEM_DEL_EXIT(*perr);
-        return (pevent);
+        return (pevent);       
     }
     if (OSIntNesting > 0u) {                               /* See if called from ISR ...               */
         *perr = OS_ERR_DEL_ISR;                            /* ... can't DELETE from an ISR             */
-        OS_TRACE_SEM_DEL_EXIT(*perr);
         return (pevent);
     }
-    OS_ENTER_CRITICAL();
-    if (pevent->OSEventGrp != 0u) {                        /* See if any tasks waiting on semaphore    */
-        tasks_waiting = OS_TRUE;                           /* Yes                                      */
-    } else {
-        tasks_waiting = OS_FALSE;                          /* No                                       */
-    }
+    
     switch (opt) {
         case OS_DEL_NO_PEND:                               /* Delete semaphore only if no task waiting */
-             if (tasks_waiting == OS_FALSE) {
-#if OS_EVENT_NAME_EN > 0u
-                 pevent->OSEventName    = (INT8U *)(void *)"?";
-#endif
-                 pevent->OSEventType    = OS_EVENT_TYPE_UNUSED;
-                 pevent->OSEventPtr     = OSEventFreeList; /* Return Event Control Block to free list  */
-                 pevent->OSEventCnt     = 0u;
-                 OSEventFreeList        = pevent;          /* Get next free event control block        */
-                 OS_EXIT_CRITICAL();
-                 *perr                  = OS_ERR_NONE;
-                 pevent_return          = (OS_EVENT *)0;   /* Semaphore has been deleted               */
-             } else {
-                 OS_EXIT_CRITICAL();
-                 *perr                  = OS_ERR_TASK_WAITING;
-                 pevent_return          = pevent;
-             }
-             break;
-
+            OS_ENTER_CRITICAL();
+            if(rt_list_isempty(&(psem->parent.suspend_thread))) /*若没有线程等待信号量                 */
+            {
+                OS_EXIT_CRITICAL();
+                rt_sem_delete(psem);
+                RT_KERNEL_FREE(pevent);
+                *perr = OS_ERR_NONE;
+                pevent_return =  (OS_EVENT *)0; 
+            }
+            else
+            {
+                OS_EXIT_CRITICAL();
+                *perr = OS_ERR_TASK_WAITING;
+                pevent_return = pevent; 
+            }
+            break;
+            
         case OS_DEL_ALWAYS:                                /* Always delete the semaphore              */
-             while (pevent->OSEventGrp != 0u) {            /* Ready ALL tasks waiting for semaphore    */
-                 (void)OS_EventTaskRdy(pevent, (void *)0, OS_STAT_SEM, OS_STAT_PEND_ABORT);
-             }
-#if OS_EVENT_NAME_EN > 0u
-             pevent->OSEventName    = (INT8U *)(void *)"?";
-#endif
-             pevent->OSEventType    = OS_EVENT_TYPE_UNUSED;
-             pevent->OSEventPtr     = OSEventFreeList;     /* Return Event Control Block to free list  */
-             pevent->OSEventCnt     = 0u;
-             OSEventFreeList        = pevent;              /* Get next free event control block        */
-             OS_EXIT_CRITICAL();
-             if (tasks_waiting == OS_TRUE) {               /* Reschedule only if task(s) were waiting  */
-                 OS_Sched();                               /* Find highest priority task ready to run  */
-             }
-             *perr                  = OS_ERR_NONE;
-             pevent_return          = (OS_EVENT *)0;       /* Semaphore has been deleted               */
-             break;
+            rt_sem_delete(psem);
+            RT_KERNEL_FREE(pevent);
+            *perr = OS_ERR_NONE;
+            pevent_return =  (OS_EVENT *)0; 
+            break;
 
         default:
-             OS_EXIT_CRITICAL();
              *perr                  = OS_ERR_INVALID_OPT;
              pevent_return          = pevent;
              break;
     }
-
-    OS_TRACE_SEM_DEL_EXIT(*perr);
-
     return (pevent_return);
 }
 #endif

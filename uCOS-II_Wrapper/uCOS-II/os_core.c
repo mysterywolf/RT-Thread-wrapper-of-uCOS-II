@@ -68,11 +68,11 @@ static  void  OS_InitMisc (void)
     OSTaskCtr                 = 0u;                        /* Clear the number of tasks                */
     OSRunning                 = OS_TRUE;                   /* 初始化时,rt-thread已经启动因此直接为OS_TRUE*/    
 
-//#if OS_TASK_STAT_EN > 0u
-//    OSIdleCtrRun              = 0uL;
-//    OSIdleCtrMax              = 0uL;
-//    OSStatRdy                 = OS_FALSE;                  /* Statistic task is not ready              */
-//#endif
+#if OS_TASK_STAT_EN > 0u
+    OSIdleCtrRun              = 0uL;
+    OSIdleCtrMax              = 0uL;
+    OSStatRdy                 = OS_FALSE;                  /* Statistic task is not ready              */
+#endif
 
 #ifdef OS_SAFETY_CRITICAL_IEC61508
     OSSafetyCriticalStartFlag = OS_FALSE;                  /* Still allow creation of objects          */

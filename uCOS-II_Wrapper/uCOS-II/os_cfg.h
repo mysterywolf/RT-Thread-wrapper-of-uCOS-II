@@ -153,7 +153,7 @@
 #define OS_SEM_EN                 0u   /* Enable (1) or Disable (0) code generation for SEMAPHORES     */
 #endif
 #define OS_SEM_ACCEPT_EN          0u   /*    Include code for OSSemAccept()                            */
-#define OS_SEM_DEL_EN             0u   /*    Include code for OSSemDel()                               */
+#define OS_SEM_DEL_EN             1u   /*    Include code for OSSemDel()                               */
 #define OS_SEM_PEND_ABORT_EN      0u   /*    Include code for OSSemPendAbort()                         */
 #define OS_SEM_QUERY_EN           0u   /*    Include code for OSSemQuery()                             */
 #define OS_SEM_SET_EN             0u   /*    Include code for OSSemSet()                               */
