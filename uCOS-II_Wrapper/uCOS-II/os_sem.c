@@ -109,6 +109,9 @@ INT16U  OSSemAccept (OS_EVENT *pevent)
 OS_EVENT  *OSSemCreate (INT16U cnt)
 {
     OS_EVENT  *pevent;
+#if OS_CRITICAL_METHOD == 3u                               /* Allocate storage for CPU status register */
+    OS_CPU_SR  cpu_sr = 0u;
+#endif
     
 #ifdef OS_SAFETY_CRITICAL_IEC61508
     if (OSSafetyCriticalStartFlag == OS_TRUE) {
@@ -121,18 +124,26 @@ OS_EVENT  *OSSemCreate (INT16U cnt)
         return ((OS_EVENT *)0);                            /* ... can't CREATE from an ISR             */
     }
 
-    /*注意：需要分配两次*/
     pevent = RT_KERNEL_MALLOC(sizeof(OS_EVENT));    
     if (pevent == (OS_EVENT *)0) {                         /* Get an event control block               */
         return ((OS_EVENT *)0);
+    } else {
+        OS_ENTER_CRITICAL();
+        pevent->OSEventType    = OS_EVENT_TYPE_SEM;
+        pevent->OSEventCnt     = cnt;                      /* Set semaphore value                      */
+        pevent->OSEventPtr     = (void *)0;                /* Unlink from ECB free list                */
+#if OS_EVENT_NAME_EN > 0u
+        pevent->OSEventName    = (INT8U *)(void *)"?";
+#endif        
+        OS_EXIT_CRITICAL();
     }
-    
+
     pevent->ipc_ptr = (struct rt_ipc_object *)rt_sem_create("uCOS-II Sem", cnt, RT_IPC_FLAG_PRIO);
     if(!pevent->ipc_ptr) {
         RT_KERNEL_FREE(pevent);
         return ((OS_EVENT *)0);
     }
-    
+ 
     return (pevent);
 }
 
@@ -216,9 +227,8 @@ OS_EVENT  *OSSemDel (OS_EVENT  *pevent,
     
     psem = (rt_sem_t)pevent->ipc_ptr;
     
-    /*判断内核对象是否为信号量*/
-    if(rt_object_get_type(&psem->parent.parent) != RT_Object_Class_Semaphore)
-    {
+    if(rt_object_get_type(&psem->parent.parent) 
+        != RT_Object_Class_Semaphore) {                    /* Validate event block type                */
         *perr = OS_ERR_EVENT_TYPE;
         return (pevent);       
     }
@@ -232,8 +242,15 @@ OS_EVENT  *OSSemDel (OS_EVENT  *pevent,
             OS_ENTER_CRITICAL();
             if(rt_list_isempty(&(psem->parent.suspend_thread))) /*若没有线程等待信号量                 */
             {
+#if OS_EVENT_NAME_EN > 0u
+                pevent->OSEventName    = (INT8U *)(void *)"?";
+#endif
+                pevent->OSEventType    = OS_EVENT_TYPE_UNUSED;
+                pevent->OSEventPtr     = 0u;               /* Return Event Control Block to free list  */
+                pevent->OSEventCnt     = 0u;
                 OS_EXIT_CRITICAL();
-                rt_sem_delete(psem);
+                
+                rt_sem_delete(psem);                       /* 调用RT-Thread API                        */
                 RT_KERNEL_FREE(pevent);
                 *perr = OS_ERR_NONE;
                 pevent_return =  (OS_EVENT *)0; 
@@ -247,7 +264,16 @@ OS_EVENT  *OSSemDel (OS_EVENT  *pevent,
             break;
             
         case OS_DEL_ALWAYS:                                /* Always delete the semaphore              */
-            rt_sem_delete(psem);
+            OS_ENTER_CRITICAL();
+#if OS_EVENT_NAME_EN > 0u
+            pevent->OSEventName    = (INT8U *)(void *)"?";
+#endif
+            pevent->OSEventType    = OS_EVENT_TYPE_UNUSED;
+            pevent->OSEventPtr     = 0u;                   /* Return Event Control Block to free list  */
+            pevent->OSEventCnt     = 0u;
+            OS_EXIT_CRITICAL();
+
+            rt_sem_delete(psem);                           /* 调用RT-Thread API                        */
             RT_KERNEL_FREE(pevent);
             *perr = OS_ERR_NONE;
             pevent_return =  (OS_EVENT *)0; 
@@ -295,88 +321,87 @@ OS_EVENT  *OSSemDel (OS_EVENT  *pevent,
 *********************************************************************************************************
 */
 
-//void  OSSemPend (OS_EVENT  *pevent,
-//                 INT32U     timeout,
-//                 INT8U     *perr)
-//{
-//#if OS_CRITICAL_METHOD == 3u                          /* Allocate storage for CPU status register      */
-//    OS_CPU_SR  cpu_sr = 0u;
-//#endif
+void  OSSemPend (OS_EVENT  *pevent,
+                 INT32U     timeout,
+                 INT8U     *perr)
+{
+    rt_sem_t   psem;
+#if OS_CRITICAL_METHOD == 3u                          /* Allocate storage for CPU status register      */
+    OS_CPU_SR  cpu_sr = 0u;
+#endif
 
 
-//#ifdef OS_SAFETY_CRITICAL
-//    if (perr == (INT8U *)0) {
-//        OS_SAFETY_CRITICAL_EXCEPTION();
-//        return;
-//    }
-//#endif
+#ifdef OS_SAFETY_CRITICAL
+    if (perr == (INT8U *)0) {
+        OS_SAFETY_CRITICAL_EXCEPTION();
+        return;
+    }
+#endif
 
-//#if OS_ARG_CHK_EN > 0u
-//    if (pevent == (OS_EVENT *)0) {                    /* Validate 'pevent'                             */
-//        *perr = OS_ERR_PEVENT_NULL;
-//        return;
-//    }
-//#endif
+#if OS_ARG_CHK_EN > 0u
+    if (pevent == (OS_EVENT *)0) {                    /* Validate 'pevent'                             */
+        *perr = OS_ERR_PEVENT_NULL;
+        return;
+    }
+#endif
 
-//    OS_TRACE_SEM_PEND_ENTER(pevent, timeout);
+    psem = (rt_sem_t)pevent->ipc_ptr;
+    
+    if(rt_object_get_type(&psem->parent.parent) 
+        != RT_Object_Class_Semaphore) {               /* Validate event block type                     */
+        *perr = OS_ERR_EVENT_TYPE;
+        return;
+    }
+    if (OSIntNesting > 0u) {                          /* See if called from ISR ...                    */
+        *perr = OS_ERR_PEND_ISR;                      /* ... can't PEND from an ISR                    */
+        return;
+    }
+    if (OSLockNesting > 0u) {                         /* See if called with scheduler locked ...       */
+        *perr = OS_ERR_PEND_LOCKED;                   /* ... can't PEND when locked                    */
+        return;
+    }
+    OS_ENTER_CRITICAL();                                                     /* Otherwise, must wait until event occurs       */
+    OSTCBCur->OSTCBStat     |= OS_STAT_SEM;           /* Resource not available, pend on semaphore     */
+    OSTCBCur->OSTCBStatPend  = OS_STAT_PEND_OK;
+    OSTCBCur->OSTCBDly       = timeout;               /* Store pend timeout in TCB                     */
+    OS_EXIT_CRITICAL();
 
-//    if (pevent->OSEventType != OS_EVENT_TYPE_SEM) {   /* Validate event block type                     */
-//        *perr = OS_ERR_EVENT_TYPE;
-//        OS_TRACE_SEM_PEND_EXIT(*perr);
-//        return;
-//    }
-//    if (OSIntNesting > 0u) {                          /* See if called from ISR ...                    */
-//        *perr = OS_ERR_PEND_ISR;                      /* ... can't PEND from an ISR                    */
-//        OS_TRACE_SEM_PEND_EXIT(*perr);
-//        return;
-//    }
-//    if (OSLockNesting > 0u) {                         /* See if called with scheduler locked ...       */
-//        *perr = OS_ERR_PEND_LOCKED;                   /* ... can't PEND when locked                    */
-//        OS_TRACE_SEM_PEND_EXIT(*perr);
-//        return;
-//    }
-//    OS_ENTER_CRITICAL();
-//    if (pevent->OSEventCnt > 0u) {                    /* If sem. is positive, resource available ...   */
-//        pevent->OSEventCnt--;                         /* ... decrement semaphore only if positive.     */
-//        OS_EXIT_CRITICAL();
-//        *perr = OS_ERR_NONE;
-//        OS_TRACE_SEM_PEND_EXIT(*perr);
-//        return;
-//    }
-//                                                      /* Otherwise, must wait until event occurs       */
-//    OSTCBCur->OSTCBStat     |= OS_STAT_SEM;           /* Resource not available, pend on semaphore     */
-//    OSTCBCur->OSTCBStatPend  = OS_STAT_PEND_OK;
-//    OSTCBCur->OSTCBDly       = timeout;               /* Store pend timeout in TCB                     */
-//    OS_EventTaskWait(pevent);                         /* Suspend task until event or timeout occurs    */
-//    OS_EXIT_CRITICAL();
-//    OS_Sched();                                       /* Find next highest priority task ready         */
-//    OS_ENTER_CRITICAL();
-//    switch (OSTCBCur->OSTCBStatPend) {                /* See if we timed-out or aborted                */
-//        case OS_STAT_PEND_OK:
-//             *perr = OS_ERR_NONE;
-//             break;
+    if(timeout) {                                     /* 0为永久等待                                   */
+        if (rt_sem_take(psem,timeout) == RT_EOK) {
+            OSTCBCur->OSTCBStatPend = OS_STAT_PEND_OK;
+        } else {
+            OSTCBCur->OSTCBStatPend = OS_STAT_PEND_TO;
+        }
+    }else {
+        rt_sem_take(psem,RT_WAITING_FOREVER);
+        OSTCBCur->OSTCBStatPend = OS_STAT_PEND_OK;
+    }
 
-//        case OS_STAT_PEND_ABORT:
-//             *perr = OS_ERR_PEND_ABORT;               /* Indicate that we aborted                      */
-//             break;
+    OS_ENTER_CRITICAL();
+    switch (OSTCBCur->OSTCBStatPend) {                /* See if we timed-out or aborted                */
+        case OS_STAT_PEND_OK:
+             pevent->OSEventCnt--;                    /* ... decrement semaphore only if positive.     */
+             *perr = OS_ERR_NONE;
+             break;
 
-//        case OS_STAT_PEND_TO:
-//        default:
-//             OS_EventTaskRemove(OSTCBCur, pevent);
-//             *perr = OS_ERR_TIMEOUT;                  /* Indicate that we didn't get event within TO   */
-//             break;
-//    }
-//    OSTCBCur->OSTCBStat          =  OS_STAT_RDY;      /* Set   task  status to ready                   */
-//    OSTCBCur->OSTCBStatPend      =  OS_STAT_PEND_OK;  /* Clear pend  status                            */
-//    OSTCBCur->OSTCBEventPtr      = (OS_EVENT  *)0;    /* Clear event pointers                          */
-//#if (OS_EVENT_MULTI_EN > 0u)
-//    OSTCBCur->OSTCBEventMultiPtr = (OS_EVENT **)0;
-//    OSTCBCur->OSTCBEventMultiRdy = (OS_EVENT  *)0;
-//#endif
-//    OS_EXIT_CRITICAL();
+        case OS_STAT_PEND_ABORT:
+             *perr = OS_ERR_PEND_ABORT;               /* Indicate that we aborted                      */
+             break;
 
-//    OS_TRACE_SEM_PEND_EXIT(*perr);
-//}
+        case OS_STAT_PEND_TO:
+        default:
+             *perr = OS_ERR_TIMEOUT;                  /* Indicate that we didn't get event within TO   */
+             break;
+    }
+    OSTCBCur->OSTCBStat          =  OS_STAT_RDY;      /* Set   task  status to ready                   */
+    OSTCBCur->OSTCBStatPend      =  OS_STAT_PEND_OK;  /* Clear pend  status                            */
+    OSTCBCur->OSTCBEventPtr      = (OS_EVENT  *)0;    /* Clear event pointers                          */
+#if (OS_EVENT_MULTI_EN > 0u)
+    OSTCBCur->OSTCBEventMultiPtr = (OS_EVENT **)0;
+    OSTCBCur->OSTCBEventMultiRdy = (OS_EVENT  *)0;
+#endif
+    OS_EXIT_CRITICAL();
+}
 
 
 /*
@@ -487,45 +512,37 @@ INT8U  OSSemPendAbort (OS_EVENT  *pevent,
 *********************************************************************************************************
 */
 
-//INT8U  OSSemPost (OS_EVENT *pevent)
-//{
-//#if OS_CRITICAL_METHOD == 3u                          /* Allocate storage for CPU status register      */
-//    OS_CPU_SR  cpu_sr = 0u;
-//#endif
+INT8U  OSSemPost (OS_EVENT *pevent)
+{
+    rt_sem_t   psem;
+#if OS_CRITICAL_METHOD == 3u                          /* Allocate storage for CPU status register      */
+    OS_CPU_SR  cpu_sr = 0u;
+#endif
 
 
-//#if OS_ARG_CHK_EN > 0u
-//    if (pevent == (OS_EVENT *)0) {                    /* Validate 'pevent'                             */
-//        return (OS_ERR_PEVENT_NULL);
-//    }
-//#endif
+#if OS_ARG_CHK_EN > 0u
+    if (pevent == (OS_EVENT *)0) {                    /* Validate 'pevent'                             */
+        return (OS_ERR_PEVENT_NULL);
+    }
+#endif
 
-//    OS_TRACE_SEM_POST_ENTER(pevent);
+    psem = (rt_sem_t)pevent->ipc_ptr;
+    
+    if(rt_object_get_type(&psem->parent.parent) 
+        != RT_Object_Class_Semaphore) {               /* Validate event block type                     */
+        return (OS_ERR_EVENT_TYPE);
+    }
+    OS_ENTER_CRITICAL();
+    if (pevent->OSEventCnt < 65535u) {                /* Make sure semaphore will not overflow         */
+        pevent->OSEventCnt++;                         /* Increment semaphore count to register event   */
+        OS_EXIT_CRITICAL();
+        rt_sem_release(psem);
+        return (OS_ERR_NONE);
+    }
+    OS_EXIT_CRITICAL();                               /* Semaphore value has reached its maximum       */
 
-//    if (pevent->OSEventType != OS_EVENT_TYPE_SEM) {   /* Validate event block type                     */
-//        OS_TRACE_SEM_POST_EXIT(OS_ERR_EVENT_TYPE);
-//        return (OS_ERR_EVENT_TYPE);
-//    }
-//    OS_ENTER_CRITICAL();
-//    if (pevent->OSEventGrp != 0u) {                   /* See if any task waiting for semaphore         */
-//                                                      /* Ready HPT waiting on event                    */
-//        (void)OS_EventTaskRdy(pevent, (void *)0, OS_STAT_SEM, OS_STAT_PEND_OK);
-//        OS_EXIT_CRITICAL();
-//        OS_Sched();                                   /* Find HPT ready to run                         */
-//        OS_TRACE_SEM_POST_EXIT(OS_ERR_NONE);
-//        return (OS_ERR_NONE);
-//    }
-//    if (pevent->OSEventCnt < 65535u) {                /* Make sure semaphore will not overflow         */
-//        pevent->OSEventCnt++;                         /* Increment semaphore count to register event   */
-//        OS_EXIT_CRITICAL();
-//        OS_TRACE_SEM_POST_EXIT(OS_ERR_NONE);
-//        return (OS_ERR_NONE);
-//    }
-//    OS_EXIT_CRITICAL();                               /* Semaphore value has reached its maximum       */
-//    OS_TRACE_SEM_POST_EXIT(OS_ERR_SEM_OVF);
-
-//    return (OS_ERR_SEM_OVF);
-//}
+    return (OS_ERR_SEM_OVF);
+}
 
 
 /*

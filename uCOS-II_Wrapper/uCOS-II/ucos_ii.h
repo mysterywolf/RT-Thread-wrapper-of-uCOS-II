@@ -386,6 +386,12 @@ typedef  INT16U   OS_PRIO;
 #if (OS_EVENT_EN)
 typedef struct os_event {
     struct rt_ipc_object * ipc_ptr;
+    INT8U    OSEventType;                   /* Type of event control block (see OS_EVENT_TYPE_xxxx)    */
+    void    *OSEventPtr;                    /* Pointer to message or queue structure                   */
+    INT16U   OSEventCnt;                    /* Semaphore Count (not used if other EVENT type)          */
+#if OS_EVENT_NAME_EN > 0u
+    INT8U   *OSEventName;
+#endif
 } OS_EVENT;
 #endif
 
