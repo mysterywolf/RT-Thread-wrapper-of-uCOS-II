@@ -47,6 +47,15 @@
 
 - 实现`OSSemDel`函数
 
+### 2020-10-11
+
+- 实现`OSSemPend`函数
+- 实现`OSSemPost`函数
+
+### 2020-10-12
+
+- 实现`OSSemPendAbort`函数
+
 
 
 # 版本

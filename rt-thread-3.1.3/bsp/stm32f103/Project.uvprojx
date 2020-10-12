@@ -589,6 +589,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\..\uCOS-II_Wrapper\uCOS-II\os_sem.c</FilePath>
             </File>
+            <File>
+              <FileName>os_rtwrap.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\uCOS-II_Wrapper\uCOS-II\os_rtwrap.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

@@ -33,7 +33,7 @@ static void task2(void *p_arg)
         }
         else
         {
-            rt_kprintf("failure!\r\n");
+            rt_kprintf("failure!%d\r\n",err);
         }
     }
 }
