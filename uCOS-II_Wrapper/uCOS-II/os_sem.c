@@ -230,7 +230,7 @@ OS_EVENT  *OSSemDel (OS_EVENT  *pevent,
     
     psem = (rt_sem_t)pevent->ipc_ptr;
     
-    if (pevent->OSEventType != OS_EVENT_TYPE_SEM) {   /* Validate event block type                     */
+    if (pevent->OSEventType != OS_EVENT_TYPE_SEM) {        /* Validate event block type                */
         *perr = OS_ERR_EVENT_TYPE;
         return (pevent);       
     }
@@ -482,7 +482,7 @@ INT8U  OSSemPendAbort (OS_EVENT  *pevent,
             nbr_tasks = 1u;
     }
     *perr = OS_ERR_NONE;
-    return (nbr_tasks);                                      /* No tasks waiting on semaphore                 */
+    return (nbr_tasks);                               /* No tasks waiting on semaphore                 */
 }
 #endif
 
