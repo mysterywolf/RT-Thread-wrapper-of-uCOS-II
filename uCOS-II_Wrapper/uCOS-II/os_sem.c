@@ -69,7 +69,6 @@ INT16U  OSSemAccept (OS_EVENT *pevent)
 #endif
 
 
-
 #if OS_ARG_CHK_EN > 0u
     if (pevent == (OS_EVENT *)0) {                    /* Validate 'pevent'                             */
         return (0u);
@@ -78,12 +77,16 @@ INT16U  OSSemAccept (OS_EVENT *pevent)
     if (pevent->OSEventType != OS_EVENT_TYPE_SEM) {   /* Validate event block type                     */
         return (0u);
     }
-    OS_ENTER_CRITICAL();
-    cnt = pevent->OSEventCnt;
-    if (cnt > 0u) {                                   /* See if resource is available                  */
-        pevent->OSEventCnt--;                         /* Yes, decrement semaphore and notify caller    */
+    if(rt_sem_trytake((rt_sem_t)pevent->ipc_ptr) == RT_EOK) {
+        OS_ENTER_CRITICAL();
+        cnt = pevent->OSEventCnt;
+        if (cnt > 0u) {                               /* See if resource is available                  */
+            pevent->OSEventCnt--;                     /* Yes, decrement semaphore and notify caller    */
+        }
+        OS_EXIT_CRITICAL();
+    } else {
+        cnt = 0u;
     }
-    OS_EXIT_CRITICAL();
     return (cnt);                                     /* Return semaphore count                        */
 }
 #endif

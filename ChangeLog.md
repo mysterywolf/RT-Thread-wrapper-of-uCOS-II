@@ -55,6 +55,7 @@
 ### 2020-10-12
 
 - 实现`OSSemPendAbort`函数
+- 实现`OSSemAccept`函数
 
 
 
