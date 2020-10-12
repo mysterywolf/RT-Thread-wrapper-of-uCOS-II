@@ -156,7 +156,7 @@
 #define OS_SEM_DEL_EN             1u   /*    Include code for OSSemDel()                               */
 #define OS_SEM_PEND_ABORT_EN      1u   /*    Include code for OSSemPendAbort()                         */
 #define OS_SEM_QUERY_EN           0u   /*    Include code for OSSemQuery()                             */
-#define OS_SEM_SET_EN             0u   /*    Include code for OSSemSet()                               */
+#define OS_SEM_SET_EN             1u   /*    Include code for OSSemSet()                               */
 
 
                                        /* --------------------- TIME MANAGEMENT ---------------------- */
