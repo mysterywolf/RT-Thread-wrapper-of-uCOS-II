@@ -560,14 +560,10 @@ INT8U  OSSemPost (OS_EVENT *pevent)
 INT8U  OSSemQuery (OS_EVENT     *pevent,
                    OS_SEM_DATA  *p_sem_data)
 {
-    INT8U       i;
-    OS_PRIO    *psrc;
-    OS_PRIO    *pdest;
+    rt_sem_t    psem;
 #if OS_CRITICAL_METHOD == 3u                               /* Allocate storage for CPU status register */
     OS_CPU_SR   cpu_sr = 0u;
 #endif
-
-
 
 #if OS_ARG_CHK_EN > 0u
     if (pevent == (OS_EVENT *)0) {                         /* Validate 'pevent'                        */
@@ -581,13 +577,9 @@ INT8U  OSSemQuery (OS_EVENT     *pevent,
         return (OS_ERR_EVENT_TYPE);
     }
     OS_ENTER_CRITICAL();
-    p_sem_data->OSEventGrp = pevent->OSEventGrp;           /* Copy message mailbox wait list           */
-    psrc                   = &pevent->OSEventTbl[0];
-    pdest                  = &p_sem_data->OSEventTbl[0];
-    for (i = 0u; i < OS_EVENT_TBL_SIZE; i++) {
-        *pdest++ = *psrc++;
-    }
-    p_sem_data->OSCnt = pevent->OSEventCnt;                /* Get semaphore count                      */
+    psem = (rt_sem_t)(pevent->ipc_ptr);
+    rt_memcpy(&p_sem_data->OSSem, psem, sizeof(struct rt_semaphore));
+    p_sem_data->OSCnt = psem->value;
     OS_EXIT_CRITICAL();
     return (OS_ERR_NONE);
 }
@@ -623,11 +615,10 @@ void  OSSemSet (OS_EVENT  *pevent,
                 INT16U     cnt,
                 INT8U     *perr)
 {
+    rt_sem_t p_sem;
 #if OS_CRITICAL_METHOD == 3u                          /* Allocate storage for CPU status register      */
     OS_CPU_SR  cpu_sr = 0u;
 #endif
-
-
 
 #ifdef OS_SAFETY_CRITICAL
     if (perr == (INT8U *)0) {
@@ -635,7 +626,6 @@ void  OSSemSet (OS_EVENT  *pevent,
         return;
     }
 #endif
-
 #if OS_ARG_CHK_EN > 0u
     if (pevent == (OS_EVENT *)0) {                    /* Validate 'pevent'                             */
         *perr = OS_ERR_PEVENT_NULL;
@@ -647,16 +637,18 @@ void  OSSemSet (OS_EVENT  *pevent,
         return;
     }
     OS_ENTER_CRITICAL();
+    p_sem = (rt_sem_t)pevent->ipc_ptr;
     *perr = OS_ERR_NONE;
-    if (pevent->OSEventCnt > 0u) {                    /* See if semaphore already has a count          */
-        pevent->OSEventCnt = cnt;                     /* Yes, set it to the new value specified.       */
-    } else {                                          /* No                                            */
-        if (pevent->OSEventGrp == 0u) {               /*      See if task(s) waiting?                  */
-            pevent->OSEventCnt = cnt;                 /*      No, OK to set the value                  */
+    if (p_sem->value>0) {
+        p_sem->value = cnt;
+    } else {
+        if(rt_list_isempty(&(p_sem->parent.suspend_thread))) { /* 若没有线程等待信号量                 */
+            p_sem->value = cnt;
         } else {
-            *perr              = OS_ERR_TASK_WAITING;
+             *perr = OS_ERR_TASK_WAITING;             /* 有任务正在等待该信号量,不可以设置value        */
         }
     }
+    pevent->OSEventCnt = p_sem->value;                /* 更新信号量value值                             */
     OS_EXIT_CRITICAL();
 }
 #endif

@@ -536,14 +536,12 @@ typedef struct os_q_data {
 *********************************************************************************************************
 */
 
-//#if OS_SEM_EN > 0u
-//typedef struct os_sem_data {
-//    struct rt_semaphore OSSem;
-//    INT16U  OSCnt;                          /* Semaphore count                                         */
-//    OS_PRIO OSEventTbl[OS_EVENT_TBL_SIZE];  /* List of tasks waiting for event to occur                */
-//    OS_PRIO OSEventGrp;                     /* Group corresponding to tasks waiting for event to occur */
-//} OS_SEM_DATA;
-//#endif
+#if OS_SEM_EN > 0u
+typedef struct os_sem_data {
+    struct rt_semaphore OSSem;
+    INT16U  OSCnt;                          /* Semaphore count                                         */
+} OS_SEM_DATA;
+#endif
 
 /*
 *********************************************************************************************************
