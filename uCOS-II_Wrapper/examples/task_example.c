@@ -8,6 +8,7 @@ static OS_STK task_stack [TASK_SIZE];
 static void task(void *p_arg)
 {
     OS_STK_DATA stk;
+    
     while(1)
     {
         OSTaskStkChk(OS_PRIO_SELF, &stk);
@@ -15,7 +16,7 @@ static void task(void *p_arg)
 #if OS_TASK_STAT_EN > 0u
         rt_kprintf("CPU Usage:%d%%\r\n",OSCPUUsage);
 #endif
-        rt_thread_delay(500);
+        OSTimeDly(500);
     }
 }
 

@@ -386,12 +386,6 @@ typedef  INT16U   OS_PRIO;
 #if (OS_EVENT_EN)
 typedef struct os_event {
     struct rt_ipc_object * ipc_ptr;
-    INT8U    OSEventType;                   /* Type of event control block (see OS_EVENT_TYPE_xxxx)    */
-    void    *OSEventPtr;                    /* Pointer to message or queue structure                   */
-    INT16U   OSEventCnt;                    /* Semaphore Count (not used if other EVENT type)          */
-#if OS_EVENT_NAME_EN > 0u
-    INT8U   *OSEventName;
-#endif
 } OS_EVENT;
 #endif
 
@@ -1778,15 +1772,6 @@ rt_uint16_t   rt_ipc_pend_abort_all     (rt_list_t *list);
 
 #ifndef OS_LOWEST_PRIO
 #error  "OS_CFG.H, Missing OS_LOWEST_PRIO: Defines the lowest priority that can be assigned"
-#endif
-
-
-#ifndef OS_MAX_EVENTS
-#error  "OS_CFG.H, Missing OS_MAX_EVENTS: Max. number of event control blocks in your application"
-#else
-    #if     OS_MAX_EVENTS > 65500u
-    #error  "OS_CFG.H, OS_MAX_EVENTS must be <= 65500"
-    #endif
 #endif
 
 

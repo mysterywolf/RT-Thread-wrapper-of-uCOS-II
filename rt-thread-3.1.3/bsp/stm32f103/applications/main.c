@@ -29,5 +29,5 @@ int main(void)/*RT-Thread mainœﬂ≥Ã*/
     
 //    task_example();
 //    timer_example(); 
-//    sem_example();    
+    sem_example();    
 }
