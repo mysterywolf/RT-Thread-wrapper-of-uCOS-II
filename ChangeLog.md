@@ -56,6 +56,11 @@
 
 - 实现`OSSemPendAbort()` `OSSemSet()` ``OSSemAccept()`` `OSSemQuery()`函数
 
+### 2020-10-16
+
+- 实现`PKG_USING_UCOSII_WRAPPER_AUTOINIT`
+- 实现`OSMutexCreate()`函数
+
 
 
 # 版本

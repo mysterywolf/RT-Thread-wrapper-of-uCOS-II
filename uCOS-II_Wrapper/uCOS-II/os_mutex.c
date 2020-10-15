@@ -195,12 +195,7 @@ BOOLEAN  OSMutexAccept (OS_EVENT  *pevent,
 OS_EVENT  *OSMutexCreate (INT8U   prio,
                           INT8U  *perr)
 {
-    OS_EVENT  *pevent;
-#if OS_CRITICAL_METHOD == 3u                               /* Allocate storage for CPU status register */
-    OS_CPU_SR  cpu_sr = 0u;
-#endif
-
-    prio = 0;                                              /* 由于RT-Thread内核支持同一优先级含多个任务,因此prio在本兼容层无用*/
+    OS_EVENT  *pevent;                                            /* 由于RT-Thread内核支持同一优先级含多个任务,因此prio在本兼容层无用*/
 
 #ifdef OS_SAFETY_CRITICAL
     if (perr == (INT8U *)0) {
@@ -235,15 +230,7 @@ OS_EVENT  *OSMutexCreate (INT8U   prio,
         *perr = OS_ERR_PEVENT_NULL;
         return ((OS_EVENT *)0); 
     }
-    
-    OS_ENTER_CRITICAL();
-    pevent->OSEventType = OS_EVENT_TYPE_MUTEX;
-    pevent->OSEventCnt  = (INT16U)((INT16U)prio << 8u) | OS_MUTEX_AVAILABLE; /* Resource is avail.     */
-    pevent->OSEventPtr  = (void *)0;                       /* No task owning the mutex                 */
-#if OS_EVENT_NAME_EN > 0u
-    pevent->OSEventName = (INT8U *)(void *)"?";
-#endif
-    OS_EXIT_CRITICAL();    
+
    *perr = OS_ERR_NONE;
     return (pevent);
 }
