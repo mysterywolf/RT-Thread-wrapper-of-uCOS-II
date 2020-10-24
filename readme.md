@@ -36,5 +36,4 @@ RT-Thread操作系统的μCOS-III兼容层：https://github.com/mysterywolf/RT-T
 
 Meco Man : jiantingman@foxmail.com
 
-https://github.com/igorteamtest/RT-Thread-wrapper-of-uCOS-II
-
+https://github.com/mysterywolf/RT-Thread-wrapper-of-uCOS-II
