@@ -77,7 +77,8 @@ INT16U  OSSemAccept (OS_EVENT *pevent)
         != RT_Object_Class_Semaphore) {               /* Validate event block type                     */
         return (0u);
     }
-    if(rt_sem_trytake(psem) == RT_EOK) {
+
+    if(rt_sem_take(psem, RT_WAITING_NO) == RT_EOK) {
         cnt = psem->value;
     } else {
         cnt = 0u;

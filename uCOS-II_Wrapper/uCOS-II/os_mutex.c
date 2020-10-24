@@ -108,7 +108,7 @@ BOOLEAN  OSMutexAccept (OS_EVENT  *pevent,
 
     *perr = OS_ERR_NONE;
     
-    if(rt_mutex_take(pmutex, 0) == RT_EOK) {
+    if(rt_mutex_take(pmutex, RT_WAITING_NO) == RT_EOK) {
         return (OS_TRUE);
     }
     
