@@ -58,8 +58,12 @@
 
 ### 2020-10-16
 
-- 实现`PKG_USING_UCOSII_WRAPPER_AUTOINIT`
+- 实现`PKG_USING_UCOSII_WRAPPER_AUTOINIT`宏定义
 - 实现`OSMutexCreate()`函数
+
+### 2020-10-24
+
+- 实现`OSMutexPend()` `OSMutexPost()`函数
 
 
 

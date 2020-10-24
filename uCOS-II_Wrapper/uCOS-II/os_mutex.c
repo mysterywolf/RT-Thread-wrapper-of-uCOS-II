@@ -45,26 +45,6 @@
 #if OS_MUTEX_EN > 0u
 /*
 *********************************************************************************************************
-*                                           LOCAL CONSTANTS
-*********************************************************************************************************
-*/
-
-#define  OS_MUTEX_KEEP_LOWER_8   ((INT16U)0x00FFu)
-#define  OS_MUTEX_KEEP_UPPER_8   ((INT16U)0xFF00u)
-
-#define  OS_MUTEX_AVAILABLE      ((INT16U)0x00FFu)
-
-/*
-*********************************************************************************************************
-*                                           LOCAL CONSTANTS
-*********************************************************************************************************
-*/
-
-static  void  OSMutex_RdyAtPrio(OS_TCB *ptcb, INT8U prio);
-
-
-/*
-*********************************************************************************************************
 *                                  ACCEPT MUTUAL EXCLUSION SEMAPHORE
 *
 * Description: This  function checks the mutual exclusion semaphore to see if a resource is available.
@@ -428,7 +408,7 @@ OS_EVENT  *OSMutexDel (OS_EVENT  *pevent,
 *                               OS_ERR_PEVENT_NULL 'pevent' is a NULL pointer
 *                               OS_ERR_PEND_ISR    If you called this function from an ISR and the result
 *                                                  would lead to a suspension.
-*                               OS_ERR_PCP_LOWER   If the priority of the task that owns the Mutex is
+*                             - OS_ERR_PCP_LOWER   If the priority of the task that owns the Mutex is
 *                                                  HIGHER (i.e. a lower number) than the PCP.  This error
 *                                                  indicates that you did not set the PCP higher (lower
 *                                                  number) than ALL the tasks that compete for the Mutex.
@@ -449,12 +429,8 @@ void  OSMutexPend (OS_EVENT  *pevent,
                    INT32U     timeout,
                    INT8U     *perr)
 {
-    INT8U      pcp;                                        /* Priority Ceiling Priority (PCP)          */
-    INT8U      mprio;                                      /* Mutex owner priority                     */
-    BOOLEAN    rdy;                                        /* Flag indicating task was ready           */
-    OS_TCB    *ptcb;
-    OS_EVENT  *pevent2;
-    INT8U      y;
+    rt_mutex_t pmutex;
+    rt_err_t   rt_err;
 #if OS_CRITICAL_METHOD == 3u                               /* Allocate storage for CPU status register */
     OS_CPU_SR  cpu_sr = 0u;
 #endif
@@ -473,8 +449,11 @@ void  OSMutexPend (OS_EVENT  *pevent,
         return;
     }
 #endif
-
-    if (pevent->OSEventType != OS_EVENT_TYPE_MUTEX) {      /* Validate event block type                */
+    
+    pmutex = (rt_mutex_t)pevent->ipc_ptr;
+    
+    if (rt_object_get_type(&pmutex->parent.parent)         /* Validate event block type                */
+        != RT_Object_Class_Mutex) {
         *perr = OS_ERR_EVENT_TYPE;
         return;
     }
@@ -487,81 +466,35 @@ void  OSMutexPend (OS_EVENT  *pevent,
         return;
     }
 
-    OS_ENTER_CRITICAL();
-    pcp = (INT8U)(pevent->OSEventCnt >> 8u);               /* Get PCP from mutex                       */
-                                                           /* Is Mutex available?                      */
-    if ((INT8U)(pevent->OSEventCnt & OS_MUTEX_KEEP_LOWER_8) == OS_MUTEX_AVAILABLE) {
-        pevent->OSEventCnt &= OS_MUTEX_KEEP_UPPER_8;       /* Yes, Acquire the resource                */
-        pevent->OSEventCnt |= (INT16U)OSTCBCur->OSTCBPrio; /*      Save priority of owning task        */
-        pevent->OSEventPtr  = (void *)OSTCBCur;            /*      Point to owning task's OS_TCB       */
-        if ((pcp != OS_PRIO_MUTEX_CEIL_DIS) &&
-            (OSTCBCur->OSTCBPrio <= pcp)) {                /*      PCP 'must' have a SMALLER prio ...  */
-             OS_EXIT_CRITICAL();                           /*      ... than current task!              */
-            *perr = OS_ERR_PCP_LOWER;
-        } else {
-             OS_EXIT_CRITICAL();
-            *perr = OS_ERR_NONE;
-        }
-        return;
-    }
-    if (pcp != OS_PRIO_MUTEX_CEIL_DIS) {
-        mprio = (INT8U)(pevent->OSEventCnt & OS_MUTEX_KEEP_LOWER_8); /*  Get priority of mutex owner   */
-        ptcb  = (OS_TCB *)(pevent->OSEventPtr);                   /*     Point to TCB of mutex owner   */
-        if (ptcb->OSTCBPrio > pcp) {                              /*     Need to promote prio of owner?*/
-            if (mprio > OSTCBCur->OSTCBPrio) {
-                y = ptcb->OSTCBY;
-                if ((OSRdyTbl[y] & ptcb->OSTCBBitX) != 0u) {      /*     See if mutex owner is ready   */
-                    OSRdyTbl[y] &= (OS_PRIO)~ptcb->OSTCBBitX;     /*     Yes, Remove owner from Rdy ...*/
-                    if (OSRdyTbl[y] == 0u) {                      /*          ... list at current prio */
-                        OSRdyGrp &= (OS_PRIO)~ptcb->OSTCBBitY;
-                    }
-                    rdy = OS_TRUE;
-                } else {
-                    pevent2 = ptcb->OSTCBEventPtr;
-                    if (pevent2 != (OS_EVENT *)0) {               /* Remove from event wait list       */
-                        y = ptcb->OSTCBY;
-                        pevent2->OSEventTbl[y] &= (OS_PRIO)~ptcb->OSTCBBitX;
-                        if (pevent2->OSEventTbl[y] == 0u) {
-                            pevent2->OSEventGrp &= (OS_PRIO)~ptcb->OSTCBBitY;
-                        }
-                    }
-                    rdy = OS_FALSE;                        /* No                                       */
-                }
-                ptcb->OSTCBPrio = pcp;                     /* Change owner task prio to PCP            */
-
-                OS_TRACE_MUTEX_TASK_PRIO_INHERIT(ptcb, pcp);
-
-#if OS_LOWEST_PRIO <= 63u
-                ptcb->OSTCBY    = (INT8U)( ptcb->OSTCBPrio >> 3u);
-                ptcb->OSTCBX    = (INT8U)( ptcb->OSTCBPrio & 0x07u);
-#else
-                ptcb->OSTCBY    = (INT8U)((INT8U)(ptcb->OSTCBPrio >> 4u) & 0xFFu);
-                ptcb->OSTCBX    = (INT8U)( ptcb->OSTCBPrio & 0x0Fu);
-#endif
-                ptcb->OSTCBBitY = (OS_PRIO)(1uL << ptcb->OSTCBY);
-                ptcb->OSTCBBitX = (OS_PRIO)(1uL << ptcb->OSTCBX);
-
-                if (rdy == OS_TRUE) {                      /* If task was ready at owner's priority ...*/
-                    OSRdyGrp               |= ptcb->OSTCBBitY; /* ... make it ready at new priority.   */
-                    OSRdyTbl[ptcb->OSTCBY] |= ptcb->OSTCBBitX;
-                } else {
-                    pevent2 = ptcb->OSTCBEventPtr;
-                    if (pevent2 != (OS_EVENT *)0) {        /* Add to event wait list                   */
-                        pevent2->OSEventGrp               |= ptcb->OSTCBBitY;
-                        pevent2->OSEventTbl[ptcb->OSTCBY] |= ptcb->OSTCBBitX;
-                    }
-                }
-                OSTCBPrioTbl[pcp] = ptcb;
-            }
-        }
-    }
+    OS_ENTER_CRITICAL();   
     OSTCBCur->OSTCBStat     |= OS_STAT_MUTEX;         /* Mutex not available, pend current task        */
     OSTCBCur->OSTCBStatPend  = OS_STAT_PEND_OK;
     OSTCBCur->OSTCBDly       = timeout;               /* Store timeout in current task's TCB           */
-    OS_EventTaskWait(pevent);                         /* Suspend task until event or timeout occurs    */
     OS_EXIT_CRITICAL();
-    OS_Sched();                                       /* Find next highest priority task ready         */
-    OS_ENTER_CRITICAL();
+
+    if(timeout) {                                     /* 0ÎªÓÀ¾ÃµÈ´ý                                   */
+        rt_err = rt_mutex_take(pmutex,timeout);
+        OS_ENTER_CRITICAL(); 
+        if (rt_err == RT_EOK) {
+            OSTCBCur->OSTCBStatPend = OS_STAT_PEND_OK;
+        } else if(OSTCBCur->OSTCBStatPend == OS_STAT_PEND_ABORT) {
+            OSTCBCur->OSTCBStatPend = OS_STAT_PEND_ABORT;
+        } else {
+            OSTCBCur->OSTCBStatPend = OS_STAT_PEND_TO;
+        }
+        OS_EXIT_CRITICAL();
+    }else {
+        rt_mutex_take(pmutex,RT_WAITING_FOREVER);
+        OS_ENTER_CRITICAL(); 
+        if(OSTCBCur->OSTCBStatPend == OS_STAT_PEND_ABORT) {
+            OSTCBCur->OSTCBStatPend = OS_STAT_PEND_ABORT;
+        }else {
+            OSTCBCur->OSTCBStatPend = OS_STAT_PEND_OK;
+        }
+        OS_EXIT_CRITICAL();
+    }
+    
+    OS_ENTER_CRITICAL(); 
     switch (OSTCBCur->OSTCBStatPend) {                /* See if we timed-out or aborted                */
         case OS_STAT_PEND_OK:
              *perr = OS_ERR_NONE;
@@ -573,7 +506,6 @@ void  OSMutexPend (OS_EVENT  *pevent,
 
         case OS_STAT_PEND_TO:
         default:
-             OS_EventTaskRemove(OSTCBCur, pevent);
              *perr = OS_ERR_TIMEOUT;                  /* Indicate that we didn't get mutex within TO   */
              break;
     }
@@ -602,7 +534,7 @@ void  OSMutexPend (OS_EVENT  *pevent,
 *              OS_ERR_PEVENT_NULL      'pevent' is a NULL pointer
 *              OS_ERR_POST_ISR         Attempted to post from an ISR (not valid for MUTEXes)
 *              OS_ERR_NOT_MUTEX_OWNER  The task that did the post is NOT the owner of the MUTEX.
-*              OS_ERR_PCP_LOWER        If the priority of the new task that owns the Mutex is
+*            - OS_ERR_PCP_LOWER        If the priority of the new task that owns the Mutex is
 *                                      HIGHER (i.e. a lower number) than the PCP.  This error
 *                                      indicates that you did not set the PCP higher (lower
 *                                      number) than ALL the tasks that compete for the Mutex.
@@ -614,8 +546,7 @@ void  OSMutexPend (OS_EVENT  *pevent,
 
 INT8U  OSMutexPost (OS_EVENT *pevent)
 {
-    INT8U      pcp;                                   /* Priority ceiling priority                     */
-    INT8U      prio;
+    rt_mutex_t pmutex;
 #if OS_CRITICAL_METHOD == 3u                          /* Allocate storage for CPU status register      */
     OS_CPU_SR  cpu_sr = 0u;
 #endif
@@ -630,45 +561,20 @@ INT8U  OSMutexPost (OS_EVENT *pevent)
     }
 #endif
 
-    if (pevent->OSEventType != OS_EVENT_TYPE_MUTEX) { /* Validate event block type                     */
+    pmutex = (rt_mutex_t)pevent->ipc_ptr;
+    
+    if (rt_object_get_type(&pmutex->parent.parent)    /* Validate event block type                     */
+        != RT_Object_Class_Mutex) {
         return (OS_ERR_EVENT_TYPE);
     }
     OS_ENTER_CRITICAL();
-    pcp  = (INT8U)(pevent->OSEventCnt >> 8u);         /* Get priority ceiling priority of mutex        */
-    prio = (INT8U)(pevent->OSEventCnt & OS_MUTEX_KEEP_LOWER_8);  /* Get owner's original priority      */
-    if (OSTCBCur != (OS_TCB *)pevent->OSEventPtr) {   /* See if posting task owns the MUTEX            */
+    if (OSTCBCur != (OS_TCB *)pmutex->owner) {        /* See if posting task owns the MUTEX            */
         OS_EXIT_CRITICAL();
         return (OS_ERR_NOT_MUTEX_OWNER);
     }
-    if (pcp != OS_PRIO_MUTEX_CEIL_DIS) {
-        if (OSTCBCur->OSTCBPrio == pcp) {             /* Did we have to raise current task's priority? */
-            OSMutex_RdyAtPrio(OSTCBCur, prio);        /* Restore the task's original priority          */
-        }
-        OSTCBPrioTbl[pcp] = OS_TCB_RESERVED;          /* Reserve table entry                           */
-    }
-    if (pevent->OSEventGrp != 0u) {                   /* Any task waiting for the mutex?               */
-                                                      /* Yes, Make HPT waiting for mutex ready         */
-        prio                = OS_EventTaskRdy(pevent, (void *)0, OS_STAT_MUTEX, OS_STAT_PEND_OK);
-        pevent->OSEventCnt &= OS_MUTEX_KEEP_UPPER_8;  /*      Save priority of mutex's new owner       */
-        pevent->OSEventCnt |= (INT16U)prio;
-        pevent->OSEventPtr  = OSTCBPrioTbl[prio];     /*      Link to new mutex owner's OS_TCB         */
-        if ((pcp  != OS_PRIO_MUTEX_CEIL_DIS) &&
-            (prio <= pcp)) {                          /*      PCP 'must' have a SMALLER prio ...       */
-            OS_EXIT_CRITICAL();                       /*      ... than current task!                   */
-            OS_Sched();                               /*      Find highest priority task ready to run  */
-            OS_TRACE_MUTEX_POST_EXIT(OS_ERR_PCP_LOWER);
-            return (OS_ERR_PCP_LOWER);
-        } else {
-            OS_EXIT_CRITICAL();
-            OS_Sched();                               /*      Find highest priority task ready to run  */
-            OS_TRACE_MUTEX_POST_EXIT(OS_ERR_NONE);
-            return (OS_ERR_NONE);
-        }
-    }
-    pevent->OSEventCnt |= OS_MUTEX_AVAILABLE;         /* No,  Mutex is now available                   */
-    pevent->OSEventPtr  = (void *)0;
     OS_EXIT_CRITICAL();
-    OS_TRACE_MUTEX_POST_EXIT(OS_ERR_NONE);
+    
+    rt_mutex_release(pmutex);                         /* invoke rt-thread API                          */
     return (OS_ERR_NONE);
 }
 
@@ -736,51 +642,6 @@ INT8U  OSMutexQuery (OS_EVENT       *pevent,
     return (OS_ERR_NONE);
 }
 #endif                                                     /* OS_MUTEX_QUERY_EN                        */
-
-
-/*
-*********************************************************************************************************
-*                            RESTORE A TASK BACK TO ITS ORIGINAL PRIORITY
-*
-* Description: This function makes a task ready at the specified priority
-*
-* Arguments  : ptcb            is a pointer to OS_TCB of the task to make ready
-*
-*              prio            is the desired priority
-*
-* Returns    : none
-*********************************************************************************************************
-*/
-
-static  void  OSMutex_RdyAtPrio (OS_TCB  *ptcb,
-                                 INT8U    prio)
-{
-    INT8U  y;
-
-
-    y            =  ptcb->OSTCBY;                          /* Remove owner from ready list at 'pcp'    */
-    OSRdyTbl[y] &= (OS_PRIO)~ptcb->OSTCBBitX;
-    OS_TRACE_TASK_SUSPENDED(ptcb);
-    if (OSRdyTbl[y] == 0u) {
-        OSRdyGrp &= (OS_PRIO)~ptcb->OSTCBBitY;
-    }
-    ptcb->OSTCBPrio         = prio;
-    OSPrioCur               = prio;                        /* The current task is now at this priority */
-#if OS_LOWEST_PRIO <= 63u
-    ptcb->OSTCBY            = (INT8U)((INT8U)(prio >> 3u) & 0x07u);
-    ptcb->OSTCBX            = (INT8U)(prio & 0x07u);
-#else
-    ptcb->OSTCBY            = (INT8U)((INT8U)(prio >> 4u) & 0x0Fu);
-    ptcb->OSTCBX            = (INT8U) (prio & 0x0Fu);
-#endif
-    ptcb->OSTCBBitY         = (OS_PRIO)(1uL << ptcb->OSTCBY);
-    ptcb->OSTCBBitX         = (OS_PRIO)(1uL << ptcb->OSTCBX);
-    OSRdyGrp               |= ptcb->OSTCBBitY;             /* Make task ready at original priority     */
-    OSRdyTbl[ptcb->OSTCBY] |= ptcb->OSTCBBitX;
-    OSTCBPrioTbl[prio]      = ptcb;
-    OS_TRACE_TASK_READY(ptcb);
-}
-
 
 #endif                                                     /* OS_MUTEX_EN                              */
 #endif                                                     /* OS_MUTEX_C                               */

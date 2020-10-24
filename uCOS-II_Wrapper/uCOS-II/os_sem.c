@@ -285,6 +285,7 @@ void  OSSemPend (OS_EVENT  *pevent,
                  INT8U     *perr)
 {
     rt_sem_t   psem;
+    rt_err_t   rt_err;
 #if OS_CRITICAL_METHOD == 3u                          /* Allocate storage for CPU status register      */
     OS_CPU_SR  cpu_sr = 0u;
 #endif
@@ -326,20 +327,25 @@ void  OSSemPend (OS_EVENT  *pevent,
     OS_EXIT_CRITICAL();
 
     if(timeout) {                                     /* 0ÎªÓÀ¾ÃµÈ´ý                                   */
-        if (rt_sem_take(psem,timeout) == RT_EOK) {
+        rt_err = rt_sem_take(psem,timeout);
+        OS_ENTER_CRITICAL();
+        if (rt_err == RT_EOK) {
             OSTCBCur->OSTCBStatPend = OS_STAT_PEND_OK;
         } else if(OSTCBCur->OSTCBStatPend == OS_STAT_PEND_ABORT) {
             OSTCBCur->OSTCBStatPend = OS_STAT_PEND_ABORT;
         } else {
             OSTCBCur->OSTCBStatPend = OS_STAT_PEND_TO;
         }
+        OS_EXIT_CRITICAL();
     }else {
-        rt_sem_take(psem,RT_WAITING_FOREVER);        
+        rt_sem_take(psem,RT_WAITING_FOREVER);
+        OS_ENTER_CRITICAL();        
         if(OSTCBCur->OSTCBStatPend == OS_STAT_PEND_ABORT) {
             OSTCBCur->OSTCBStatPend = OS_STAT_PEND_ABORT;
         }else {
             OSTCBCur->OSTCBStatPend = OS_STAT_PEND_OK;
         }
+        OS_EXIT_CRITICAL();
     }
 
     OS_ENTER_CRITICAL();
@@ -422,13 +428,15 @@ INT8U  OSSemPendAbort (OS_EVENT  *pevent,
         return (0u);
     }
 #endif
+    
+    psem = (rt_sem_t)pevent->ipc_ptr;
+    
     if (rt_object_get_type(&psem->parent.parent)      /* Validate event block type                */
         != RT_Object_Class_Semaphore) {
         *perr = OS_ERR_EVENT_TYPE;
         return (0u);
     }
 
-    psem = (rt_sem_t)pevent->ipc_ptr;
     switch (opt)
     {
         case OS_ERR_PEND_ABORT:
