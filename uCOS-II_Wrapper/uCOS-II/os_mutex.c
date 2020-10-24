@@ -263,15 +263,8 @@ OS_EVENT  *OSMutexDel (OS_EVENT  *pevent,
                        INT8U      opt,
                        INT8U     *perr)
 {
-    BOOLEAN    tasks_waiting;
     OS_EVENT  *pevent_return;
-    INT8U      pcp;                                        /* Priority ceiling priority                */
-    INT8U      prio;
-    OS_TCB    *ptcb;
-#if OS_CRITICAL_METHOD == 3u                               /* Allocate storage for CPU status register */
-    OS_CPU_SR  cpu_sr = 0u;
-#endif
-
+    rt_mutex_t pmutex;
 
 #ifdef OS_SAFETY_CRITICAL
     if (perr == (INT8U *)0) {
@@ -295,90 +288,43 @@ OS_EVENT  *OSMutexDel (OS_EVENT  *pevent,
     }
 #endif
 
-    OS_TRACE_MUTEX_DEL_ENTER(pevent, opt);
+    pmutex = (rt_mutex_t)pevent->ipc_ptr;
 
-    if (pevent->OSEventType != OS_EVENT_TYPE_MUTEX) {      /* Validate event block type                */
+    if (rt_object_get_type(&pmutex->parent.parent)         /* Validate event block type                */
+        != RT_Object_Class_Mutex) {
         *perr = OS_ERR_EVENT_TYPE;
-        OS_TRACE_MUTEX_DEL_EXIT(*perr);
         return (pevent);
     }
     if (OSIntNesting > 0u) {                               /* See if called from ISR ...               */
         *perr = OS_ERR_DEL_ISR;                            /* ... can't DELETE from an ISR             */
-        OS_TRACE_MUTEX_DEL_EXIT(*perr);
         return (pevent);
     }
-    OS_ENTER_CRITICAL();
-    if (pevent->OSEventGrp != 0u) {                        /* See if any tasks waiting on mutex        */
-        tasks_waiting = OS_TRUE;                           /* Yes                                      */
-    } else {
-        tasks_waiting = OS_FALSE;                          /* No                                       */
-    }
+
     switch (opt) {
         case OS_DEL_NO_PEND:                               /* DELETE MUTEX ONLY IF NO TASK WAITING --- */
-             if (tasks_waiting == OS_FALSE) {
-#if OS_EVENT_NAME_EN > 0u
-                 pevent->OSEventName   = (INT8U *)(void *)"?";
-#endif
-                 pcp                   = (INT8U)(pevent->OSEventCnt >> 8u);
-                 if (pcp != OS_PRIO_MUTEX_CEIL_DIS) {
-                     OSTCBPrioTbl[pcp] = (OS_TCB *)0;      /* Free up the PCP                          */
-                 }
-                 pevent->OSEventType   = OS_EVENT_TYPE_UNUSED;
-                 pevent->OSEventPtr    = OSEventFreeList;  /* Return Event Control Block to free list  */
-                 pevent->OSEventCnt    = 0u;
-                 OSEventFreeList       = pevent;
-                 OS_EXIT_CRITICAL();
-                 *perr                 = OS_ERR_NONE;
-                 pevent_return         = (OS_EVENT *)0;    /* Mutex has been deleted                   */
-             } else {
-                 OS_EXIT_CRITICAL();
-                 *perr                 = OS_ERR_TASK_WAITING;
-                 pevent_return         = pevent;
-             }
-             break;
+            if(rt_list_isempty(&(pmutex->parent.suspend_thread))) { /* 若没有线程等待信号量            */
+                rt_mutex_delete(pmutex);                   /* invoke RT-Thread API                     */
+                RT_KERNEL_FREE(pevent);
+                *perr = OS_ERR_NONE;
+                pevent_return =  (OS_EVENT *)0; 
+            } else {
+                *perr = OS_ERR_TASK_WAITING;
+                pevent_return = pevent; 
+            }
+            break;
 
         case OS_DEL_ALWAYS:                                /* ALWAYS DELETE THE MUTEX ---------------- */
-             pcp  = (INT8U)(pevent->OSEventCnt >> 8u);                       /* Get PCP of mutex       */
-             if (pcp != OS_PRIO_MUTEX_CEIL_DIS) {
-                 prio = (INT8U)(pevent->OSEventCnt & OS_MUTEX_KEEP_LOWER_8); /* Get owner's orig prio  */
-                 ptcb = (OS_TCB *)pevent->OSEventPtr;
-                 if (ptcb != (OS_TCB *)0) {                /* See if any task owns the mutex           */
-                     if (ptcb->OSTCBPrio == pcp) {         /* See if original prio was changed         */
-                         OS_TRACE_MUTEX_TASK_PRIO_DISINHERIT(OSTCBCur, prio);
-                         OSMutex_RdyAtPrio(ptcb, prio);    /* Yes, Restore the task's original prio    */
-                     }
-                 }
-             }
-             while (pevent->OSEventGrp != 0u) {            /* Ready ALL tasks waiting for mutex        */
-                 (void)OS_EventTaskRdy(pevent, (void *)0, OS_STAT_MUTEX, OS_STAT_PEND_ABORT);
-             }
-#if OS_EVENT_NAME_EN > 0u
-             pevent->OSEventName   = (INT8U *)(void *)"?";
-#endif
-             pcp                   = (INT8U)(pevent->OSEventCnt >> 8u);
-             if (pcp != OS_PRIO_MUTEX_CEIL_DIS) {
-                 OSTCBPrioTbl[pcp] = (OS_TCB *)0;          /* Free up the PCP                          */
-             }
-             pevent->OSEventType   = OS_EVENT_TYPE_UNUSED;
-             pevent->OSEventPtr    = OSEventFreeList;      /* Return Event Control Block to free list  */
-             pevent->OSEventCnt    = 0u;
-             OSEventFreeList       = pevent;               /* Get next free event control block        */
-             OS_EXIT_CRITICAL();
-             if (tasks_waiting == OS_TRUE) {               /* Reschedule only if task(s) were waiting  */
-                 OS_Sched();                               /* Find highest priority task ready to run  */
-             }
-             *perr         = OS_ERR_NONE;
-             pevent_return = (OS_EVENT *)0;                /* Mutex has been deleted                   */
-             break;
+            rt_mutex_delete(pmutex);                       /* invoke RT-Thread API                     */
+            RT_KERNEL_FREE(pevent);
+            *perr = OS_ERR_NONE;
+            pevent_return =  (OS_EVENT *)0; 
+            break;
 
         default:
-             OS_EXIT_CRITICAL();
-             *perr         = OS_ERR_INVALID_OPT;
-             pevent_return = pevent;
-             break;
+            *perr         = OS_ERR_INVALID_OPT;
+            pevent_return = pevent;
+            break;
     }
-
-    OS_TRACE_MUTEX_DEL_EXIT(*perr);
 
     return (pevent_return);
 }
@@ -473,7 +419,7 @@ void  OSMutexPend (OS_EVENT  *pevent,
     OS_EXIT_CRITICAL();
 
     if(timeout) {                                     /* 0为永久等待                                   */
-        rt_err = rt_mutex_take(pmutex,timeout);
+        rt_err = rt_mutex_take(pmutex, timeout);
         OS_ENTER_CRITICAL(); 
         if (rt_err == RT_EOK) {
             OSTCBCur->OSTCBStatPend = OS_STAT_PEND_OK;
@@ -484,7 +430,7 @@ void  OSMutexPend (OS_EVENT  *pevent,
         }
         OS_EXIT_CRITICAL();
     }else {
-        rt_mutex_take(pmutex,RT_WAITING_FOREVER);
+        rt_mutex_take(pmutex, RT_WAITING_FOREVER);
         OS_ENTER_CRITICAL(); 
         if(OSTCBCur->OSTCBStatPend == OS_STAT_PEND_ABORT) {
             OSTCBCur->OSTCBStatPend = OS_STAT_PEND_ABORT;
@@ -601,14 +547,12 @@ INT8U  OSMutexPost (OS_EVENT *pevent)
 INT8U  OSMutexQuery (OS_EVENT       *pevent,
                      OS_MUTEX_DATA  *p_mutex_data)
 {
-    INT8U       i;
-    OS_PRIO    *psrc;
-    OS_PRIO    *pdest;
+    rt_mutex_t pmutex;
 #if OS_CRITICAL_METHOD == 3u                     /* Allocate storage for CPU status register           */
     OS_CPU_SR   cpu_sr = 0u;
 #endif
 
-
+    pmutex = (rt_mutex_t)pevent->ipc_ptr;
 
     if (OSIntNesting > 0u) {                               /* See if called from ISR ...               */
         return (OS_ERR_QUERY_ISR);                         /* ... can't QUERY mutex from an ISR        */
@@ -621,23 +565,13 @@ INT8U  OSMutexQuery (OS_EVENT       *pevent,
         return (OS_ERR_PDATA_NULL);
     }
 #endif
-    if (pevent->OSEventType != OS_EVENT_TYPE_MUTEX) {      /* Validate event block type                */
+    if (rt_object_get_type(&pmutex->parent.parent)         /* Validate event block type                */
+        != RT_Object_Class_Mutex) {
         return (OS_ERR_EVENT_TYPE);
     }
+
     OS_ENTER_CRITICAL();
-    p_mutex_data->OSMutexPCP  = (INT8U)(pevent->OSEventCnt >> 8u);
-    p_mutex_data->OSOwnerPrio = (INT8U)(pevent->OSEventCnt & OS_MUTEX_KEEP_LOWER_8);
-    if (p_mutex_data->OSOwnerPrio == 0xFFu) {
-        p_mutex_data->OSValue = OS_TRUE;
-    } else {
-        p_mutex_data->OSValue = OS_FALSE;
-    }
-    p_mutex_data->OSEventGrp  = pevent->OSEventGrp;        /* Copy wait list                           */
-    psrc                      = &pevent->OSEventTbl[0];
-    pdest                     = &p_mutex_data->OSEventTbl[0];
-    for (i = 0u; i < OS_EVENT_TBL_SIZE; i++) {
-        *pdest++ = *psrc++;
-    }
+
     OS_EXIT_CRITICAL();
     return (OS_ERR_NONE);
 }

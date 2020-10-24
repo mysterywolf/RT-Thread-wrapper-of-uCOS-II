@@ -207,7 +207,7 @@ OS_EVENT  *OSSemDel (OS_EVENT  *pevent,
         return (pevent);
     }
 #endif
-    
+
     psem = (rt_sem_t)pevent->ipc_ptr;
     if (rt_object_get_type(&psem->parent.parent)           /* Validate event block type                */
         != RT_Object_Class_Semaphore) {
@@ -217,11 +217,11 @@ OS_EVENT  *OSSemDel (OS_EVENT  *pevent,
         *perr = OS_ERR_DEL_ISR;                            /* ... can't DELETE from an ISR             */
         return (pevent);
     }
-    
+
     switch (opt) {
         case OS_DEL_NO_PEND:                               /* Delete semaphore only if no task waiting */
             if(rt_list_isempty(&(psem->parent.suspend_thread))) { /* 若没有线程等待信号量              */
-                rt_sem_delete(psem);                       /* 调用RT-Thread API                        */
+                rt_sem_delete(psem);                       /* invoke RT-Thread API                     */
                 RT_KERNEL_FREE(pevent);
                 *perr = OS_ERR_NONE;
                 pevent_return =  (OS_EVENT *)0; 
@@ -232,7 +232,7 @@ OS_EVENT  *OSSemDel (OS_EVENT  *pevent,
             break;
             
         case OS_DEL_ALWAYS:                                /* Always delete the semaphore              */
-            rt_sem_delete(psem);                           /* 调用RT-Thread API                        */
+            rt_sem_delete(psem);                           /* invoke RT-Thread API                     */
             RT_KERNEL_FREE(pevent);
             *perr = OS_ERR_NONE;
             pevent_return =  (OS_EVENT *)0; 
@@ -243,6 +243,7 @@ OS_EVENT  *OSSemDel (OS_EVENT  *pevent,
              pevent_return          = pevent;
              break;
     }
+
     return (pevent_return);
 }
 #endif
@@ -320,6 +321,7 @@ void  OSSemPend (OS_EVENT  *pevent,
         *perr = OS_ERR_PEND_LOCKED;                   /* ... can't PEND when locked                    */
         return;
     }
+    
     OS_ENTER_CRITICAL();                                                     /* Otherwise, must wait until event occurs       */
     OSTCBCur->OSTCBStat     |= OS_STAT_SEM;           /* Resource not available, pend on semaphore     */
     OSTCBCur->OSTCBStatPend  = OS_STAT_PEND_OK;
@@ -327,7 +329,7 @@ void  OSSemPend (OS_EVENT  *pevent,
     OS_EXIT_CRITICAL();
 
     if(timeout) {                                     /* 0为永久等待                                   */
-        rt_err = rt_sem_take(psem,timeout);
+        rt_err = rt_sem_take(psem, timeout);
         OS_ENTER_CRITICAL();
         if (rt_err == RT_EOK) {
             OSTCBCur->OSTCBStatPend = OS_STAT_PEND_OK;
@@ -338,7 +340,7 @@ void  OSSemPend (OS_EVENT  *pevent,
         }
         OS_EXIT_CRITICAL();
     }else {
-        rt_sem_take(psem,RT_WAITING_FOREVER);
+        rt_sem_take(psem, RT_WAITING_FOREVER);
         OS_ENTER_CRITICAL();        
         if(OSTCBCur->OSTCBStatPend == OS_STAT_PEND_ABORT) {
             OSTCBCur->OSTCBStatPend = OS_STAT_PEND_ABORT;

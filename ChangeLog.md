@@ -63,8 +63,12 @@
 
 ### 2020-10-24
 
-- 实现`OSMutexPend()` `OSMutexPost()`函数
+- 实现`OSMutexPend()` `OSMutexPost()` 函数
 - 增加`mutex_example.c`文件
+
+### 2020-10-25
+
+- 实现`OSMutexDel()`函数
 
 
 
@@ -78,3 +82,4 @@
 
 # TODO
 
+OSMutexQuery
