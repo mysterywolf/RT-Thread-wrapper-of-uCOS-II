@@ -489,11 +489,8 @@ typedef struct os_mem_data {
 
 #if OS_MUTEX_EN > 0u
 typedef struct os_mutex_data {
-    OS_PRIO OSEventTbl[OS_EVENT_TBL_SIZE];  /* List of tasks waiting for event to occur                */
-    OS_PRIO OSEventGrp;                     /* Group corresponding to tasks waiting for event to occur */
-    BOOLEAN OSValue;                        /* Mutex value (OS_FALSE = used, OS_TRUE = available)      */
+    struct rt_mutex  OSMutex;
     INT8U   OSOwnerPrio;                    /* Mutex owner's task priority or 0xFF if no owner         */
-    INT8U   OSMutexPCP;                     /* Priority Ceiling Priority or 0xFF if PCP disabled       */
 } OS_MUTEX_DATA;
 #endif
 

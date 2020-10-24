@@ -58,7 +58,7 @@
 *                            OS_ERR_EVENT_TYPE   if 'pevent' is not a pointer to a mutex
 *                            OS_ERR_PEVENT_NULL  'pevent' is a NULL pointer
 *                            OS_ERR_PEND_ISR     if you called this function from an ISR
-*                            OS_ERR_PCP_LOWER    If the priority of the task that owns the Mutex is
+*                          - OS_ERR_PCP_LOWER    If the priority of the task that owns the Mutex is
 *                                                HIGHER (i.e. a lower number) than the PCP.  This error
 *                                                indicates that you did not set the PCP higher (lower
 *                                                number) than ALL the tasks that compete for the Mutex.
@@ -80,12 +80,7 @@
 BOOLEAN  OSMutexAccept (OS_EVENT  *pevent,
                         INT8U     *perr)
 {
-    INT8U      pcp;                                    /* Priority Ceiling Priority (PCP)              */
-#if OS_CRITICAL_METHOD == 3u                           /* Allocate storage for CPU status register     */
-    OS_CPU_SR  cpu_sr = 0u;
-#endif
-
-
+    rt_mutex_t pmutex;
 
 #ifdef OS_SAFETY_CRITICAL
     if (perr == (INT8U *)0) {
@@ -94,13 +89,15 @@ BOOLEAN  OSMutexAccept (OS_EVENT  *pevent,
     }
 #endif
 
+    pmutex = (rt_mutex_t)pevent->ipc_ptr;
 #if OS_ARG_CHK_EN > 0u
     if (pevent == (OS_EVENT *)0) {                     /* Validate 'pevent'                            */
         *perr = OS_ERR_PEVENT_NULL;
         return (OS_FALSE);
     }
 #endif
-    if (pevent->OSEventType != OS_EVENT_TYPE_MUTEX) {  /* Validate event block type                    */
+    if (rt_object_get_type(&pmutex->parent.parent)     /* Validate event block type                */
+        != RT_Object_Class_Mutex) {
         *perr = OS_ERR_EVENT_TYPE;
         return (OS_FALSE);
     }
@@ -108,24 +105,13 @@ BOOLEAN  OSMutexAccept (OS_EVENT  *pevent,
         *perr = OS_ERR_PEND_ISR;
         return (OS_FALSE);
     }
-    OS_ENTER_CRITICAL();                               /* Get value (0 or 1) of Mutex                  */
-    pcp = (INT8U)(pevent->OSEventCnt >> 8u);           /* Get PCP from mutex                           */
-    if ((pevent->OSEventCnt & OS_MUTEX_KEEP_LOWER_8) == OS_MUTEX_AVAILABLE) {
-        pevent->OSEventCnt &= OS_MUTEX_KEEP_UPPER_8;   /*      Mask off LSByte (Acquire Mutex)         */
-        pevent->OSEventCnt |= (INT16U)OSTCBCur->OSTCBPrio;  /* Save current task priority in LSByte    */
-        pevent->OSEventPtr  = (void *)OSTCBCur;        /*      Link TCB of task owning Mutex           */
-        if ((pcp != OS_PRIO_MUTEX_CEIL_DIS) &&
-            (OSTCBCur->OSTCBPrio <= pcp)) {            /*      PCP 'must' have a SMALLER prio ...      */
-             OS_EXIT_CRITICAL();                       /*      ... than current task!                  */
-            *perr = OS_ERR_PCP_LOWER;
-        } else {
-             OS_EXIT_CRITICAL();
-            *perr = OS_ERR_NONE;
-        }
+
+    *perr = OS_ERR_NONE;
+    
+    if(rt_mutex_take(pmutex, 0) == RT_EOK) {
         return (OS_TRUE);
     }
-    OS_EXIT_CRITICAL();
-    *perr = OS_ERR_NONE;
+    
     return (OS_FALSE);
 }
 #endif
@@ -497,7 +483,6 @@ INT8U  OSMutexPost (OS_EVENT *pevent)
     OS_CPU_SR  cpu_sr = 0u;
 #endif
 
-
     if (OSIntNesting > 0u) {                          /* See if called from ISR ...                    */
         return (OS_ERR_POST_ISR);                     /* ... can't POST mutex from an ISR              */
     }
@@ -571,7 +556,8 @@ INT8U  OSMutexQuery (OS_EVENT       *pevent,
     }
 
     OS_ENTER_CRITICAL();
-
+    rt_memcpy(&p_mutex_data->OSMutex, pmutex, sizeof(struct rt_mutex));
+    p_mutex_data->OSOwnerPrio = pmutex->owner->current_priority;
     OS_EXIT_CRITICAL();
     return (OS_ERR_NONE);
 }

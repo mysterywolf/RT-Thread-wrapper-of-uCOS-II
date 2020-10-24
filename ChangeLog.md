@@ -68,7 +68,7 @@
 
 ### 2020-10-25
 
-- 实现`OSMutexDel()`函数
+- 实现`OSMutexDel()` `OSMutexAccept()` `OSMutexQuery()`函数
 
 
 
@@ -82,4 +82,3 @@
 
 # TODO
 
-OSMutexQuery
