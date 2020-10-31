@@ -23,6 +23,7 @@
 ### 2020-09-27
 
 - 完成`OS_TMR`的全部功能，实现带有延迟的周期延时功能
+- 至此`os_tmr.c`文件的函数全部实现
 
 ### 2020-09-30
 
@@ -42,6 +43,7 @@
 - 修复`OSTaskStkChk()`函数计算任务堆栈大小错误的问题
 - 实现`OSTimeDlyResume()`函数
 - 实现统计任务以及CPU使用率计算
+- 至此`os_task.c`文件的函数全部实现
 
 ### 2020-10-10
 
@@ -55,6 +57,7 @@
 ### 2020-10-12
 
 - 实现`OSSemPendAbort()` `OSSemSet()` ``OSSemAccept()`` `OSSemQuery()`函数
+- 至此`os_sem.c`文件的函数全部实现
 
 ### 2020-10-16
 
@@ -69,6 +72,11 @@
 ### 2020-10-25
 
 - 实现`OSMutexDel()` `OSMutexAccept()` `OSMutexQuery()`函数
+- 至此`os_mutex.c`文件函数全部实现
+
+### 2020-10-26
+
+- 额外实现`OSMutexCreateEx()`函数，该函数并不在uCOS-II原版的函数中，`OSMutexCreate()`函数中第一个参数`prio`在兼容层中没有任何意义，因此该函数将`OSMutexCreate()`函数中的第一个参数略去，以方便用户使用。原因是由于uCOS-II的实现方式过于落后，不支持相同任务在同一优先级。
 
 
 

@@ -968,6 +968,8 @@ BOOLEAN       OSMutexAccept           (OS_EVENT        *pevent,
 OS_EVENT     *OSMutexCreate           (INT8U            prio,
                                        INT8U           *perr);
 
+OS_EVENT     *OSMutexCreateEx         (INT8U           *perr);
+
 #if OS_MUTEX_DEL_EN > 0u
 OS_EVENT     *OSMutexDel              (OS_EVENT        *pevent,
                                        INT8U            opt,
