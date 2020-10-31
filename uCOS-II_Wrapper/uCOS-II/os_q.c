@@ -42,6 +42,13 @@
 #endif
 
 #if (OS_Q_EN > 0u) && (OS_MAX_QS > 0u)
+
+/*由于在ipc.c文件中的struct rt_mq_message没有暴露出来,因此需要复制一份,为避免重复改名为struct _rt_mq_message*/
+struct _rt_mq_message
+{
+    struct _rt_mq_message *next;
+};
+
 /*
 *********************************************************************************************************
 *                                      ACCEPT MESSAGE FROM QUEUE
@@ -145,11 +152,13 @@ OS_EVENT  *OSQCreate (void    **start,
 {
     OS_EVENT  *pevent;
     OS_Q      *pq;
+    rt_size_t  msg_size;
+    rt_size_t  pool_size;
+    rt_size_t  msg_header_size;
+    void      *p_pool;
 #if OS_CRITICAL_METHOD == 3u                     /* Allocate storage for CPU status register           */
     OS_CPU_SR  cpu_sr = 0u;
 #endif
-
-
 
 #ifdef OS_SAFETY_CRITICAL_IEC61508
     if (OSSafetyCriticalStartFlag == OS_TRUE) {
@@ -162,34 +171,22 @@ OS_EVENT  *OSQCreate (void    **start,
         return ((OS_EVENT *)0);                  /* ... can't CREATE from an ISR                       */
     }
 
-    if (pevent != (OS_EVENT *)0) {               /* See if we have an event control block              */
-        OS_ENTER_CRITICAL();
-        pq = OSQFreeList;                        /* Get a free queue control block                     */
-        if (pq != (OS_Q *)0) {                   /* Were we able to get a queue control block ?        */
-            OSQFreeList            = OSQFreeList->OSQPtr; /* Yes, Adjust free list pointer to next free*/
-            OS_EXIT_CRITICAL();
-            pq->OSQStart           = start;               /*      Initialize the queue                 */
-            pq->OSQEnd             = &start[size];
-            pq->OSQIn              = start;
-            pq->OSQOut             = start;
-            pq->OSQSize            = size;
-            pq->OSQEntries         = 0u;
-            pevent->OSEventType    = OS_EVENT_TYPE_Q;
-            pevent->OSEventCnt     = 0u;
-            pevent->OSEventPtr     = pq;
-#if OS_EVENT_NAME_EN > 0u
-            pevent->OSEventName    = (INT8U *)(void *)"?";
-#endif
-            OS_EventWaitListInit(pevent);                 /*      Initialize the wait list             */
-
-            OS_TRACE_Q_CREATE(pevent, pevent->OSEventName);
-        } else {
-            pevent->OSEventPtr = (void *)OSEventFreeList; /* No,  Return event control block on error  */
-            OSEventFreeList    = pevent;
-            OS_EXIT_CRITICAL();
-            pevent = (OS_EVENT *)0;
-        }
+    pevent = RT_KERNEL_MALLOC(sizeof(OS_EVENT));
+    if (pevent == (OS_EVENT *)0) {               /* See if we have an event control block              */
+        return ((OS_EVENT *)0);
     }
+    
+    msg_header_size = sizeof(struct _rt_mq_message); /* sizeof(struct rt_mq_message)                   */
+    msg_size = sizeof(ucos_msg_t);               /* 消息队列中一条消息的最大长度，单位字节             */
+    pool_size = (msg_header_size + msg_size) * size; /* 存放消息的缓冲区大小                           */
+    p_pool = RT_KERNEL_MALLOC(pool_size);        /* 分配用于存放消息的缓冲区                           */
+    if(p_pool == RT_NULL) {
+        return ((OS_EVENT *)0);
+    }
+    
+    pevent->ipc_ptr = (struct rt_ipc_object *)   /* invoke rt-thread API to create message queue       */
+        rt_mq_create("uCOS-II MQ", msg_size, pool_size, RT_IPC_FLAG_FIFO);
+
     return (pevent);
 }
 

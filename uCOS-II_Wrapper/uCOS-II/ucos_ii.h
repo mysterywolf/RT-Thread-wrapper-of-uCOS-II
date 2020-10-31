@@ -501,12 +501,13 @@ typedef struct os_mutex_data {
 */
 
 #if OS_Q_EN > 0u
+typedef  struct                             /* uCOS消息段                                              */
+{
+    rt_uint8_t *data_ptr;                   /* uCOS-III消息数据指针                                    */
+    rt_uint32_t data_size;                  /* uCOS-III消息数据长度                                    */
+}ucos_msg_t;
+
 typedef struct os_q {                       /* QUEUE CONTROL BLOCK                                     */
-    struct os_q   *OSQPtr;                  /* Link to next queue control block in list of free blocks */
-    void         **OSQStart;                /* Ptr to start of queue data                              */
-    void         **OSQEnd;                  /* Ptr to end   of queue data                              */
-    void         **OSQIn;                   /* Ptr to where next message will be inserted  in   the Q  */
-    void         **OSQOut;                  /* Ptr to where next message will be extracted from the Q  */
     INT16U         OSQSize;                 /* Size of queue (maximum number of entries)               */
     INT16U         OSQEntries;              /* Current number of entries in the queue                  */
 } OS_Q;

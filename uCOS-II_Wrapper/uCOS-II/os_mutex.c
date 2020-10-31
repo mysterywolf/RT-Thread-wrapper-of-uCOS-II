@@ -201,6 +201,7 @@ OS_EVENT  *OSMutexCreate (INT8U   prio,
     return (pevent);
 }
 
+
 /*
 *********************************************************************************************************
 *                                 CREATE A MUTUAL EXCLUSION SEMAPHORE
@@ -214,6 +215,7 @@ OS_EVENT  *OSMutexCreateEx (INT8U  *perr)
 {
     return OSMutexCreate(0,perr);
 }
+
 
 /*
 *********************************************************************************************************
