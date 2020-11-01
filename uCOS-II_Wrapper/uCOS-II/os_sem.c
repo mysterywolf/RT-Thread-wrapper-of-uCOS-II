@@ -322,11 +322,12 @@ void  OSSemPend (OS_EVENT  *pevent,
         *perr = OS_ERR_PEND_LOCKED;                   /* ... can't PEND when locked                    */
         return;
     }
-    
+
     OS_ENTER_CRITICAL();                                                     /* Otherwise, must wait until event occurs       */
     OSTCBCur->OSTCBStat     |= OS_STAT_SEM;           /* Resource not available, pend on semaphore     */
     OSTCBCur->OSTCBStatPend  = OS_STAT_PEND_OK;
     OSTCBCur->OSTCBDly       = timeout;               /* Store pend timeout in TCB                     */
+    OSTCBCur->OSTCBEventPtr  = pevent;
     OS_EXIT_CRITICAL();
 
     if(timeout) {                                     /* 0н╙сю╬ц╣х╢Щ                                   */

@@ -504,7 +504,6 @@ typedef struct os_mutex_data {
 typedef  struct                             /* uCOS消息段                                              */
 {
     rt_uint8_t *data_ptr;                   /* uCOS-II消息数据指针                                     */
-//    rt_uint32_t data_size;                  /* uCOS-II消息数据长度                                   */
 }ucos_msg_t;
 
 typedef struct os_q {                       /* QUEUE CONTROL BLOCK                                     */

@@ -417,8 +417,9 @@ void  OSMutexPend (OS_EVENT  *pevent,
     OSTCBCur->OSTCBStat     |= OS_STAT_MUTEX;         /* Mutex not available, pend current task        */
     OSTCBCur->OSTCBStatPend  = OS_STAT_PEND_OK;
     OSTCBCur->OSTCBDly       = timeout;               /* Store timeout in current task's TCB           */
+    OSTCBCur->OSTCBEventPtr  = pevent;
     OS_EXIT_CRITICAL();
-    
+
     if(timeout) {                                     /* 0н╙сю╬ц╣х╢Щ                                   */
         rt_err = rt_mutex_take(pmutex, timeout);
         OS_ENTER_CRITICAL(); 
