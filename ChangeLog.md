@@ -77,7 +77,7 @@
 ### 2020-11-01
 
 - 额外实现`OSMutexCreateEx()`函数，该函数并不在uCOS-II原版的函数中，`OSMutexCreate()`函数中第一个参数`prio`在兼容层中没有任何意义，因此该函数将`OSMutexCreate()`函数中的第一个参数略去，以方便用户使用。原因是由于uCOS-II的实现方式过于落后，不支持相同任务在同一优先级。
-- 实现`OSQCreate()`、`OSQPend()`、`OSQPost()`函数
+- 实现`OSQCreate()`、`OSQPend()`、`OSQPost()`、`OSQPostFront()`函数
 - 额外实现``OSQCreateEx()`函数，该函数并不在uCOS-II原版的函数中，`OSQCreateEx()`函数中第一个参数`size`在本兼容层中没有意义，因此该函数将`OSQCreateEx()`函数中的第一个参数略去，以方便用户使用。
 - 增加`messagequeue_example.c`示例文件
 

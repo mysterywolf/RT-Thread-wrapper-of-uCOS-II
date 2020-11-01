@@ -654,7 +654,7 @@ INT8U  OSQPost (OS_EVENT  *pevent,
 #endif
 
     pmq = (rt_mq_t)pevent->ipc_ptr;
-    if (rt_object_get_type(&pmq->parent.parent)  /* Validate event block type                          */
+    if (rt_object_get_type(&pmq->parent.parent)        /* Validate event block type                    */
         != RT_Object_Class_MessageQueue) {
         return (OS_ERR_EVENT_TYPE);
     }
@@ -697,12 +697,9 @@ INT8U  OSQPost (OS_EVENT  *pevent,
 INT8U  OSQPostFront (OS_EVENT  *pevent,
                      void      *pmsg)
 {
-    OS_Q      *pq;
-#if OS_CRITICAL_METHOD == 3u                          /* Allocate storage for CPU status register      */
-    OS_CPU_SR  cpu_sr = 0u;
-#endif
-
-
+    rt_mq_t    pmq;
+    rt_err_t   rt_err;
+    ucos_msg_t ucos_msg;
 
 #if OS_ARG_CHK_EN > 0u
     if (pevent == (OS_EVENT *)0) {                    /* Validate 'pevent'                             */
@@ -710,35 +707,20 @@ INT8U  OSQPostFront (OS_EVENT  *pevent,
     }
 #endif
 
-    OS_TRACE_Q_POST_FRONT_ENTER(pevent);
-
-    if (pevent->OSEventType != OS_EVENT_TYPE_Q) {     /* Validate event block type                     */
-        OS_TRACE_Q_POST_FRONT_EXIT(OS_ERR_EVENT_TYPE);
+    pmq = (rt_mq_t)pevent->ipc_ptr;
+    if (rt_object_get_type(&pmq->parent.parent)       /* Validate event block type                     */
+        != RT_Object_Class_MessageQueue) {
         return (OS_ERR_EVENT_TYPE);
     }
-    OS_ENTER_CRITICAL();
-    if (pevent->OSEventGrp != 0u) {                   /* See if any task pending on queue              */
-                                                      /* Ready highest priority task waiting on event  */
-        (void)OS_EventTaskRdy(pevent, pmsg, OS_STAT_Q, OS_STAT_PEND_OK);
-        OS_EXIT_CRITICAL();
-        OS_Sched();                                   /* Find highest priority task ready to run       */
-        OS_TRACE_Q_POST_FRONT_EXIT(OS_ERR_NONE);
-        return (OS_ERR_NONE);
-    }
-    pq = (OS_Q *)pevent->OSEventPtr;                  /* Point to queue control block                  */
-    if (pq->OSQEntries >= pq->OSQSize) {              /* Make sure queue is not full                   */
-        OS_EXIT_CRITICAL();
-        OS_TRACE_Q_POST_FRONT_EXIT(OS_ERR_Q_FULL);
+
+    /*×°ÌîuCOSÏûÏ¢¶Î*/
+    ucos_msg.data_ptr = pmsg;
+
+    rt_err = rt_mq_urgent(pmq, (void*)&ucos_msg, sizeof(ucos_msg_t));
+    if(rt_err == -RT_EFULL) {
         return (OS_ERR_Q_FULL);
     }
-    if (pq->OSQOut == pq->OSQStart) {                 /* Wrap OUT ptr if we are at the 1st queue entry */
-        pq->OSQOut = pq->OSQEnd;
-    }
-    pq->OSQOut--;
-    *pq->OSQOut = pmsg;                               /* Insert message into queue                     */
-    pq->OSQEntries++;                                 /* Update the nbr of entries in the queue        */
-    OS_EXIT_CRITICAL();
-    OS_TRACE_Q_POST_FRONT_EXIT(OS_ERR_NONE);
+    
     return (OS_ERR_NONE);
 }
 #endif
