@@ -503,8 +503,8 @@ typedef struct os_mutex_data {
 #if OS_Q_EN > 0u
 typedef  struct                             /* uCOS消息段                                              */
 {
-    rt_uint8_t *data_ptr;                   /* uCOS-III消息数据指针                                    */
-    rt_uint32_t data_size;                  /* uCOS-III消息数据长度                                    */
+    rt_uint8_t *data_ptr;                   /* uCOS-II消息数据指针                                     */
+//    rt_uint32_t data_size;                  /* uCOS-II消息数据长度                                   */
 }ucos_msg_t;
 
 typedef struct os_q {                       /* QUEUE CONTROL BLOCK                                     */
@@ -580,15 +580,6 @@ typedef struct os_tcb {
     OS_EVENT        *OSTCBEventPtr;         /* Pointer to           event control block                */
 #endif
 
-#if (OS_EVENT_EN) && (OS_EVENT_MULTI_EN > 0u)
-    OS_EVENT       **OSTCBEventMultiPtr;    /* Pointer to multiple  event control blocks               */
-    OS_EVENT        *OSTCBEventMultiRdy;    /* Pointer to the first event control block readied        */
-#endif
-
-#if ((OS_Q_EN > 0u) && (OS_MAX_QS > 0u)) || (OS_MBOX_EN > 0u)
-    void            *OSTCBMsg;              /* Message received from OSMboxPost() or OSQPost()         */
-#endif
-
 #if (OS_FLAG_EN > 0u) && (OS_MAX_FLAGS > 0u)
 #if OS_TASK_DEL_EN > 0u
     OS_FLAG_NODE    *OSTCBFlagNode;         /* Pointer to event flag node                              */
@@ -606,7 +597,6 @@ typedef struct os_tcb {
 #endif
 
 #if OS_TASK_PROFILE_EN > 0u
-    INT32U           OSTCBCtxSwCtr;         /* Number of time the task was switched in                 */
     INT32U           OSTCBCyclesTot;        /* Total number of clock cycles the task has been running  */
     INT32U           OSTCBCyclesStart;      /* Snapshot of cycle counter at start of task resumption   */
     OS_STK          *OSTCBStkBase;          /* Pointer to the beginning of the task stack              */
@@ -1006,6 +996,8 @@ void         *OSQAccept               (OS_EVENT        *pevent,
 
 OS_EVENT     *OSQCreate               (void           **start,
                                        INT16U           size);
+
+OS_EVENT     *OSQCreateEx             (INT16U           size);
 
 #if OS_Q_DEL_EN > 0u
 OS_EVENT     *OSQDel                  (OS_EVENT        *pevent,

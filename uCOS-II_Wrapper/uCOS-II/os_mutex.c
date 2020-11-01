@@ -190,7 +190,7 @@ OS_EVENT  *OSMutexCreate (INT8U   prio,
     }
     
     pevent->ipc_ptr = (struct rt_ipc_object *)
-        rt_mutex_create("uCOS-II Mutex", RT_IPC_FLAG_PRIO);
+        rt_mutex_create("uCOS-II", RT_IPC_FLAG_PRIO);
     if(pevent->ipc_ptr == 0) {
         RT_KERNEL_FREE(pevent);
         *perr = OS_ERR_PEVENT_NULL;
@@ -205,8 +205,8 @@ OS_EVENT  *OSMutexCreate (INT8U   prio,
 /*
 *********************************************************************************************************
 *                                 CREATE A MUTUAL EXCLUSION SEMAPHORE
-*   额外实现`OSMutexCreateEx()`函数，该函数并不在uCOS-II原版的函数中，`OSMutexCreate()`函数中第一个
-* 参数`prio`在兼容层中没有任何意义，因此该函数将`OSMutexCreate()`函数中的第一个参数略去，以方便用户
+*   额外实现OSMutexCreateEx()函数，该函数并不在uCOS-II原版的函数中，OSMutexCreate()函数中第一个
+* 参数prio在兼容层中没有任何意义，因此该函数将OSMutexCreate()函数中的第一个参数略去，以方便用户
 * 使用。原因是由于uCOS-II的实现方式过于落后，不支持相同任务在同一优先级。
 *   推荐用户使用这个API
 *********************************************************************************************************
@@ -418,7 +418,7 @@ void  OSMutexPend (OS_EVENT  *pevent,
     OSTCBCur->OSTCBStatPend  = OS_STAT_PEND_OK;
     OSTCBCur->OSTCBDly       = timeout;               /* Store timeout in current task's TCB           */
     OS_EXIT_CRITICAL();
-
+    
     if(timeout) {                                     /* 0为永久等待                                   */
         rt_err = rt_mutex_take(pmutex, timeout);
         OS_ENTER_CRITICAL(); 
@@ -429,7 +429,6 @@ void  OSMutexPend (OS_EVENT  *pevent,
         } else {
             OSTCBCur->OSTCBStatPend = OS_STAT_PEND_TO;
         }
-        OS_EXIT_CRITICAL();
     }else {
         rt_mutex_take(pmutex, RT_WAITING_FOREVER);
         OS_ENTER_CRITICAL(); 
@@ -438,10 +437,7 @@ void  OSMutexPend (OS_EVENT  *pevent,
         }else {
             OSTCBCur->OSTCBStatPend = OS_STAT_PEND_OK;
         }
-        OS_EXIT_CRITICAL();
     }
-    
-    OS_ENTER_CRITICAL(); 
     switch (OSTCBCur->OSTCBStatPend) {                /* See if we timed-out or aborted                */
         case OS_STAT_PEND_OK:
              *perr = OS_ERR_NONE;
@@ -459,10 +455,6 @@ void  OSMutexPend (OS_EVENT  *pevent,
     OSTCBCur->OSTCBStat          =  OS_STAT_RDY;      /* Set   task  status to ready                   */
     OSTCBCur->OSTCBStatPend      =  OS_STAT_PEND_OK;  /* Clear pend  status                            */
     OSTCBCur->OSTCBEventPtr      = (OS_EVENT  *)0;    /* Clear event pointers                          */
-#if (OS_EVENT_MULTI_EN > 0u)
-    OSTCBCur->OSTCBEventMultiPtr = (OS_EVENT **)0;
-    OSTCBCur->OSTCBEventMultiRdy = (OS_EVENT  *)0;
-#endif
     OS_EXIT_CRITICAL();
 }
 

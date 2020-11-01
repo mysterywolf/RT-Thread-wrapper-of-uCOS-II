@@ -126,7 +126,7 @@ OS_EVENT  *OSSemCreate (INT16U cnt)
     }
 
     pevent->ipc_ptr = (struct rt_ipc_object *)
-        rt_sem_create("uCOS-II Sem", cnt, RT_IPC_FLAG_PRIO);
+        rt_sem_create("uCOS-II", cnt, RT_IPC_FLAG_PRIO);
     if(!pevent->ipc_ptr) {
         RT_KERNEL_FREE(pevent);
         return ((OS_EVENT *)0);
@@ -308,7 +308,7 @@ void  OSSemPend (OS_EVENT  *pevent,
 #endif
 
     psem = (rt_sem_t)pevent->ipc_ptr;
-    
+
     if (rt_object_get_type(&psem->parent.parent)      /* Validate event block type                */
         != RT_Object_Class_Semaphore) {
         *perr = OS_ERR_EVENT_TYPE;
@@ -339,7 +339,6 @@ void  OSSemPend (OS_EVENT  *pevent,
         } else {
             OSTCBCur->OSTCBStatPend = OS_STAT_PEND_TO;
         }
-        OS_EXIT_CRITICAL();
     }else {
         rt_sem_take(psem, RT_WAITING_FOREVER);
         OS_ENTER_CRITICAL();        
@@ -348,10 +347,7 @@ void  OSSemPend (OS_EVENT  *pevent,
         }else {
             OSTCBCur->OSTCBStatPend = OS_STAT_PEND_OK;
         }
-        OS_EXIT_CRITICAL();
     }
-
-    OS_ENTER_CRITICAL();
     switch (OSTCBCur->OSTCBStatPend) {                /* See if we timed-out or aborted                */
         case OS_STAT_PEND_OK:
              *perr = OS_ERR_NONE;
@@ -369,10 +365,6 @@ void  OSSemPend (OS_EVENT  *pevent,
     OSTCBCur->OSTCBStat          =  OS_STAT_RDY;      /* Set   task  status to ready                   */
     OSTCBCur->OSTCBStatPend      =  OS_STAT_PEND_OK;  /* Clear pend  status                            */
     OSTCBCur->OSTCBEventPtr      = (OS_EVENT  *)0;    /* Clear event pointers                          */
-#if (OS_EVENT_MULTI_EN > 0u)
-    OSTCBCur->OSTCBEventMultiPtr = (OS_EVENT **)0;
-    OSTCBCur->OSTCBEventMultiRdy = (OS_EVENT  *)0;
-#endif
     OS_EXIT_CRITICAL();
 }
 
@@ -431,9 +423,8 @@ INT8U  OSSemPendAbort (OS_EVENT  *pevent,
         return (0u);
     }
 #endif
-    
+
     psem = (rt_sem_t)pevent->ipc_ptr;
-    
     if (rt_object_get_type(&psem->parent.parent)      /* Validate event block type                */
         != RT_Object_Class_Semaphore) {
         *perr = OS_ERR_EVENT_TYPE;
@@ -483,7 +474,7 @@ INT8U  OSSemPost (OS_EVENT *pevent)
         return (OS_ERR_PEVENT_NULL);
     }
 #endif
-    
+
     psem = (rt_sem_t)pevent->ipc_ptr;    
     if (rt_object_get_type(&psem->parent.parent)      /* Validate event block type                     */
         != RT_Object_Class_Semaphore) {

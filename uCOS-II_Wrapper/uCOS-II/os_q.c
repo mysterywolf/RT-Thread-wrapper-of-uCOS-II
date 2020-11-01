@@ -136,7 +136,7 @@ void  *OSQAccept (OS_EVENT  *pevent,
 *
 * Arguments  : start         is a pointer to the base address of the message queue storage area.  The
 *                            storage area MUST be declared as an array of pointers to 'void' as follows
-*
+*                            该变量在兼容层中没有意义，想添什么都行
 *                            void *MessageStorage[size]
 *
 *              size          is the number of elements in the storage area
@@ -151,14 +151,6 @@ OS_EVENT  *OSQCreate (void    **start,
                       INT16U    size)
 {
     OS_EVENT  *pevent;
-    OS_Q      *pq;
-    rt_size_t  msg_size;
-    rt_size_t  pool_size;
-    rt_size_t  msg_header_size;
-    void      *p_pool;
-#if OS_CRITICAL_METHOD == 3u                     /* Allocate storage for CPU status register           */
-    OS_CPU_SR  cpu_sr = 0u;
-#endif
 
 #ifdef OS_SAFETY_CRITICAL_IEC61508
     if (OSSafetyCriticalStartFlag == OS_TRUE) {
@@ -175,19 +167,25 @@ OS_EVENT  *OSQCreate (void    **start,
     if (pevent == (OS_EVENT *)0) {               /* See if we have an event control block              */
         return ((OS_EVENT *)0);
     }
-    
-    msg_header_size = sizeof(struct _rt_mq_message); /* sizeof(struct rt_mq_message)                   */
-    msg_size = sizeof(ucos_msg_t);               /* 消息队列中一条消息的最大长度，单位字节             */
-    pool_size = (msg_header_size + msg_size) * size; /* 存放消息的缓冲区大小                           */
-    p_pool = RT_KERNEL_MALLOC(pool_size);        /* 分配用于存放消息的缓冲区                           */
-    if(p_pool == RT_NULL) {
-        return ((OS_EVENT *)0);
-    }
-    
+
     pevent->ipc_ptr = (struct rt_ipc_object *)   /* invoke rt-thread API to create message queue       */
-        rt_mq_create("uCOS-II MQ", msg_size, pool_size, RT_IPC_FLAG_FIFO);
+        rt_mq_create("uCOS-II", sizeof(rt_ubase_t), size, RT_IPC_FLAG_FIFO);
 
     return (pevent);
+}
+
+
+/*
+*********************************************************************************************************
+*                                       CREATE A MESSAGE QUEUE
+*   额外实现OSQCreateEx()函数，该函数并不在uCOS-II原版的函数中，OSQCreateEx()函数中第一个参数size在
+* 本兼容层中没有意义，因此该函数将OSQCreateEx()函数中的第一个参数略去，以方便用户使用。
+*   推荐用户使用这个API
+*********************************************************************************************************
+*/
+OS_EVENT  *OSQCreateEx (INT16U    size)
+{
+    return OSQCreate(0, size);                   /* 缓冲池首地址无需给出,在兼容层中可以随便给一个即可  */
 }
 
 
@@ -437,11 +435,12 @@ void  *OSQPend (OS_EVENT  *pevent,
                 INT8U     *perr)
 {
     void      *pmsg;
-    OS_Q      *pq;
+    rt_mq_t    pmq;
+    rt_err_t   rt_err;
+    ucos_msg_t ucos_msg;
 #if OS_CRITICAL_METHOD == 3u                     /* Allocate storage for CPU status register           */
     OS_CPU_SR  cpu_sr = 0u;
 #endif
-
 
 #ifdef OS_SAFETY_CRITICAL
     if (perr == (INT8U *)0) {
@@ -457,73 +456,74 @@ void  *OSQPend (OS_EVENT  *pevent,
     }
 #endif
 
-    OS_TRACE_Q_PEND_ENTER(pevent, timeout);
-
-    if (pevent->OSEventType != OS_EVENT_TYPE_Q) {/* Validate event block type                          */
+    pmq = (rt_mq_t)pevent->ipc_ptr;
+    if (rt_object_get_type(&pmq->parent.parent)  /* Validate event block type                          */
+        != RT_Object_Class_MessageQueue) {
         *perr = OS_ERR_EVENT_TYPE;
-        OS_TRACE_Q_PEND_EXIT(*perr);
-        return ((void *)0);
+        return (0u);
     }
     if (OSIntNesting > 0u) {                     /* See if called from ISR ...                         */
         *perr = OS_ERR_PEND_ISR;                 /* ... can't PEND from an ISR                         */
-        OS_TRACE_Q_PEND_EXIT(*perr);
         return ((void *)0);
     }
     if (OSLockNesting > 0u) {                    /* See if called with scheduler locked ...            */
         *perr = OS_ERR_PEND_LOCKED;              /* ... can't PEND when locked                         */
-        OS_TRACE_Q_PEND_EXIT(*perr);
         return ((void *)0);
     }
     OS_ENTER_CRITICAL();
-    pq = (OS_Q *)pevent->OSEventPtr;             /* Point at queue control block                       */
-    if (pq->OSQEntries > 0u) {                   /* See if any messages in the queue                   */
-        pmsg = *pq->OSQOut++;                    /* Yes, extract oldest message from the queue         */
-        pq->OSQEntries--;                        /* Update the number of entries in the queue          */
-        if (pq->OSQOut == pq->OSQEnd) {          /* Wrap OUT pointer if we are at the end of the queue */
-            pq->OSQOut = pq->OSQStart;
-        }
-        OS_EXIT_CRITICAL();
-        *perr = OS_ERR_NONE;
-        OS_TRACE_Q_PEND_EXIT(*perr);
-        return (pmsg);                           /* Return message received                            */
-    }
     OSTCBCur->OSTCBStat     |= OS_STAT_Q;        /* Task will have to pend for a message to be posted  */
     OSTCBCur->OSTCBStatPend  = OS_STAT_PEND_OK;
     OSTCBCur->OSTCBDly       = timeout;          /* Load timeout into TCB                              */
-    OS_EventTaskWait(pevent);                    /* Suspend task until event or timeout occurs         */
-    OS_EXIT_CRITICAL();
-    OS_Sched();                                  /* Find next highest priority task ready to run       */
-    OS_ENTER_CRITICAL();
-    switch (OSTCBCur->OSTCBStatPend) {                /* See if we timed-out or aborted                */
-        case OS_STAT_PEND_OK:                         /* Extract message from TCB (Put there by QPost) */
-             pmsg =  OSTCBCur->OSTCBMsg;
+    OS_EXIT_CRITICAL(); 
+
+    if(timeout) {
+        rt_err = rt_mq_recv(pmq,                          /* invoke rt-thread API                          */
+                     (void*)&ucos_msg,                    /* uCOS消息段                                    */
+                     sizeof(ucos_msg_t),                  /* uCOS消息段长度                                */
+                     timeout);
+        OS_ENTER_CRITICAL();
+        if (rt_err == RT_EOK) {
+            OSTCBCur->OSTCBStatPend = OS_STAT_PEND_OK;
+        } else if(OSTCBCur->OSTCBStatPend == OS_STAT_PEND_ABORT) {
+            OSTCBCur->OSTCBStatPend = OS_STAT_PEND_ABORT;
+        } else {
+            OSTCBCur->OSTCBStatPend = OS_STAT_PEND_TO;
+        }
+    } else {
+        rt_mq_recv  (pmq,                                 /* invoke rt-thread API                          */
+                     (void*)&ucos_msg,                    /* uCOS消息段                                    */
+                     sizeof(ucos_msg_t),                  /* uCOS消息段长度                                */
+                     RT_WAITING_FOREVER);
+        OS_ENTER_CRITICAL();        
+        if(OSTCBCur->OSTCBStatPend == OS_STAT_PEND_ABORT) {
+            OSTCBCur->OSTCBStatPend = OS_STAT_PEND_ABORT;
+        }else {
+            OSTCBCur->OSTCBStatPend = OS_STAT_PEND_OK;
+        }
+    }
+    switch (OSTCBCur->OSTCBStatPend) {                    /* See if we timed-out or aborted                */
+        case OS_STAT_PEND_OK:                             /* Extract message from TCB (Put there by QPost) */
+             pmsg =  ucos_msg.data_ptr;
             *perr =  OS_ERR_NONE;
              break;
 
         case OS_STAT_PEND_ABORT:
              pmsg = (void *)0;
-            *perr =  OS_ERR_PEND_ABORT;               /* Indicate that we aborted                      */
+            *perr =  OS_ERR_PEND_ABORT;                   /* Indicate that we aborted                      */
              break;
 
         case OS_STAT_PEND_TO:
         default:
-             OS_EventTaskRemove(OSTCBCur, pevent);
              pmsg = (void *)0;
-            *perr =  OS_ERR_TIMEOUT;                  /* Indicate that we didn't get event within TO   */
+            *perr =  OS_ERR_TIMEOUT;                      /* Indicate that we didn't get event within TO   */
              break;
     }
-    OSTCBCur->OSTCBStat          =  OS_STAT_RDY;      /* Set   task  status to ready                   */
-    OSTCBCur->OSTCBStatPend      =  OS_STAT_PEND_OK;  /* Clear pend  status                            */
-    OSTCBCur->OSTCBEventPtr      = (OS_EVENT  *)0;    /* Clear event pointers                          */
-#if (OS_EVENT_MULTI_EN > 0u)
-    OSTCBCur->OSTCBEventMultiPtr = (OS_EVENT **)0;
-    OSTCBCur->OSTCBEventMultiRdy = (OS_EVENT  *)0;
-#endif
-    OSTCBCur->OSTCBMsg           = (void      *)0;    /* Clear  received message                       */
+    OSTCBCur->OSTCBStat          =  OS_STAT_RDY;          /* Set   task  status to ready                   */
+    OSTCBCur->OSTCBStatPend      =  OS_STAT_PEND_OK;      /* Clear pend  status                            */
+    OSTCBCur->OSTCBEventPtr      = (OS_EVENT  *)0;        /* Clear event pointers                          */
     OS_EXIT_CRITICAL();
-    OS_TRACE_Q_PEND_EXIT(*perr);
 
-    return (pmsg);                                    /* Return received message                       */
+    return (pmsg);                                        /* Return received message                       */
 }
 
 
@@ -916,48 +916,5 @@ INT8U  OSQQuery (OS_EVENT  *pevent,
 }
 #endif                                                 /* OS_Q_QUERY_EN                                */
 
-
-/*
-*********************************************************************************************************
-*                                     QUEUE MODULE INITIALIZATION
-*
-* Description : This function is called by uC/OS-II to initialize the message queue module.  Your
-*               application MUST NOT call this function.
-*
-* Arguments   :  none
-*
-* Returns     : none
-*
-* Note(s)    : This function is INTERNAL to uC/OS-II and your application should not call it.
-*********************************************************************************************************
-*/
-
-void  OS_QInit (void)
-{
-#if OS_MAX_QS == 1u
-    OSQFreeList         = &OSQTbl[0];                /* Only ONE queue!                                */
-    OSQFreeList->OSQPtr = (OS_Q *)0;
-#endif
-
-#if OS_MAX_QS >= 2u
-    INT16U   ix;
-    INT16U   ix_next;
-    OS_Q    *pq1;
-    OS_Q    *pq2;
-
-
-
-    OS_MemClr((INT8U *)&OSQTbl[0], sizeof(OSQTbl));  /* Clear the queue table                          */
-    for (ix = 0u; ix < (OS_MAX_QS - 1u); ix++) {     /* Init. list of free QUEUE control blocks        */
-        ix_next = ix + 1u;
-        pq1 = &OSQTbl[ix];
-        pq2 = &OSQTbl[ix_next];
-        pq1->OSQPtr = pq2;
-    }
-    pq1         = &OSQTbl[ix];
-    pq1->OSQPtr = (OS_Q *)0;
-    OSQFreeList = &OSQTbl[0];
-#endif
-}
 #endif                                               /* OS_Q_EN                                        */
 #endif                                               /* OS_Q_C                                         */

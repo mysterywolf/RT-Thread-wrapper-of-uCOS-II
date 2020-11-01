@@ -74,14 +74,14 @@
 - 实现`OSMutexDel()` `OSMutexAccept()` `OSMutexQuery()`函数
 - 至此`os_mutex.c`文件函数全部实现
 
-### 2020-10-26
+### 2020-11-01
 
 - 额外实现`OSMutexCreateEx()`函数，该函数并不在uCOS-II原版的函数中，`OSMutexCreate()`函数中第一个参数`prio`在兼容层中没有任何意义，因此该函数将`OSMutexCreate()`函数中的第一个参数略去，以方便用户使用。原因是由于uCOS-II的实现方式过于落后，不支持相同任务在同一优先级。
-- 实现`OSQCreate()`函数
+- 实现`OSQCreate()`、`OSQPend()`函数
 
 
 
-# 版本
+# Release
 
 ## v0.1.0
 

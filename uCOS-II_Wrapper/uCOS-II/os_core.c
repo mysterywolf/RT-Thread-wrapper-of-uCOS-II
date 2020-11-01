@@ -883,22 +883,13 @@ INT8U  OS_TCBInit (INT8U    prio,
 
 #if (OS_EVENT_EN)
         ptcb->OSTCBEventPtr      = (OS_EVENT  *)0;         /* Task is not pending on an  event         */
-#if (OS_EVENT_MULTI_EN > 0u)
-        ptcb->OSTCBEventMultiPtr = (OS_EVENT **)0;         /* Task is not pending on any events        */
-        ptcb->OSTCBEventMultiRdy = (OS_EVENT  *)0;         /* No events readied for Multipend          */
-#endif
 #endif
 
 #if (OS_FLAG_EN > 0u) && (OS_MAX_FLAGS > 0u) && (OS_TASK_DEL_EN > 0u)
         ptcb->OSTCBFlagNode      = (OS_FLAG_NODE *)0;      /* Task is not pending on an event flag     */
 #endif
 
-#if (OS_MBOX_EN > 0u) || ((OS_Q_EN > 0u) && (OS_MAX_QS > 0u))
-        ptcb->OSTCBMsg           = (void *)0;              /* No message received                      */
-#endif
-
 #if OS_TASK_PROFILE_EN > 0u
-        ptcb->OSTCBCtxSwCtr      = 0uL;                    /* Initialize profiling variables           */
         ptcb->OSTCBCyclesStart   = 0uL;
         ptcb->OSTCBCyclesTot     = 0uL;
         ptcb->OSTCBStkBase       = (OS_STK *)0;
