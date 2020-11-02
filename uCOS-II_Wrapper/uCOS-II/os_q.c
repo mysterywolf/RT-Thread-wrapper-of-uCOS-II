@@ -240,9 +240,8 @@ OS_EVENT  *OSQDel (OS_EVENT  *pevent,
                    INT8U      opt,
                    INT8U     *perr)
 {
-    BOOLEAN    tasks_waiting;
     OS_EVENT  *pevent_return;
-    OS_Q      *pq;
+    rt_mq_t    pmq;
 #if OS_CRITICAL_METHOD == 3u                               /* Allocate storage for CPU status register */
     OS_CPU_SR  cpu_sr = 0u;
 #endif
@@ -270,67 +269,27 @@ OS_EVENT  *OSQDel (OS_EVENT  *pevent,
     }
 #endif
 
-    OS_TRACE_Q_DEL_ENTER(pevent, opt);
-
-    if (pevent->OSEventType != OS_EVENT_TYPE_Q) {          /* Validate event block type                */
-        *perr = OS_ERR_EVENT_TYPE;
-        OS_TRACE_Q_DEL_EXIT(*perr);
+    pmq = (rt_mq_t)pevent->ipc_ptr;
+    if (rt_object_get_type(&pmq->parent.parent)            /* Validate event block type                */
+        != RT_Object_Class_MessageQueue) {  
+       *perr = OS_ERR_EVENT_TYPE;
         return (pevent);
     }
     if (OSIntNesting > 0u) {                               /* See if called from ISR ...               */
         *perr = OS_ERR_DEL_ISR;                            /* ... can't DELETE from an ISR             */
-        OS_TRACE_Q_DEL_EXIT(*perr);
         return (pevent);
     }
+    
     OS_ENTER_CRITICAL();
-    if (pevent->OSEventGrp != 0u) {                        /* See if any tasks waiting on queue        */
-        tasks_waiting = OS_TRUE;                           /* Yes                                      */
-    } else {
-        tasks_waiting = OS_FALSE;                          /* No                                       */
-    }
     switch (opt) {
         case OS_DEL_NO_PEND:                               /* Delete queue only if no task waiting     */
-             if (tasks_waiting == OS_FALSE) {
-#if OS_EVENT_NAME_EN > 0u
-                 pevent->OSEventName    = (INT8U *)(void *)"?";
-#endif
-                 pq                     = (OS_Q *)pevent->OSEventPtr;  /* Return OS_Q to free list     */
-                 pq->OSQPtr             = OSQFreeList;
-                 OSQFreeList            = pq;
-                 pevent->OSEventType    = OS_EVENT_TYPE_UNUSED;
-                 pevent->OSEventPtr     = OSEventFreeList; /* Return Event Control Block to free list  */
-                 pevent->OSEventCnt     = 0u;
-                 OSEventFreeList        = pevent;          /* Get next free event control block        */
-                 OS_EXIT_CRITICAL();
-                 *perr                  = OS_ERR_NONE;
-                 pevent_return          = (OS_EVENT *)0;   /* Queue has been deleted                   */
-             } else {
-                 OS_EXIT_CRITICAL();
-                 *perr                  = OS_ERR_TASK_WAITING;
-                 pevent_return          = pevent;
-             }
+             
+             OS_EXIT_CRITICAL();
              break;
 
         case OS_DEL_ALWAYS:                                /* Always delete the queue                  */
-             while (pevent->OSEventGrp != 0u) {            /* Ready ALL tasks waiting for queue        */
-                 (void)OS_EventTaskRdy(pevent, (void *)0, OS_STAT_Q, OS_STAT_PEND_ABORT);
-             }
-#if OS_EVENT_NAME_EN > 0u
-             pevent->OSEventName    = (INT8U *)(void *)"?";
-#endif
-             pq                     = (OS_Q *)pevent->OSEventPtr;   /* Return OS_Q to free list        */
-             pq->OSQPtr             = OSQFreeList;
-             OSQFreeList            = pq;
-             pevent->OSEventType    = OS_EVENT_TYPE_UNUSED;
-             pevent->OSEventPtr     = OSEventFreeList;     /* Return Event Control Block to free list  */
-             pevent->OSEventCnt     = 0u;
-             OSEventFreeList        = pevent;              /* Get next free event control block        */
+             
              OS_EXIT_CRITICAL();
-             if (tasks_waiting == OS_TRUE) {               /* Reschedule only if task(s) were waiting  */
-                 OS_Sched();                               /* Find highest priority task ready to run  */
-             }
-             *perr                  = OS_ERR_NONE;
-             pevent_return          = (OS_EVENT *)0;       /* Queue has been deleted                   */
              break;
 
         default:
@@ -339,9 +298,6 @@ OS_EVENT  *OSQDel (OS_EVENT  *pevent,
              pevent_return          = pevent;
              break;
     }
-
-    OS_TRACE_Q_DEL_EXIT(*perr);
-
     return (pevent_return);
 }
 #endif
