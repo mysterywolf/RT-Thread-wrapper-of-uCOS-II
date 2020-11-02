@@ -81,7 +81,9 @@
 - 额外实现``OSQCreateEx()`函数，该函数并不在uCOS-II原版的函数中，`OSQCreateEx()`函数中第一个参数`size`在本兼容层中没有意义，因此该函数将`OSQCreateEx()`函数中的第一个参数略去，以方便用户使用。
 - 增加`messagequeue_example.c`示例文件
 
+2020-11-02
 
+- 实现`OSQDel()`、`OSQFlush()` 函数
 
 
 

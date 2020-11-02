@@ -242,10 +242,6 @@ OS_EVENT  *OSQDel (OS_EVENT  *pevent,
 {
     OS_EVENT  *pevent_return;
     rt_mq_t    pmq;
-#if OS_CRITICAL_METHOD == 3u                               /* Allocate storage for CPU status register */
-    OS_CPU_SR  cpu_sr = 0u;
-#endif
-
 
 #ifdef OS_SAFETY_CRITICAL
     if (perr == (INT8U *)0) {
@@ -262,38 +258,46 @@ OS_EVENT  *OSQDel (OS_EVENT  *pevent,
     }
 #endif
 
+    pmq = (rt_mq_t)pevent->ipc_ptr;
+
 #if OS_ARG_CHK_EN > 0u
     if (pevent == (OS_EVENT *)0) {                         /* Validate 'pevent'                        */
         *perr = OS_ERR_PEVENT_NULL;
         return (pevent);
     }
-#endif
-
-    pmq = (rt_mq_t)pevent->ipc_ptr;
     if (rt_object_get_type(&pmq->parent.parent)            /* Validate event block type                */
         != RT_Object_Class_MessageQueue) {  
        *perr = OS_ERR_EVENT_TYPE;
         return (pevent);
     }
+#endif
+
     if (OSIntNesting > 0u) {                               /* See if called from ISR ...               */
         *perr = OS_ERR_DEL_ISR;                            /* ... can't DELETE from an ISR             */
         return (pevent);
     }
     
-    OS_ENTER_CRITICAL();
     switch (opt) {
         case OS_DEL_NO_PEND:                               /* Delete queue only if no task waiting     */
-             
-             OS_EXIT_CRITICAL();
-             break;
+            if(rt_list_isempty(&(pmq->parent.suspend_thread))) { /* 若没有线程等待信号量               */
+                rt_mq_delete(pmq);                         /* invoke RT-Thread API                     */
+                RT_KERNEL_FREE(pevent);
+                *perr = OS_ERR_NONE;
+                pevent_return =  (OS_EVENT *)0; 
+            } else {
+                *perr = OS_ERR_TASK_WAITING;
+                pevent_return = pevent; 
+            }
+            break;
 
         case OS_DEL_ALWAYS:                                /* Always delete the queue                  */
-             
-             OS_EXIT_CRITICAL();
-             break;
+            rt_mq_delete(pmq);                             /* invoke RT-Thread API                     */
+            RT_KERNEL_FREE(pevent);
+            *perr = OS_ERR_NONE;
+            pevent_return =  (OS_EVENT *)0; 
+            break;
 
         default:
-             OS_EXIT_CRITICAL();
              *perr                  = OS_ERR_INVALID_OPT;
              pevent_return          = pevent;
              break;
@@ -325,26 +329,36 @@ OS_EVENT  *OSQDel (OS_EVENT  *pevent,
 #if OS_Q_FLUSH_EN > 0u
 INT8U  OSQFlush (OS_EVENT *pevent)
 {
-    OS_Q      *pq;
+    rt_mq_t    pmq;
+    struct _rt_mq_message *msg;
 #if OS_CRITICAL_METHOD == 3u                          /* Allocate storage for CPU status register      */
     OS_CPU_SR  cpu_sr = 0u;
 #endif
 
-
+    pmq = (rt_mq_t)pevent->ipc_ptr;
 
 #if OS_ARG_CHK_EN > 0u
     if (pevent == (OS_EVENT *)0) {                    /* Validate 'pevent'                             */
         return (OS_ERR_PEVENT_NULL);
     }
-    if (pevent->OSEventType != OS_EVENT_TYPE_Q) {     /* Validate event block type                     */
+    if (rt_object_get_type(&pmq->parent.parent)       /* Validate event block type                     */
+        != RT_Object_Class_MessageQueue) {  
         return (OS_ERR_EVENT_TYPE);
     }
 #endif
+
     OS_ENTER_CRITICAL();
-    pq             = (OS_Q *)pevent->OSEventPtr;      /* Point to queue storage structure              */
-    pq->OSQIn      = pq->OSQStart;
-    pq->OSQOut     = pq->OSQStart;
-    pq->OSQEntries = 0u;
+    while(pmq->entry>0)
+    {
+        /* 实现参见了rt_mq_recv函数 */
+        msg = (struct _rt_mq_message *)(pmq->msg_queue_head);/* get message from queue                 */
+        pmq->msg_queue_head = msg->next;              /* move message queue head                       */
+        if (pmq->msg_queue_tail == msg)               /* reach queue tail, set to NULL                 */
+            pmq->msg_queue_tail = RT_NULL;
+        pmq->entry --;                                /* decrease message entry                        */   
+        msg->next = (struct _rt_mq_message *)pmq->msg_queue_free; /* put message to free list          */
+        pmq->msg_queue_free = msg;
+    }
     OS_EXIT_CRITICAL();
     return (OS_ERR_NONE);
 }
@@ -840,5 +854,5 @@ INT8U  OSQQuery (OS_EVENT  *pevent,
 }
 #endif                                                 /* OS_Q_QUERY_EN                                */
 
-#endif                                               /* OS_Q_EN                                        */
-#endif                                               /* OS_Q_C                                         */
+#endif                                                 /* OS_Q_EN                                        */
+#endif                                                 /* OS_Q_C                                         */
