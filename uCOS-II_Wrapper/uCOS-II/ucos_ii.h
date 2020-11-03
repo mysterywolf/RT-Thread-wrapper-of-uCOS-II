@@ -666,13 +666,6 @@ typedef  void                      (*OS_TLS_DESTRUCT_PTR)(OS_TCB    *ptcb,
 *********************************************************************************************************
 */
 
-//OS_EXT  INT32U            OSCtxSwCtr;               /* Counter of number of context switches           */
-
-//#if (OS_FLAG_EN > 0u) && (OS_MAX_FLAGS > 0u)
-//OS_EXT  OS_FLAG_GRP       OSFlagTbl[OS_MAX_FLAGS];  /* Table containing event flag groups              */
-//OS_EXT  OS_FLAG_GRP      *OSFlagFreeList;           /* Pointer to free list of event flag groups       */
-//#endif
-
 #if OS_TASK_STAT_EN > 0u
 OS_EXT  INT8U             OSCPUUsage;               /* Percentage of CPU used                          */
 OS_EXT  INT32U            OSIdleCtrMax;             /* Max. value that idle ctr can take in 1 sec.     */
@@ -687,9 +680,6 @@ OS_EXT  OS_STK            OSTaskStatStk[OS_TASK_STAT_STK_SIZE];      /* Statisti
 
 //OS_EXT  INT8U             OSPrioCur;                /* Priority of current task                        */
 //OS_EXT  INT8U             OSPrioHighRdy;            /* Priority of highest priority task               */
-
-//OS_EXT  OS_PRIO           OSRdyGrp;                        /* Ready list group                         */
-//OS_EXT  OS_PRIO           OSRdyTbl[OS_RDY_TBL_SIZE];       /* Table of tasks which are ready to run    */
 
 OS_EXT  BOOLEAN           OSRunning;                       /* Flag indicating that kernel is running   */
 
