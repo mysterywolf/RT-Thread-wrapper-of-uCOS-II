@@ -84,13 +84,10 @@ struct _rt_mq_message
 void  *OSQAccept (OS_EVENT  *pevent,
                   INT8U     *perr)
 {
+    rt_mq_t    pmq;
+    rt_err_t   rt_err;
     void      *pmsg;
-    OS_Q      *pq;
-#if OS_CRITICAL_METHOD == 3u                     /* Allocate storage for CPU status register           */
-    OS_CPU_SR  cpu_sr = 0u;
-#endif
-
-
+    ucos_msg_t ucos_msg;
 
 #ifdef OS_SAFETY_CRITICAL
     if (perr == (INT8U *)0) {
@@ -105,24 +102,25 @@ void  *OSQAccept (OS_EVENT  *pevent,
         return ((void *)0);
     }
 #endif
-    if (pevent->OSEventType != OS_EVENT_TYPE_Q) {/* Validate event block type                          */
+
+    pmq = (rt_mq_t)pevent->ipc_ptr;
+    if (rt_object_get_type(&pmq->parent.parent)  /* Validate event block type                     */
+        != RT_Object_Class_MessageQueue) {  
         *perr = OS_ERR_EVENT_TYPE;
         return ((void *)0);
     }
-    OS_ENTER_CRITICAL();
-    pq = (OS_Q *)pevent->OSEventPtr;             /* Point at queue control block                       */
-    if (pq->OSQEntries > 0u) {                   /* See if any messages in the queue                   */
-        pmsg = *pq->OSQOut++;                    /* Yes, extract oldest message from the queue         */
-        pq->OSQEntries--;                        /* Update the number of entries in the queue          */
-        if (pq->OSQOut == pq->OSQEnd) {          /* Wrap OUT pointer if we are at the end of the queue */
-            pq->OSQOut = pq->OSQStart;
-        }
+
+    rt_err = rt_mq_recv(pmq,                     /* invoke rt-thread API                               */
+                 (void*)&ucos_msg,               /* uCOS消息段                                         */
+                 sizeof(ucos_msg_t),             /* uCOS消息段长度                                     */
+                 RT_WAITING_NO);                 /* 非阻塞                                             */
+    if(rt_err == RT_EOK) {                       /* See if any messages in the queue                   */
         *perr = OS_ERR_NONE;
+        pmsg =  ucos_msg.data_ptr;               /* Yes, extract oldest message from the queue         */
     } else {
         *perr = OS_ERR_Q_EMPTY;
-        pmsg  = (void *)0;                       /* Queue is empty                                     */
+        pmsg = (void *)0;                        /* Queue is empty                                     */
     }
-    OS_EXIT_CRITICAL();
     return (pmsg);                               /* Return message received (or NULL)                  */
 }
 #endif
@@ -258,19 +256,19 @@ OS_EVENT  *OSQDel (OS_EVENT  *pevent,
     }
 #endif
 
-    pmq = (rt_mq_t)pevent->ipc_ptr;
-
 #if OS_ARG_CHK_EN > 0u
     if (pevent == (OS_EVENT *)0) {                         /* Validate 'pevent'                        */
         *perr = OS_ERR_PEVENT_NULL;
         return (pevent);
     }
+#endif
+    
+    pmq = (rt_mq_t)pevent->ipc_ptr;
     if (rt_object_get_type(&pmq->parent.parent)            /* Validate event block type                */
         != RT_Object_Class_MessageQueue) {  
        *perr = OS_ERR_EVENT_TYPE;
         return (pevent);
     }
-#endif
 
     if (OSIntNesting > 0u) {                               /* See if called from ISR ...               */
         *perr = OS_ERR_DEL_ISR;                            /* ... can't DELETE from an ISR             */
@@ -335,17 +333,17 @@ INT8U  OSQFlush (OS_EVENT *pevent)
     OS_CPU_SR  cpu_sr = 0u;
 #endif
 
-    pmq = (rt_mq_t)pevent->ipc_ptr;
-
 #if OS_ARG_CHK_EN > 0u
     if (pevent == (OS_EVENT *)0) {                    /* Validate 'pevent'                             */
         return (OS_ERR_PEVENT_NULL);
     }
+#endif
+    
+    pmq = (rt_mq_t)pevent->ipc_ptr;
     if (rt_object_get_type(&pmq->parent.parent)       /* Validate event block type                     */
         != RT_Object_Class_MessageQueue) {  
         return (OS_ERR_EVENT_TYPE);
     }
-#endif
 
     OS_ENTER_CRITICAL();
     while(pmq->entry>0)
