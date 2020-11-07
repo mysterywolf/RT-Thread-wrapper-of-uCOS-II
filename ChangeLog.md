@@ -87,7 +87,7 @@
 
 ### 2020-11-08
 
-- 实现`OSQAccept()`、`OSQQuery()`函数
+- 实现`OSQAccept()`、`OSQQuery()`、`OSQPostOpt()`函数
 
 
 

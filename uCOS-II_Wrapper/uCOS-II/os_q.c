@@ -629,7 +629,6 @@ INT8U  OSQPost (OS_EVENT  *pevent,
 
     /*装填uCOS消息段*/
     ucos_msg.data_ptr = pmsg;
-
     rt_err = rt_mq_send(pmq,(void*)&ucos_msg,sizeof(ucos_msg_t));
     if(rt_err == -RT_EFULL) {
         return (OS_ERR_Q_FULL);
@@ -683,7 +682,6 @@ INT8U  OSQPostFront (OS_EVENT  *pevent,
 
     /*装填uCOS消息段*/
     ucos_msg.data_ptr = pmsg;
-
     rt_err = rt_mq_urgent(pmq, (void*)&ucos_msg, sizeof(ucos_msg_t));
     if(rt_err == -RT_EFULL) {
         return (OS_ERR_Q_FULL);
@@ -711,7 +709,7 @@ INT8U  OSQPostFront (OS_EVENT  *pevent,
 *                                                     (Identical to OSQPost())
 *                            OS_POST_OPT_BROADCAST    POST to ALL tasks that are waiting on the queue
 *                            OS_POST_OPT_FRONT        POST as LIFO (Simulates OSQPostFront())
-*                            OS_POST_OPT_NO_SCHED     Indicates that the scheduler will NOT be invoked
+*                          - OS_POST_OPT_NO_SCHED     Indicates that the scheduler will NOT be invoked
 *
 * Returns    : OS_ERR_NONE           The call was successful and the message was sent
 *              OS_ERR_Q_FULL         If the queue cannot accept any more messages because it is full.
@@ -728,12 +726,8 @@ INT8U  OSQPostOpt (OS_EVENT  *pevent,
                    void      *pmsg,
                    INT8U      opt)
 {
-    OS_Q      *pq;
-#if OS_CRITICAL_METHOD == 3u                          /* Allocate storage for CPU status register      */
-    OS_CPU_SR  cpu_sr = 0u;
-#endif
-
-
+    rt_mq_t    pmq;
+    INT8U      err;
 
 #if OS_ARG_CHK_EN > 0u
     if (pevent == (OS_EVENT *)0) {                    /* Validate 'pevent'                             */
@@ -741,50 +735,25 @@ INT8U  OSQPostOpt (OS_EVENT  *pevent,
     }
 #endif
 
-    OS_TRACE_Q_POST_OPT_ENTER(pevent, opt);
-
-    if (pevent->OSEventType != OS_EVENT_TYPE_Q) {     /* Validate event block type                     */
-        OS_TRACE_Q_POST_OPT_EXIT(OS_ERR_EVENT_TYPE);
+    pmq = (rt_mq_t)pevent->ipc_ptr;
+    if (rt_object_get_type(&pmq->parent.parent)       /* Validate event block type                     */
+        != RT_Object_Class_MessageQueue) {
         return (OS_ERR_EVENT_TYPE);
     }
-    OS_ENTER_CRITICAL();
-    if (pevent->OSEventGrp != 0x00u) {                /* See if any task pending on queue              */
-        if ((opt & OS_POST_OPT_BROADCAST) != 0x00u) { /* Do we need to post msg to ALL waiting tasks ? */
-            while (pevent->OSEventGrp != 0u) {        /* Yes, Post to ALL tasks waiting on queue       */
-                (void)OS_EventTaskRdy(pevent, pmsg, OS_STAT_Q, OS_STAT_PEND_OK);
-            }
-        } else {                                      /* No,  Post to HPT waiting on queue             */
-            (void)OS_EventTaskRdy(pevent, pmsg, OS_STAT_Q, OS_STAT_PEND_OK);
-        }
-        OS_EXIT_CRITICAL();
-        if ((opt & OS_POST_OPT_NO_SCHED) == 0u) {     /* See if scheduler needs to be invoked          */
-            OS_Sched();                               /* Find highest priority task ready to run       */
-        }
-        OS_TRACE_Q_POST_OPT_EXIT(OS_ERR_NONE);
-        return (OS_ERR_NONE);
+
+    opt = opt & (OS_POST_OPT_NONE|OS_POST_OPT_BROADCAST|OS_POST_OPT_FRONT);
+    if(opt == OS_POST_OPT_NONE) {
+        err = OSQPost(pevent, pmsg);
+    } else if(opt == OS_POST_OPT_BROADCAST) {
+       /* TODO */
+        err = OS_ERR_NONE;
+    } else if(opt == OS_POST_OPT_FRONT) {
+        err = OSQPostFront(pevent, pmsg);
+    } else {
+        err = OS_ERR_EVENT_TYPE;
     }
-    pq = (OS_Q *)pevent->OSEventPtr;                  /* Point to queue control block                  */
-    if (pq->OSQEntries >= pq->OSQSize) {              /* Make sure queue is not full                   */
-        OS_EXIT_CRITICAL();
-        OS_TRACE_Q_POST_OPT_EXIT(OS_ERR_Q_FULL);
-        return (OS_ERR_Q_FULL);
-    }
-    if ((opt & OS_POST_OPT_FRONT) != 0x00u) {         /* Do we post to the FRONT of the queue?         */
-        if (pq->OSQOut == pq->OSQStart) {             /* Yes, Post as LIFO, Wrap OUT pointer if we ... */
-            pq->OSQOut = pq->OSQEnd;                  /*      ... are at the 1st queue entry           */
-        }
-        pq->OSQOut--;
-        *pq->OSQOut = pmsg;                           /*      Insert message into queue                */
-    } else {                                          /* No,  Post as FIFO                             */
-        *pq->OSQIn++ = pmsg;                          /*      Insert message into queue                */
-        if (pq->OSQIn == pq->OSQEnd) {                /*      Wrap IN ptr if we are at end of queue    */
-            pq->OSQIn = pq->OSQStart;
-        }
-    }
-    pq->OSQEntries++;                                 /* Update the nbr of entries in the queue        */
-    OS_EXIT_CRITICAL();
-    OS_TRACE_Q_POST_OPT_EXIT(OS_ERR_NONE);
-    return (OS_ERR_NONE);
+
+    return (err);
 }
 #endif
 

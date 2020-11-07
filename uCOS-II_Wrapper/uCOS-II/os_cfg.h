@@ -141,7 +141,7 @@
 #define OS_Q_PEND_ABORT_EN        0u   /*     Include code for OSQPendAbort()                          */
 #define OS_Q_POST_EN              1u   /*     Include code for OSQPost()                               */
 #define OS_Q_POST_FRONT_EN        1u   /*     Include code for OSQPostFront()                          */
-#define OS_Q_POST_OPT_EN          0u   /*     Include code for OSQPostOpt()                            */
+#define OS_Q_POST_OPT_EN          1u   /*     Include code for OSQPostOpt()                            */
 #define OS_Q_QUERY_EN             1u   /*     Include code for OSQQuery()                              */
 
 
