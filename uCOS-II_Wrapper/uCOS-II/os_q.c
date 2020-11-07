@@ -811,15 +811,10 @@ INT8U  OSQPostOpt (OS_EVENT  *pevent,
 INT8U  OSQQuery (OS_EVENT  *pevent,
                  OS_Q_DATA *p_q_data)
 {
-    OS_Q       *pq;
-    INT8U       i;
-    OS_PRIO    *psrc;
-    OS_PRIO    *pdest;
+    rt_mq_t     pmq;
 #if OS_CRITICAL_METHOD == 3u                           /* Allocate storage for CPU status register     */
     OS_CPU_SR   cpu_sr = 0u;
 #endif
-
-
 
 #if OS_ARG_CHK_EN > 0u
     if (pevent == (OS_EVENT *)0) {                     /* Validate 'pevent'                            */
@@ -829,24 +824,17 @@ INT8U  OSQQuery (OS_EVENT  *pevent,
         return (OS_ERR_PDATA_NULL);
     }
 #endif
-    if (pevent->OSEventType != OS_EVENT_TYPE_Q) {      /* Validate event block type                    */
+
+    pmq = (rt_mq_t)pevent->ipc_ptr;
+    if (rt_object_get_type(&pmq->parent.parent)       /* Validate event block type                     */
+        != RT_Object_Class_MessageQueue) {
         return (OS_ERR_EVENT_TYPE);
     }
+
     OS_ENTER_CRITICAL();
-    p_q_data->OSEventGrp = pevent->OSEventGrp;         /* Copy message queue wait list                 */
-    psrc                 = &pevent->OSEventTbl[0];
-    pdest                = &p_q_data->OSEventTbl[0];
-    for (i = 0u; i < OS_EVENT_TBL_SIZE; i++) {
-        *pdest++ = *psrc++;
-    }
-    pq = (OS_Q *)pevent->OSEventPtr;
-    if (pq->OSQEntries > 0u) {
-        p_q_data->OSMsg = *pq->OSQOut;                 /* Get next message to return if available      */
-    } else {
-        p_q_data->OSMsg = (void *)0;
-    }
-    p_q_data->OSNMsgs = pq->OSQEntries;
-    p_q_data->OSQSize = pq->OSQSize;
+    p_q_data->OSMsg = pmq->msg_queue_head;
+    p_q_data->OSNMsgs = pmq->entry;
+    p_q_data->OSQSize = pmq->max_msgs;
     OS_EXIT_CRITICAL();
     return (OS_ERR_NONE);
 }

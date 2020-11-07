@@ -511,13 +511,10 @@ typedef struct os_q {                       /* QUEUE CONTROL BLOCK              
     INT16U         OSQEntries;              /* Current number of entries in the queue                  */
 } OS_Q;
 
-
 typedef struct os_q_data {
     void          *OSMsg;                   /* Pointer to next message to be extracted from queue      */
     INT16U         OSNMsgs;                 /* Number of messages in message queue                     */
     INT16U         OSQSize;                 /* Size of message queue                                   */
-    OS_PRIO        OSEventTbl[OS_EVENT_TBL_SIZE];  /* List of tasks waiting for event to occur         */
-    OS_PRIO        OSEventGrp;              /* Group corresponding to tasks waiting for event to occur */
 } OS_Q_DATA;
 #endif
 
