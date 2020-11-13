@@ -44,7 +44,7 @@
 
 #include  <stdarg.h>
 #include  <stdio.h>
-#include  <os_cfg.h>
+#include  "os_cfg.h"
 #include  <rtconfig.h>
 
 /*

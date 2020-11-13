@@ -38,7 +38,7 @@
 #define  OS_MUTEX_C
 
 #ifndef  OS_MASTER_FILE
-#include <ucos_ii.h>
+#include "ucos_ii.h"
 #endif
 
 
