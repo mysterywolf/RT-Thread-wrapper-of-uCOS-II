@@ -337,7 +337,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F103xE</Define>
               <Undefine></Undefine>
-              <IncludePath>libraries/STM32F1xx_HAL_Driver/Inc;libraries/STM32F1xx_HAL_Driver/Inc/Legacy;libraries/CMSIS/Device/ST/STM32F1xx/Include;libraries/CMSIS/Include;.\drivers;..\..\..\uCOS-II_Wrapper\uCOS-II</IncludePath>
+              <IncludePath>libraries/STM32F1xx_HAL_Driver/Inc;libraries/STM32F1xx_HAL_Driver/Inc/Legacy;libraries/CMSIS/Device/ST/STM32F1xx/Include;libraries/CMSIS/Include;.\drivers;..\..\..\uCOS-II</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -391,49 +391,6 @@
         <Group>
           <GroupName>STM32-HAL</GroupName>
           <Files>
-            <File>
-              <FileName>startup_stm32f103xb.s</FileName>
-              <FileType>2</FileType>
-              <FilePath>.\libraries\CMSIS\Device\ST\STM32F1xx\Source\Templates\arm\startup_stm32f103xb.s</FilePath>
-              <FileOption>
-                <CommonProperty>
-                  <UseCPPCompiler>2</UseCPPCompiler>
-                  <RVCTCodeConst>0</RVCTCodeConst>
-                  <RVCTZI>0</RVCTZI>
-                  <RVCTOtherData>0</RVCTOtherData>
-                  <ModuleSelection>0</ModuleSelection>
-                  <IncludeInBuild>0</IncludeInBuild>
-                  <AlwaysBuild>2</AlwaysBuild>
-                  <GenerateAssemblyFile>2</GenerateAssemblyFile>
-                  <AssembleAssemblyFile>2</AssembleAssemblyFile>
-                  <PublicsOnly>2</PublicsOnly>
-                  <StopOnExitCode>11</StopOnExitCode>
-                  <CustomArgument></CustomArgument>
-                  <IncludeLibraryModules></IncludeLibraryModules>
-                  <ComprImg>1</ComprImg>
-                </CommonProperty>
-                <FileArmAds>
-                  <Aads>
-                    <interw>2</interw>
-                    <Ropi>2</Ropi>
-                    <Rwpi>2</Rwpi>
-                    <thumb>2</thumb>
-                    <SplitLS>2</SplitLS>
-                    <SwStkChk>2</SwStkChk>
-                    <NoWarn>2</NoWarn>
-                    <uSurpInc>2</uSurpInc>
-                    <useXO>2</useXO>
-                    <uClangAs>2</uClangAs>
-                    <VariousControls>
-                      <MiscControls></MiscControls>
-                      <Define></Define>
-                      <Undefine></Undefine>
-                      <IncludePath></IncludePath>
-                    </VariousControls>
-                  </Aads>
-                </FileArmAds>
-              </FileOption>
-            </File>
             <File>
               <FileName>startup_stm32f103xe.s</FileName>
               <FileType>2</FileType>
@@ -520,89 +477,89 @@
           <GroupName>uCOS-II_Wrapper/uCOS-II</GroupName>
           <Files>
             <File>
-              <FileName>os.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\..\..\uCOS-II_Wrapper\uCOS-II\os.h</FilePath>
-            </File>
-            <File>
-              <FileName>ucos_ii.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\..\..\uCOS-II_Wrapper\uCOS-II\ucos_ii.h</FilePath>
-            </File>
-            <File>
-              <FileName>os_cpu.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\..\..\uCOS-II_Wrapper\uCOS-II\os_cpu.h</FilePath>
-            </File>
-            <File>
-              <FileName>os_cfg.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\..\..\uCOS-II_Wrapper\uCOS-II\os_cfg.h</FilePath>
-            </File>
-            <File>
               <FileName>app_cfg.h</FileName>
               <FileType>5</FileType>
-              <FilePath>..\..\..\uCOS-II_Wrapper\uCOS-II\app_cfg.h</FilePath>
-            </File>
-            <File>
-              <FileName>os_cpu_a.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\..\uCOS-II_Wrapper\uCOS-II\os_cpu_a.c</FilePath>
-            </File>
-            <File>
-              <FileName>os_cpu_c.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\..\uCOS-II_Wrapper\uCOS-II\os_cpu_c.c</FilePath>
+              <FilePath>..\..\..\uCOS-II\app_cfg.h</FilePath>
             </File>
             <File>
               <FileName>app_hooks.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\uCOS-II_Wrapper\uCOS-II\app_hooks.c</FilePath>
+              <FilePath>..\..\..\uCOS-II\app_hooks.c</FilePath>
             </File>
             <File>
-              <FileName>os_rtwrap.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\..\uCOS-II_Wrapper\uCOS-II\os_rtwrap.c</FilePath>
+              <FileName>os.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\..\uCOS-II\os.h</FilePath>
             </File>
             <File>
-              <FileName>os_mem.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\..\uCOS-II_Wrapper\uCOS-II\os_mem.c</FilePath>
+              <FileName>os_cfg.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\..\uCOS-II\os_cfg.h</FilePath>
             </File>
             <File>
               <FileName>os_core.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\uCOS-II_Wrapper\uCOS-II\os_core.c</FilePath>
+              <FilePath>..\..\..\uCOS-II\os_core.c</FilePath>
             </File>
             <File>
-              <FileName>os_time.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\..\uCOS-II_Wrapper\uCOS-II\os_time.c</FilePath>
+              <FileName>os_cpu.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\..\uCOS-II\os_cpu.h</FilePath>
             </File>
             <File>
-              <FileName>os_tmr.c</FileName>
+              <FileName>os_cpu_a.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\uCOS-II_Wrapper\uCOS-II\os_tmr.c</FilePath>
+              <FilePath>..\..\..\uCOS-II\os_cpu_a.c</FilePath>
             </File>
             <File>
-              <FileName>os_task.c</FileName>
+              <FileName>os_cpu_c.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\uCOS-II_Wrapper\uCOS-II\os_task.c</FilePath>
+              <FilePath>..\..\..\uCOS-II\os_cpu_c.c</FilePath>
             </File>
             <File>
-              <FileName>os_sem.c</FileName>
+              <FileName>os_mem.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\uCOS-II_Wrapper\uCOS-II\os_sem.c</FilePath>
-            </File>
-            <File>
-              <FileName>os_q.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\..\uCOS-II_Wrapper\uCOS-II\os_q.c</FilePath>
+              <FilePath>..\..\..\uCOS-II\os_mem.c</FilePath>
             </File>
             <File>
               <FileName>os_mutex.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\uCOS-II_Wrapper\uCOS-II\os_mutex.c</FilePath>
+              <FilePath>..\..\..\uCOS-II\os_mutex.c</FilePath>
+            </File>
+            <File>
+              <FileName>os_q.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\uCOS-II\os_q.c</FilePath>
+            </File>
+            <File>
+              <FileName>os_rtwrap.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\uCOS-II\os_rtwrap.c</FilePath>
+            </File>
+            <File>
+              <FileName>os_sem.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\uCOS-II\os_sem.c</FilePath>
+            </File>
+            <File>
+              <FileName>os_task.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\uCOS-II\os_task.c</FilePath>
+            </File>
+            <File>
+              <FileName>os_time.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\uCOS-II\os_time.c</FilePath>
+            </File>
+            <File>
+              <FileName>os_tmr.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\uCOS-II\os_tmr.c</FilePath>
+            </File>
+            <File>
+              <FileName>ucos_ii.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\..\uCOS-II\ucos_ii.h</FilePath>
             </File>
           </Files>
         </Group>
@@ -610,29 +567,29 @@
           <GroupName>uCOS-II_Wrapper/examples</GroupName>
           <Files>
             <File>
-              <FileName>task_example.c</FileName>
+              <FileName>messagequeue_example.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\uCOS-II_Wrapper\examples\task_example.c</FilePath>
-            </File>
-            <File>
-              <FileName>timer_example.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\..\uCOS-II_Wrapper\examples\timer_example.c</FilePath>
-            </File>
-            <File>
-              <FileName>sem_example.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\..\uCOS-II_Wrapper\examples\sem_example.c</FilePath>
+              <FilePath>..\..\..\examples\messagequeue_example.c</FilePath>
             </File>
             <File>
               <FileName>mutex_example.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\uCOS-II_Wrapper\examples\mutex_example.c</FilePath>
+              <FilePath>..\..\..\examples\mutex_example.c</FilePath>
             </File>
             <File>
-              <FileName>messagequeue_example.c</FileName>
+              <FileName>sem_example.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\uCOS-II_Wrapper\examples\messagequeue_example.c</FilePath>
+              <FilePath>..\..\..\examples\sem_example.c</FilePath>
+            </File>
+            <File>
+              <FileName>task_example.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\examples\task_example.c</FilePath>
+            </File>
+            <File>
+              <FileName>timer_example.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\examples\timer_example.c</FilePath>
             </File>
           </Files>
         </Group>

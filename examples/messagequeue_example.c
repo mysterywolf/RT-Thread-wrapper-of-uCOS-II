@@ -13,7 +13,7 @@ static void task1(void *p_arg)
 {
     while(1)
     {
-        OSQPost(p_mq, "Hahahaha");
+        OSQPostFront(p_mq, "Hahahaha");
         OSTimeDly(1000);
     }
 }
@@ -31,7 +31,7 @@ static void task2(void *p_arg)
 void messagequeue_example (void)
 {
     p_mq = OSQCreateEx(10);
-    
+ 
 #if OS_STK_GROWTH == 0u      
     OSTaskCreateExt(task1,0,&task1_stack[0],TASK_PRIO,0,&task1_stack[TASK_SIZE-1],TASK_SIZE,0,OS_TASK_OPT_STK_CHK|OS_TASK_OPT_STK_CLR);
 #else
