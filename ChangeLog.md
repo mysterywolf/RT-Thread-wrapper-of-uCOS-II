@@ -92,6 +92,7 @@
 ### 2020-11-14
 
 - 头文件部分包含由<>改为""
+- 实现`OSQPendAbort`函数
 
 
 
@@ -108,3 +109,5 @@
 # TODO
 
 pmg = pevent 这句话的位置需要做检查
+
+OSQPendAbort OSSemPendAbort函数需要做进一步检查

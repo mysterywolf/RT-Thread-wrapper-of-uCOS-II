@@ -536,10 +536,7 @@ INT8U  OSQPendAbort (OS_EVENT  *pevent,
                      INT8U     *perr)
 {
     INT8U      nbr_tasks;
-#if OS_CRITICAL_METHOD == 3u                               /* Allocate storage for CPU status register */
-    OS_CPU_SR  cpu_sr = 0u;
-#endif
-
+    rt_mq_t    pmq;
 
 
 #ifdef OS_SAFETY_CRITICAL
@@ -555,35 +552,27 @@ INT8U  OSQPendAbort (OS_EVENT  *pevent,
         return (0u);
     }
 #endif
-    if (pevent->OSEventType != OS_EVENT_TYPE_Q) {          /* Validate event block type                */
+
+    pmq = (rt_mq_t)pevent->ipc_ptr;
+    if (rt_object_get_type(&pmq->parent.parent)            /* Validate event block type                          */
+        != RT_Object_Class_MessageQueue) {
         *perr = OS_ERR_EVENT_TYPE;
         return (0u);
     }
-    OS_ENTER_CRITICAL();
-    if (pevent->OSEventGrp != 0u) {                        /* See if any task waiting on queue?        */
-        nbr_tasks = 0u;
-        switch (opt) {
-            case OS_PEND_OPT_BROADCAST:                    /* Do we need to abort ALL waiting tasks?   */
-                 while (pevent->OSEventGrp != 0u) {        /* Yes, ready ALL tasks waiting on queue    */
-                     (void)OS_EventTaskRdy(pevent, (void *)0, OS_STAT_Q, OS_STAT_PEND_ABORT);
-                     nbr_tasks++;
-                 }
-                 break;
 
-            case OS_PEND_OPT_NONE:
-            default:                                       /* No,  ready HPT       waiting on queue    */
-                 (void)OS_EventTaskRdy(pevent, (void *)0, OS_STAT_Q, OS_STAT_PEND_ABORT);
-                 nbr_tasks++;
-                 break;
-        }
-        OS_EXIT_CRITICAL();
-        OS_Sched();                                        /* Find HPT ready to run                    */
-        *perr = OS_ERR_PEND_ABORT;
-        return (nbr_tasks);
+    switch (opt)
+    {
+        case OS_ERR_PEND_ABORT:
+            nbr_tasks = rt_ipc_pend_abort_all(&(pmq->parent.suspend_thread));
+
+        case OS_PEND_OPT_NONE:
+        default:
+            rt_ipc_pend_abort_1(&(pmq->parent.suspend_thread));
+            nbr_tasks = 1u;
     }
-    OS_EXIT_CRITICAL();
+
     *perr = OS_ERR_NONE;
-    return (0u);                                           /* No tasks waiting on queue                */
+    return nbr_tasks;                                      /* No tasks waiting on queue                */
 }
 #endif
 
