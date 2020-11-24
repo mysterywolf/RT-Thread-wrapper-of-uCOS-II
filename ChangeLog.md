@@ -94,7 +94,9 @@
 - 头文件部分包含由<>改为""
 - 实现`OSQPendAbort`函数
 
+### 2020-11-24
 
+- 将自动初始化由`INIT_DEVICE_EXPORT`提前至`INIT_PREV_EXPORT`
 
 
 
