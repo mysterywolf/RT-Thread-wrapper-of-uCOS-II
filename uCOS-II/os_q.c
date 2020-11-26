@@ -129,7 +129,8 @@ void  *OSQAccept (OS_EVENT  *pevent,
 *
 * Arguments  : start         is a pointer to the base address of the message queue storage area.  The
 *                            storage area MUST be declared as an array of pointers to 'void' as follows
-*                            该变量在兼容层中没有意义，写什么都行
+*                            在原版uCOS-II中,用于用户指定消息内存池指针,但是rt_mq_create内部会自动创建消息
+*                            内存池,因此该参数直接填NULL即可
 *
 *                            void *MessageStorage[size]
 *
@@ -145,6 +146,8 @@ OS_EVENT  *OSQCreate (void    **start,
                       INT16U    size)
 {
     OS_EVENT  *pevent;
+
+    (void)start;
 
 #ifdef OS_SAFETY_CRITICAL_IEC61508
     if (OSSafetyCriticalStartFlag == OS_TRUE) {
