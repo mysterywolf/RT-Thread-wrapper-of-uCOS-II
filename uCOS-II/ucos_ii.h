@@ -501,6 +501,13 @@ typedef struct os_mutex_data {
 */
 
 #if OS_Q_EN > 0u
+
+/*由于在ipc.c文件中的struct rt_mq_message没有暴露出来,因此需要复制一份,为避免重复改名为struct _rt_mq_message*/
+struct _rt_mq_message
+{
+    struct _rt_mq_message *next;
+};
+
 typedef  struct                             /* uCOS消息段                                              */
 {
     rt_uint8_t *data_ptr;                   /* uCOS-II消息数据指针                                     */
@@ -1358,7 +1365,7 @@ void          App_TCBInitHook         (OS_TCB          *ptcb);
 */
 rt_err_t      rt_ipc_pend_abort_1       (rt_list_t *list);
 rt_uint16_t   rt_ipc_pend_abort_all     (rt_list_t *list);
-
+rt_err_t      rt_mq_send_all            (rt_mq_t mq, void *buffer, rt_size_t size);
 
 
 /*

@@ -43,12 +43,6 @@
 
 #if (OS_Q_EN > 0u) && (OS_MAX_QS > 0u)
 
-/*由于在ipc.c文件中的struct rt_mq_message没有暴露出来,因此需要复制一份,为避免重复改名为struct _rt_mq_message*/
-struct _rt_mq_message
-{
-    struct _rt_mq_message *next;
-};
-
 /*
 *********************************************************************************************************
 *                                      ACCEPT MESSAGE FROM QUEUE
@@ -724,7 +718,9 @@ INT8U  OSQPostOpt (OS_EVENT  *pevent,
 {
     rt_mq_t    pmq;
     INT8U      err;
-
+    ucos_msg_t ucos_msg;
+    rt_err_t   rt_err;
+    
 #if OS_ARG_CHK_EN > 0u
     if (pevent == (OS_EVENT *)0) {                    /* Validate 'pevent'                             */
         return (OS_ERR_PEVENT_NULL);
@@ -742,7 +738,11 @@ INT8U  OSQPostOpt (OS_EVENT  *pevent,
     if(opt == OS_POST_OPT_NONE) {
         err = OSQPost(pevent, pmsg);
     } else if(opt == OS_POST_OPT_BROADCAST) {
-       /* TODO */
+        ucos_msg.data_ptr = pmsg; /* 装填uCOS消息段 */
+        rt_mq_send_all(pmq, (void*)&ucos_msg, sizeof(ucos_msg_t));
+        if(rt_err == -RT_EFULL) {
+            err = OS_ERR_Q_FULL;
+        }
         err = OS_ERR_NONE;
     } else if(opt == OS_POST_OPT_FRONT) {
         err = OSQPostFront(pevent, pmsg);
