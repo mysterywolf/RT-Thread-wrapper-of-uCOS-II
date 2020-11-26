@@ -73,6 +73,7 @@ INT16U  OSSemAccept (OS_EVENT *pevent)
 #endif
     
     psem = (rt_sem_t)pevent->ipc_ptr;
+    
     if (rt_object_get_type(&psem->parent.parent) 
         != RT_Object_Class_Semaphore) {               /* Validate event block type                     */
         return (0u);
@@ -210,6 +211,7 @@ OS_EVENT  *OSSemDel (OS_EVENT  *pevent,
 #endif
 
     psem = (rt_sem_t)pevent->ipc_ptr;
+    
     if (rt_object_get_type(&psem->parent.parent)           /* Validate event block type                */
         != RT_Object_Class_Semaphore) {
         return (pevent);       
@@ -426,6 +428,7 @@ INT8U  OSSemPendAbort (OS_EVENT  *pevent,
 #endif
 
     psem = (rt_sem_t)pevent->ipc_ptr;
+
     if (rt_object_get_type(&psem->parent.parent)      /* Validate event block type                */
         != RT_Object_Class_Semaphore) {
         *perr = OS_ERR_EVENT_TYPE;
@@ -476,7 +479,8 @@ INT8U  OSSemPost (OS_EVENT *pevent)
     }
 #endif
 
-    psem = (rt_sem_t)pevent->ipc_ptr;    
+    psem = (rt_sem_t)pevent->ipc_ptr;
+    
     if (rt_object_get_type(&psem->parent.parent)      /* Validate event block type                     */
         != RT_Object_Class_Semaphore) {
         return (OS_ERR_EVENT_TYPE);
@@ -524,12 +528,15 @@ INT8U  OSSemQuery (OS_EVENT     *pevent,
         return (OS_ERR_PDATA_NULL);
     }
 #endif
+    
+    psem = (rt_sem_t)(pevent->ipc_ptr);
+    
     if (rt_object_get_type(&psem->parent.parent)           /* Validate event block type                */
         != RT_Object_Class_Semaphore) {
         return (OS_ERR_EVENT_TYPE);
     }
+
     OS_ENTER_CRITICAL();
-    psem = (rt_sem_t)(pevent->ipc_ptr);
     rt_memcpy(&p_sem_data->OSSem, psem, sizeof(struct rt_semaphore));
     p_sem_data->OSCnt = psem->value;
     OS_EXIT_CRITICAL();
@@ -584,12 +591,15 @@ void  OSSemSet (OS_EVENT  *pevent,
         return;
     }
 #endif
-    psem = (rt_sem_t)pevent->ipc_ptr;    
+    
+    psem = (rt_sem_t)pevent->ipc_ptr;
+    
     if (rt_object_get_type(&psem->parent.parent)      /* Validate event block type                     */
         != RT_Object_Class_Semaphore) {
         *perr = OS_ERR_EVENT_TYPE;
         return;
     }
+
     OS_ENTER_CRITICAL();
     *perr = OS_ERR_NONE;
     if (psem->value>0) {

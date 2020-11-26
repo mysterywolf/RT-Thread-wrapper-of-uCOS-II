@@ -89,14 +89,16 @@ BOOLEAN  OSMutexAccept (OS_EVENT  *pevent,
     }
 #endif
 
-    pmutex = (rt_mutex_t)pevent->ipc_ptr;
 #if OS_ARG_CHK_EN > 0u
     if (pevent == (OS_EVENT *)0) {                     /* Validate 'pevent'                            */
         *perr = OS_ERR_PEVENT_NULL;
         return (OS_FALSE);
     }
 #endif
-    if (rt_object_get_type(&pmutex->parent.parent)     /* Validate event block type                */
+
+    pmutex = (rt_mutex_t)pevent->ipc_ptr;
+    
+    if (rt_object_get_type(&pmutex->parent.parent)     /* Validate event block type                    */
         != RT_Object_Class_Mutex) {
         *perr = OS_ERR_EVENT_TYPE;
         return (OS_FALSE);
@@ -290,7 +292,7 @@ OS_EVENT  *OSMutexDel (OS_EVENT  *pevent,
 #endif
 
     pmutex = (rt_mutex_t)pevent->ipc_ptr;
-
+    
     if (rt_object_get_type(&pmutex->parent.parent)         /* Validate event block type                */
         != RT_Object_Class_Mutex) {
         *perr = OS_ERR_EVENT_TYPE;
@@ -545,8 +547,6 @@ INT8U  OSMutexQuery (OS_EVENT       *pevent,
     OS_CPU_SR   cpu_sr = 0u;
 #endif
 
-    pmutex = (rt_mutex_t)pevent->ipc_ptr;
-
     if (OSIntNesting > 0u) {                               /* See if called from ISR ...               */
         return (OS_ERR_QUERY_ISR);                         /* ... can't QUERY mutex from an ISR        */
     }
@@ -558,6 +558,9 @@ INT8U  OSMutexQuery (OS_EVENT       *pevent,
         return (OS_ERR_PDATA_NULL);
     }
 #endif
+    
+    pmutex = (rt_mutex_t)pevent->ipc_ptr;
+    
     if (rt_object_get_type(&pmutex->parent.parent)         /* Validate event block type                */
         != RT_Object_Class_Mutex) {
         return (OS_ERR_EVENT_TYPE);

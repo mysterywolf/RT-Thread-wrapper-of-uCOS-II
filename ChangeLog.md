@@ -98,6 +98,10 @@
 
 - 将自动初始化由`INIT_DEVICE_EXPORT`提前至`INIT_PREV_EXPORT`
 
+### 2020-11-27
+
+- 调整`os_q.c`、`os_mutex.c`、`os_sem.c`调整获取内核对象指针语句的顺序，防止出现野指针瞎指
+
 
 
 # Release

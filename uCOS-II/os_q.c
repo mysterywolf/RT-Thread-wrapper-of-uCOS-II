@@ -104,6 +104,7 @@ void  *OSQAccept (OS_EVENT  *pevent,
 #endif
 
     pmq = (rt_mq_t)pevent->ipc_ptr;
+
     if (rt_object_get_type(&pmq->parent.parent)  /* Validate event block type                     */
         != RT_Object_Class_MessageQueue) {  
         *perr = OS_ERR_EVENT_TYPE;
@@ -264,6 +265,7 @@ OS_EVENT  *OSQDel (OS_EVENT  *pevent,
 #endif
     
     pmq = (rt_mq_t)pevent->ipc_ptr;
+    
     if (rt_object_get_type(&pmq->parent.parent)            /* Validate event block type                */
         != RT_Object_Class_MessageQueue) {  
        *perr = OS_ERR_EVENT_TYPE;
@@ -340,6 +342,7 @@ INT8U  OSQFlush (OS_EVENT *pevent)
 #endif
     
     pmq = (rt_mq_t)pevent->ipc_ptr;
+    
     if (rt_object_get_type(&pmq->parent.parent)       /* Validate event block type                     */
         != RT_Object_Class_MessageQueue) {  
         return (OS_ERR_EVENT_TYPE);
@@ -426,6 +429,7 @@ void  *OSQPend (OS_EVENT  *pevent,
 #endif
 
     pmq = (rt_mq_t)pevent->ipc_ptr;
+    
     if (rt_object_get_type(&pmq->parent.parent)  /* Validate event block type                          */
         != RT_Object_Class_MessageQueue) {
         *perr = OS_ERR_EVENT_TYPE;
@@ -554,6 +558,7 @@ INT8U  OSQPendAbort (OS_EVENT  *pevent,
 #endif
 
     pmq = (rt_mq_t)pevent->ipc_ptr;
+    
     if (rt_object_get_type(&pmq->parent.parent)            /* Validate event block type                          */
         != RT_Object_Class_MessageQueue) {
         *perr = OS_ERR_EVENT_TYPE;
@@ -611,6 +616,7 @@ INT8U  OSQPost (OS_EVENT  *pevent,
 #endif
 
     pmq = (rt_mq_t)pevent->ipc_ptr;
+
     if (rt_object_get_type(&pmq->parent.parent)        /* Validate event block type                    */
         != RT_Object_Class_MessageQueue) {
         return (OS_ERR_EVENT_TYPE);
@@ -664,6 +670,7 @@ INT8U  OSQPostFront (OS_EVENT  *pevent,
 #endif
 
     pmq = (rt_mq_t)pevent->ipc_ptr;
+
     if (rt_object_get_type(&pmq->parent.parent)       /* Validate event block type                     */
         != RT_Object_Class_MessageQueue) {
         return (OS_ERR_EVENT_TYPE);
@@ -725,6 +732,7 @@ INT8U  OSQPostOpt (OS_EVENT  *pevent,
 #endif
 
     pmq = (rt_mq_t)pevent->ipc_ptr;
+
     if (rt_object_get_type(&pmq->parent.parent)       /* Validate event block type                     */
         != RT_Object_Class_MessageQueue) {
         return (OS_ERR_EVENT_TYPE);
@@ -784,6 +792,7 @@ INT8U  OSQQuery (OS_EVENT  *pevent,
 #endif
 
     pmq = (rt_mq_t)pevent->ipc_ptr;
+
     if (rt_object_get_type(&pmq->parent.parent)       /* Validate event block type                     */
         != RT_Object_Class_MessageQueue) {
         return (OS_ERR_EVENT_TYPE);
