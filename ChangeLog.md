@@ -103,6 +103,10 @@
 - 调整`os_q.c`、`os_mutex.c`、`os_sem.c`调整获取内核对象指针语句的顺序，防止出现野指针瞎指
 - 实现`OSQPostOpt()`函数广播机制
 
+### 2020-11-28
+
+- 实现`os_mbox.c`文件所有函数
+
 
 
 # Release
@@ -114,7 +118,5 @@
 
 
 # TODO
-
-pmg = pevent 这句话的位置需要做检查
 
 OSQPendAbort OSSemPendAbort函数需要做进一步检查

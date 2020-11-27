@@ -532,6 +532,11 @@
               <FilePath>..\..\..\uCOS-II\os_q.c</FilePath>
             </File>
             <File>
+              <FileName>os_mbox.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\uCOS-II\os_mbox.c</FilePath>
+            </File>
+            <File>
               <FileName>os_rtwrap.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\uCOS-II\os_rtwrap.c</FilePath>

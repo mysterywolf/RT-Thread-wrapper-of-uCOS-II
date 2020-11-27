@@ -446,8 +446,6 @@ typedef struct os_flag_node {               /* Event Flag Wait List Node        
 #if OS_MBOX_EN > 0u
 typedef struct os_mbox_data {
     void   *OSMsg;                          /* Pointer to message in mailbox                           */
-    OS_PRIO OSEventTbl[OS_EVENT_TBL_SIZE];  /* List of tasks waiting for event to occur                */
-    OS_PRIO OSEventGrp;                     /* Group corresponding to tasks waiting for event to occur */
 } OS_MBOX_DATA;
 #endif
 
@@ -1695,30 +1693,6 @@ rt_err_t      rt_mq_send_all            (rt_mq_t mq, void *buffer, rt_size_t siz
     #error  "          Timer management require TWO semaphores."
     #endif
 
-    #ifndef OS_TMR_CFG_MAX
-    #error  "OS_CFG.H, Missing OS_TMR_CFG_MAX: Determines the total number of timers in an application (2 .. 65500)"
-    #else
-        #if OS_TMR_CFG_MAX < 2u
-        #error  "OS_CFG.H, OS_TMR_CFG_MAX should be between 2 and 65500"
-        #endif
-
-        #if OS_TMR_CFG_MAX > 65500u
-        #error  "OS_CFG.H, OS_TMR_CFG_MAX should be between 2 and 65500"
-        #endif
-    #endif
-
-    #ifndef OS_TMR_CFG_WHEEL_SIZE
-    #error  "OS_CFG.H, Missing OS_TMR_CFG_WHEEL_SIZE: Sets the size of the timer wheel (1 .. 1023)"
-    #else
-        #if OS_TMR_CFG_WHEEL_SIZE < 2u
-        #error  "OS_CFG.H, OS_TMR_CFG_WHEEL_SIZE should be between 2 and 1024"
-        #endif
-
-        #if OS_TMR_CFG_WHEEL_SIZE > 1024u
-        #error  "OS_CFG.H, OS_TMR_CFG_WHEEL_SIZE should be between 2 and 1024"
-        #endif
-    #endif
-
     #ifndef OS_TMR_CFG_NAME_EN
     #error  "OS_CFG.H, Missing OS_TMR_CFG_NAME_EN: Enable Timer names"
     #endif
@@ -1784,10 +1758,6 @@ rt_err_t      rt_mq_send_all            (rt_mq_t mq, void *buffer, rt_size_t siz
 #error  "OS_CFG.H, Missing OS_TICK_STEP_EN: Allows to 'step' one tick at a time with uC/OS-View"
 #endif
 
-
-#ifndef OS_TIME_TICK_HOOK_EN
-#error  "OS_CFG.H, Missing OS_TIME_TICK_HOOK_EN: Allows you to include the code for OSTimeTickHook() or not"
-#endif
 
 /*
 *********************************************************************************************************

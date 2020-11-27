@@ -99,17 +99,7 @@
 #define OS_FLAG_NAME_EN           1u   /*     Enable names for event flag group                        */
 #define OS_FLAG_QUERY_EN          1u   /*     Include code for OSFlagQuery()                           */
 #define OS_FLAG_WAIT_CLR_EN       1u   /* Include code for Wait on Clear EVENT FLAGS                   */
-#define OS_FLAGS_NBITS           16u   /* Size in #bits of OS_FLAGS data type (8, 16 or 32)            */
-
-
-                                       /* -------------------- MESSAGE MAILBOXES --------------------- */
-#define OS_MBOX_EN                1u   /* Enable (1) or Disable (0) code generation for MAILBOXES      */
-#define OS_MBOX_ACCEPT_EN         1u   /*     Include code for OSMboxAccept()                          */
-#define OS_MBOX_DEL_EN            1u   /*     Include code for OSMboxDel()                             */
-#define OS_MBOX_PEND_ABORT_EN     1u   /*     Include code for OSMboxPendAbort()                       */
-#define OS_MBOX_POST_EN           1u   /*     Include code for OSMboxPost()                            */
-#define OS_MBOX_POST_OPT_EN       1u   /*     Include code for OSMboxPostOpt()                         */
-#define OS_MBOX_QUERY_EN          1u   /*     Include code for OSMboxQuery()                           */
+#define OS_FLAGS_NBITS           32u   /* Size in #bits of OS_FLAGS data type (8, 16 or 32)            */
 
 
                                        /* --------------------- MEMORY MANAGEMENT -------------------- */
@@ -145,6 +135,16 @@
 #define OS_Q_QUERY_EN             1u   /*     Include code for OSQQuery()                              */
 
 
+                                       /* -------------------- MESSAGE MAILBOXES --------------------- */
+#define OS_MBOX_EN           OS_Q_EN   /* Enable (1) or Disable (0) code generation for MAILBOXES      */
+#define OS_MBOX_ACCEPT_EN         1u   /*     Include code for OSMboxAccept()                          */
+#define OS_MBOX_DEL_EN            1u   /*     Include code for OSMboxDel()                             */
+#define OS_MBOX_PEND_ABORT_EN     1u   /*     Include code for OSMboxPendAbort()                       */
+#define OS_MBOX_POST_EN           1u   /*     Include code for OSMboxPost()                            */
+#define OS_MBOX_POST_OPT_EN       1u   /*     Include code for OSMboxPostOpt()                         */
+#define OS_MBOX_QUERY_EN          1u   /*     Include code for OSMboxQuery()                           */
+
+
                                        /* ------------------------ SEMAPHORES ------------------------ */
 #ifdef RT_USING_SEMAPHORE              /* 是否开启由RT-Thread接管                                      */
 #define OS_SEM_EN                 1u   /* Enable (1) or Disable (0) code generation for SEMAPHORES     */
@@ -162,7 +162,6 @@
 #define OS_TIME_DLY_HMSM_EN       1u   /*     Include code for OSTimeDlyHMSM()                         */
 #define OS_TIME_DLY_RESUME_EN     1u   /*     Include code for OSTimeDlyResume()                       */
 #define OS_TIME_GET_SET_EN        1u   /*     Include code for OSTimeGet() and OSTimeSet()             */
-#define OS_TIME_TICK_HOOK_EN      1u   /*     Include code for OSTimeTickHook()                        */
 
 
                                        /* --------------------- TIMER MANAGEMENT --------------------- */
@@ -171,15 +170,7 @@
 #else
 #define OS_TMR_EN                 0u   /* Enable (1) or Disable (0) code generation for TIMERS         */
 #endif
-#define OS_TMR_CFG_MAX           16u   /*     Maximum number of timers                                 */
 #define OS_TMR_CFG_NAME_EN        1u   /*     Determine timer names                                    */
-#define OS_TMR_CFG_WHEEL_SIZE     7u   /*     Size of timer wheel (#Spokes)                            */
 #define OS_TMR_CFG_TICKS_PER_SEC 10u   /*     Rate at which timer management task runs (Hz)            */
-
-
-                                       /* ---------------------- TRACE RECORDER ---------------------- */
-#define OS_TRACE_EN               0u   /* Enable (1) or Disable (0) uC/OS-II Trace instrumentation     */
-#define OS_TRACE_API_ENTER_EN     0u   /* Enable (1) or Disable (0) uC/OS-II Trace API enter instrum.  */
-#define OS_TRACE_API_EXIT_EN      0u   /* Enable (1) or Disable (0) uC/OS-II Trace API exit  instrum.  */
 
 #endif
