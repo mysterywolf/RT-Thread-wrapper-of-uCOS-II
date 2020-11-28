@@ -34,14 +34,9 @@
 *********************************************************************************************************
 */
 
-#ifndef  OS_Q_C
-#define  OS_Q_C
-
-#ifndef  OS_MASTER_FILE
 #include "ucos_ii.h"
-#endif
 
-#if (OS_Q_EN > 0u) && (OS_MAX_QS > 0u)
+#if (OS_Q_EN > 0u)
 
 /*
 *********************************************************************************************************
@@ -810,5 +805,4 @@ INT8U  OSQQuery (OS_EVENT  *pevent,
 }
 #endif                                                 /* OS_Q_QUERY_EN                                */
 
-#endif                                                 /* OS_Q_EN                                        */
-#endif                                                 /* OS_Q_C                                         */
+#endif                                                 /* OS_Q_EN                                      */

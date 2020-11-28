@@ -34,12 +34,7 @@
 *********************************************************************************************************
 */
 
-#ifndef  OS_SEM_C
-#define  OS_SEM_C
-
-#ifndef  OS_MASTER_FILE
 #include "ucos_ii.h"
-#endif
 
 #if OS_SEM_EN > 0u
 /*
@@ -325,7 +320,7 @@ void  OSSemPend (OS_EVENT  *pevent,
         return;
     }
 
-    OS_ENTER_CRITICAL();                                                     /* Otherwise, must wait until event occurs       */
+    OS_ENTER_CRITICAL();                              /* Otherwise, must wait until event occurs       */
     OSTCBCur->OSTCBStat     |= OS_STAT_SEM;           /* Resource not available, pend on semaphore     */
     OSTCBCur->OSTCBStatPend  = OS_STAT_PEND_OK;
     OSTCBCur->OSTCBDly       = timeout;               /* Store pend timeout in TCB                     */
@@ -616,4 +611,3 @@ void  OSSemSet (OS_EVENT  *pevent,
 #endif
 
 #endif                                                /* OS_SEM_EN                                     */
-#endif                                                /* OS_SEM_C                                      */

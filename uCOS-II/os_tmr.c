@@ -34,12 +34,9 @@
 *********************************************************************************************************
 */
 
-#ifndef  OS_TMR_C
-#define  OS_TMR_C
-
-#ifndef  OS_MASTER_FILE
 #include "ucos_ii.h"
-#endif
+
+#if OS_TMR_EN > 0u
 
 /*
 *********************************************************************************************************
@@ -93,7 +90,6 @@ static void OS_TmrCallback(void *p_ara);
 *********************************************************************************************************
 */
 
-#if OS_TMR_EN > 0u
 OS_TMR  *OSTmrCreate (INT32U           dly,
                       INT32U           period,
                       INT8U            opt,
@@ -199,7 +195,6 @@ OS_TMR  *OSTmrCreate (INT32U           dly,
     *perr = OS_ERR_NONE;
     return (ptmr);   
 }
-#endif
 
 
 /*
@@ -226,7 +221,6 @@ OS_TMR  *OSTmrCreate (INT32U           dly,
 *********************************************************************************************************
 */
 
-#if OS_TMR_EN > 0u
 BOOLEAN  OSTmrDel (OS_TMR  *ptmr,
                    INT8U   *perr)
 {
@@ -273,7 +267,6 @@ BOOLEAN  OSTmrDel (OS_TMR  *ptmr,
     RT_KERNEL_FREE(ptmr);
     return (OS_TRUE);
 }
-#endif
 
 
 /*
@@ -299,7 +292,7 @@ BOOLEAN  OSTmrDel (OS_TMR  *ptmr,
 *********************************************************************************************************
 */
 
-#if OS_TMR_EN > 0u && OS_TMR_CFG_NAME_EN > 0u
+#if OS_TMR_CFG_NAME_EN > 0u
 INT8U  OSTmrNameGet (OS_TMR   *ptmr,
                      INT8U   **pdest,
                      INT8U    *perr)
@@ -362,7 +355,6 @@ INT8U  OSTmrNameGet (OS_TMR   *ptmr,
 *********************************************************************************************************
 */
 
-#if OS_TMR_EN > 0u
 INT32U  OSTmrRemainGet (OS_TMR  *ptmr,
                         INT8U   *perr)
 {
@@ -435,7 +427,6 @@ INT32U  OSTmrRemainGet (OS_TMR  *ptmr,
              return (0u);
     }
 }
-#endif
 
 
 /*
@@ -463,7 +454,6 @@ INT32U  OSTmrRemainGet (OS_TMR  *ptmr,
 *********************************************************************************************************
 */
 
-#if OS_TMR_EN > 0u
 INT8U  OSTmrStateGet (OS_TMR  *ptmr,
                       INT8U   *perr)
 {
@@ -508,7 +498,6 @@ INT8U  OSTmrStateGet (OS_TMR  *ptmr,
     OSSchedUnlock();
     return (state);
 }
-#endif
 
 
 /*
@@ -532,7 +521,6 @@ INT8U  OSTmrStateGet (OS_TMR  *ptmr,
 *********************************************************************************************************
 */
 
-#if OS_TMR_EN > 0u
 BOOLEAN  OSTmrStart (OS_TMR   *ptmr,
                      INT8U    *perr)
 {
@@ -571,7 +559,6 @@ BOOLEAN  OSTmrStart (OS_TMR   *ptmr,
     *perr = OS_ERR_NONE;
     return (OS_TRUE);
 }
-#endif
 
 
 /*
@@ -611,7 +598,6 @@ BOOLEAN  OSTmrStart (OS_TMR   *ptmr,
 *********************************************************************************************************
 */
 
-#if OS_TMR_EN > 0u
 BOOLEAN  OSTmrStop (OS_TMR  *ptmr,
                     INT8U    opt,
                     void    *callback_arg,
@@ -692,7 +678,6 @@ BOOLEAN  OSTmrStop (OS_TMR  *ptmr,
              return (OS_FALSE);
     }
 }
-#endif
 
 
 /*
@@ -708,12 +693,10 @@ BOOLEAN  OSTmrStop (OS_TMR  *ptmr,
 *********************************************************************************************************
 */
 
-#if OS_TMR_EN > 0u
 void  OSTmr_Init (void)
 {
     /*nothing to do*/
 }
-#endif
 
 /*
 ************************************************************************************************************************
@@ -758,4 +741,4 @@ static void OS_TmrCallback(void *p_ara)
     OSSchedUnlock();
 }
 
-#endif                                                           /* OS_TMR_C                                */
+#endif

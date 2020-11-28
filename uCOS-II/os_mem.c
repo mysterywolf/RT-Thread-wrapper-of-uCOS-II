@@ -34,12 +34,7 @@
 *********************************************************************************************************
 */
 
-#ifndef  OS_MEM_C
-#define  OS_MEM_C
-
-#ifndef  OS_MASTER_FILE
 #include "ucos_ii.h"
-#endif
 
 #if (OS_MEM_EN > 0u) && (OS_MAX_MEM_PART > 0u)
 /*
@@ -480,4 +475,3 @@ void  OS_MemInit (void)
 #endif
 }
 #endif                                                    /* OS_MEM_EN                                 */
-#endif                                                    /* OS_MEM_C                                  */

@@ -51,10 +51,10 @@ extern "C" {
 *********************************************************************************************************
 */
 
-#include "app_cfg.h"
 #include "os_cfg.h"
 #include "os_cpu.h"
 #include <rtthread.h>
+#include <stdio.h>
 
 /*
 *********************************************************************************************************
@@ -102,7 +102,7 @@ extern "C" {
 #define  OS_TASK_STAT_ID            65534u
 #define  OS_TASK_TMR_ID             65533u
 
-#define  OS_EVENT_EN           (((OS_Q_EN > 0u) && (OS_MAX_QS > 0u)) || (OS_MBOX_EN > 0u) || (OS_SEM_EN > 0u) || (OS_MUTEX_EN > 0u))
+#define  OS_EVENT_EN           ((OS_Q_EN > 0u) || (OS_MBOX_EN > 0u) || (OS_SEM_EN > 0u) || (OS_MUTEX_EN > 0u))
 
 #define  OS_TCB_RESERVED        ((OS_TCB *)1)
 
@@ -169,20 +169,6 @@ extern "C" {
 
 #define  OS_FLAG_CLR                    0u
 #define  OS_FLAG_SET                    1u
-
-/*
-*********************************************************************************************************
-*                                     Values for OSTickStepState
-*
-* Note(s): This feature is used by uC/OS-View.
-*********************************************************************************************************
-*/
-
-#if OS_TICK_STEP_EN > 0u
-#define  OS_TICK_STEP_DIS               0u  /* Stepping is disabled, tick runs as normal               */
-#define  OS_TICK_STEP_WAIT              1u  /* Waiting for uC/OS-View to set OSTickStepState to _ONCE  */
-#define  OS_TICK_STEP_ONCE              2u  /* Process tick once and wait for next cmd from uC/OS-View */
-#endif
 
 /*
 *********************************************************************************************************
@@ -701,33 +687,22 @@ OS_EXT  OS_TCB           *OSTCBList;                       /* Pointer to doubly 
 OS_EXT  OS_TCB           *OSTCBPrioTbl[OS_LOWEST_PRIO + 1u];    /* Table of pointers to created TCBs   */
 OS_EXT  OS_TCB            OSTCBTbl[OS_MAX_TASKS + OS_N_SYS_TASKS];   /* Table of TCBs                  */
 
-//#if OS_TICK_STEP_EN > 0u
-//OS_EXT  INT8U             OSTickStepState;          /* Indicates the state of the tick step feature    */
-//#endif
-
 #if (OS_MEM_EN > 0u) && (OS_MAX_MEM_PART > 0u)
 OS_EXT  OS_MEM           *OSMemFreeList;            /* Pointer to free list of memory partitions       */
 OS_EXT  OS_MEM            OSMemTbl[OS_MAX_MEM_PART];/* Storage for memory partition manager            */
 #endif
 
-//#if (OS_Q_EN > 0u) && (OS_MAX_QS > 0u)
-//OS_EXT  OS_Q             *OSQFreeList;              /* Pointer to list of free QUEUE control blocks    */
-//OS_EXT  OS_Q              OSQTbl[OS_MAX_QS];        /* Table of QUEUE control blocks                   */
-//#endif
-
 #if OS_TASK_REG_TBL_SIZE > 0u
 OS_EXT  INT8U             OSTaskRegNextAvailID;     /* Next available Task register ID                 */
 #endif
 
-//#if OS_TIME_GET_SET_EN > 0u
-//OS_EXT  volatile  INT32U  OSTime;                   /* Current value of system time (in ticks)         */
-//#endif
-
-#if OS_TMR_EN > 0u
-#define   OSTmrTime         rt_tick_get()             /* Current timer time                              */
+#if OS_TIME_GET_SET_EN > 0u
+#define   OSTime          rt_tick_get()             /* Current value of system time (in ticks)         */
 #endif
 
-//extern  INT8U   const     OSUnMapTbl[256];          /* Priority->Index    lookup table                 */
+#if OS_TMR_EN > 0u
+#define   OSTmrTime       rt_tick_get()             /* Current timer time                              */
+#endif
 
 
 /*
@@ -978,7 +953,7 @@ INT8U         OSMutexQuery            (OS_EVENT        *pevent,
 *********************************************************************************************************
 */
 
-#if (OS_Q_EN > 0u) && (OS_MAX_QS > 0u)
+#if (OS_Q_EN > 0u)
 
 #if OS_Q_ACCEPT_EN > 0u
 void         *OSQAccept               (OS_EVENT        *pevent,
@@ -1380,6 +1355,19 @@ rt_err_t      rt_mq_send_all            (rt_mq_t mq, void *buffer, rt_size_t siz
 
 /*
 *********************************************************************************************************
+*                                             RT-Thread
+*********************************************************************************************************
+*/
+#ifdef RT_USING_TIMER_SOFT
+#define  OS_TASK_TMR_PRIO                   RT_TIMER_THREAD_PRIO
+#else
+#if OS_TMR_EN
+#error "please enable RT_USING_TIMER_SOFT in rtconfig.h"
+#endif
+#endif
+
+/*
+*********************************************************************************************************
 *                                             EVENT FLAGS
 *********************************************************************************************************
 */
@@ -1387,13 +1375,6 @@ rt_err_t      rt_mq_send_all            (rt_mq_t mq, void *buffer, rt_size_t siz
 #ifndef OS_FLAG_EN
 #error  "OS_CFG.H, Missing OS_FLAG_EN: Enable (1) or Disable (0) code generation for Event Flags"
 #else
-    #ifndef OS_MAX_FLAGS
-    #error  "OS_CFG.H, Missing OS_MAX_FLAGS: Max. number of Event Flag Groups in your application"
-    #else
-        #if     OS_MAX_FLAGS > 65500u
-        #error  "OS_CFG.H, OS_MAX_FLAGS must be <= 65500"
-        #endif
-    #endif
 
     #ifndef OS_FLAGS_NBITS
     #error  "OS_CFG.H, Missing OS_FLAGS_NBITS: Determine #bits used for event flags, MUST be either 8, 16 or 32"
@@ -1511,13 +1492,6 @@ rt_err_t      rt_mq_send_all            (rt_mq_t mq, void *buffer, rt_size_t siz
 #ifndef OS_Q_EN
 #error  "OS_CFG.H, Missing OS_Q_EN: Enable (1) or Disable (0) code generation for QUEUES"
 #else
-    #ifndef OS_MAX_QS
-    #error  "OS_CFG.H, Missing OS_MAX_QS: Max. number of queue control blocks"
-    #else
-        #if     OS_MAX_QS > 65500u
-        #error  "OS_CFG.H, OS_MAX_QS must be <= 65500"
-        #endif
-    #endif
 
     #ifndef OS_Q_ACCEPT_EN
     #error  "OS_CFG.H, Missing OS_Q_ACCEPT_EN: Include code for OSQAccept()"
@@ -1754,11 +1728,6 @@ rt_err_t      rt_mq_send_all            (rt_mq_t mq, void *buffer, rt_size_t siz
 #endif
 
 
-#ifndef OS_TICK_STEP_EN
-#error  "OS_CFG.H, Missing OS_TICK_STEP_EN: Allows to 'step' one tick at a time with uC/OS-View"
-#endif
-
-
 /*
 *********************************************************************************************************
 *                                         SAFETY CRITICAL USE
@@ -1789,16 +1758,8 @@ rt_err_t      rt_mq_send_all            (rt_mq_t mq, void *buffer, rt_size_t siz
     #endif
 #endif
 
-#ifdef VSC_VALIDATION_MODE
-#error "OS_CFG.H, VSC_VALIDATION_MODE must be disabled for safety-critical release code"
-#endif
-
 #if    OS_TASK_STAT_EN > 0u
 #error "OS_CFG.H, OS_TASK_STAT_EN must be disabled for safety-critical release code"
-#endif
-
-#if    OS_TICK_STEP_EN > 0u
-#error "OS_CFG.H, OS_TICK_STEP_EN must be disabled for safety-critical release code"
 #endif
 
 #if    OS_FLAG_EN > 0u

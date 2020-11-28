@@ -66,42 +66,6 @@
 extern  "C" {                                    /* See Note #1.                                       */
 #endif
 
-
-/*
-*********************************************************************************************************
-*                                               DEFINES
-*
-* Note(s) : (1) If using uC/CPU then 'cpu_cfg.h' has already this define in its template. The user will
-*               only need to include 'cpu_cfg.h' in 'app_cfg.h'; otherwise, define CPU_CFG_KA_IPL_BOUNDARY
-*               and CPU_CFG_NVIC_PRIO_BITS in 'app_cfg.h'
-*
-*           (2) Since the port is using BASEPRI to separate kernel vs non-kernel aware ISR, please make sure
-*               your external interrupt priorities are set accordingly. For example, if CPU_CFG_KA_IPL_BOUNDARY
-*               is set to 4 then external interrupt priorities 4-15 will be kernel aware while priorities
-*               0-3 will be use as non-kernel aware.
-*
-*           (3) Determines the interrupt programmable priority levels. This is normally specified in the
-*               Microcontroller reference manual. 4-bits gives us 16 programmable priority levels.
-*
-*                     NVIC_IPRx
-*                 7                0
-*                +------------------+
-*                |       PRIO       |
-*                +------------------+
-*
-*                Bits[7:4] Priority mask bits
-*                Bits[3:0] Reserved
-*
-*                In this example our CPU_CFG_NVIC_PRIO_BITS define should be set to 4 due to the processor
-*                implementing only bits[7:4].
-*********************************************************************************************************
-*/
-
-#ifndef  OS_CPU_EXCEPT_STK_SIZE
-#define  OS_CPU_EXCEPT_STK_SIZE      256u        /* Default exception stack size is 256 OS_STK entries */
-#endif
-
-
 /*
 *********************************************************************************************************
 *                                              DATA TYPES
@@ -168,16 +132,6 @@ typedef rt_ubase_t     OS_CPU_SR;                /* Define size of CPU status re
 #endif
 
 #define  OS_TASK_SW()         OSCtxSw()
-
-
-/*
-*********************************************************************************************************
-*                                          GLOBAL VARIABLES
-*********************************************************************************************************
-*/
-
-OS_CPU_EXT  OS_STK   OS_CPU_ExceptStk[OS_CPU_EXCEPT_STK_SIZE];
-OS_CPU_EXT  OS_STK  *OS_CPU_ExceptStkBase;
 
 
 /*

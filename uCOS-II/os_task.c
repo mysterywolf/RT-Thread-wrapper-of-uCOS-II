@@ -34,12 +34,7 @@
 *********************************************************************************************************
 */
 
-#ifndef  OS_TASK_C
-#define  OS_TASK_C
-
-#ifndef  OS_MASTER_FILE
 #include "ucos_ii.h"
-#endif
 
 
 /*
@@ -1166,5 +1161,3 @@ void  OSTaskRegSet (INT8U    prio,
     *perr                 = OS_ERR_NONE;
 }
 #endif
-
-#endif                                                 /* OS_TASK_C                                    */

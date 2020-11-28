@@ -106,6 +106,8 @@
 ### 2020-11-28
 
 - 实现`os_mbox.c`文件所有函数
+- 整理`ucos_ii.h`宏定义，并精简了其他文件的宏定义，删除了没有必要的宏定义
+- 调整keil工程文件结构和顺序
 
 
 
@@ -120,3 +122,5 @@
 # TODO
 
 OSQPendAbort OSSemPendAbort函数需要做进一步检查
+
+检查OSTmrTime以及涉及到OS_TMR_CFG_TICKS_PER_SEC换算的问题

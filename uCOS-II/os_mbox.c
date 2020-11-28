@@ -34,14 +34,7 @@
 *********************************************************************************************************
 */
 
-#ifndef  OS_MBOX_C
-#define  OS_MBOX_C
-
-#define  MICRIUM_SOURCE
-
-#ifndef  OS_MASTER_FILE
 #include <ucos_ii.h>
-#endif
 
 #if OS_MBOX_EN > 0u
 /*
@@ -335,4 +328,3 @@ INT8U  OSMboxQuery (OS_EVENT      *pevent,
 }
 #endif                                                     /* OS_MBOX_QUERY_EN                         */
 #endif                                                     /* OS_MBOX_EN                               */
-#endif                                                     /* OS_MBOX_C                                */

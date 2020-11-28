@@ -477,29 +477,14 @@
           <GroupName>uCOS-II_Wrapper/uCOS-II</GroupName>
           <Files>
             <File>
-              <FileName>app_cfg.h</FileName>
+              <FileName>ucos_ii.h</FileName>
               <FileType>5</FileType>
-              <FilePath>..\..\..\uCOS-II\app_cfg.h</FilePath>
-            </File>
-            <File>
-              <FileName>app_hooks.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\..\uCOS-II\app_hooks.c</FilePath>
-            </File>
-            <File>
-              <FileName>os.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\..\..\uCOS-II\os.h</FilePath>
+              <FilePath>..\..\..\uCOS-II\ucos_ii.h</FilePath>
             </File>
             <File>
               <FileName>os_cfg.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\..\..\uCOS-II\os_cfg.h</FilePath>
-            </File>
-            <File>
-              <FileName>os_core.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\..\uCOS-II\os_core.c</FilePath>
             </File>
             <File>
               <FileName>os_cpu.h</FileName>
@@ -515,6 +500,16 @@
               <FileName>os_cpu_c.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\uCOS-II\os_cpu_c.c</FilePath>
+            </File>
+            <File>
+              <FileName>app_hooks.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\uCOS-II\app_hooks.c</FilePath>
+            </File>
+            <File>
+              <FileName>os_core.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\uCOS-II\os_core.c</FilePath>
             </File>
             <File>
               <FileName>os_mem.c</FileName>
@@ -560,11 +555,6 @@
               <FileName>os_tmr.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\uCOS-II\os_tmr.c</FilePath>
-            </File>
-            <File>
-              <FileName>ucos_ii.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\..\..\uCOS-II\ucos_ii.h</FilePath>
             </File>
           </Files>
         </Group>

@@ -34,13 +34,7 @@
 *********************************************************************************************************
 */
 
-#ifndef  OS_MUTEX_C
-#define  OS_MUTEX_C
-
-#ifndef  OS_MASTER_FILE
 #include "ucos_ii.h"
-#endif
-
 
 #if OS_MUTEX_EN > 0u
 /*
@@ -575,4 +569,3 @@ INT8U  OSMutexQuery (OS_EVENT       *pevent,
 #endif                                                     /* OS_MUTEX_QUERY_EN                        */
 
 #endif                                                     /* OS_MUTEX_EN                              */
-#endif                                                     /* OS_MUTEX_C                               */
