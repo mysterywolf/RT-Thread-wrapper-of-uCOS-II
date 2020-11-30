@@ -98,8 +98,8 @@ OS_TMR  *OSTmrCreate (INT32U           dly,
                       INT8U           *pname,
                       INT8U           *perr)
 {
-    OS_TMR   *ptmr;
-    rt_tick_t time, time2;
+    OS_TMR    *ptmr;
+    rt_tick_t  time, time2;
     rt_uint8_t rt_flag;
     
 #ifdef OS_SAFETY_CRITICAL
