@@ -85,6 +85,108 @@ Keil工程路径：[rt-thread-3.1.3/bsp/stm32f103/Project.uvprojx](rt-thread-3.1
 
 
 
+## 2.2 迁移步骤
+
+**（如果使用的是RT-Thread Nano版请参见以下步骤；若使用RT-Thread完整版可以直接跳转至[Env工具自动化配置到工程中](#6 Env工具自动化配置到工程中)章节）**
+
+1. 将uCOS-II文件夹内的所有文件都加入到你的工程中，最好保持原有文件夹的结构。相较于原版μCOS-II增加了`os_rtwrap.c`文件，负责对RT-Thread和μCOS-II的转换提供支持。
+2. 配置`os_cfg.h`  
+   每个选项的配置说明和原版μCOS-II一致，若有不同，我已经在注释中有所解释。  
+   **原版μCOS-II配置**说明可参见：  
+   a)《嵌入式实时操作系统μC/OS-II（第二版）》北京航空航天大学出版社 邵贝贝等译   
+   b) Micriμm公司μCOS-II[在线文档](https://doc.micrium.com/pages/viewpage.action?pageId=16879637)
+3. μCOS-II原版定时器回调函数是在定时器线程中调用的，而非在中断中调用，因此要使用μCOS-II兼容层的软件定时器，需要将rtconfig.h中的宏定义`RT_USING_TIMER_SOFT`置1。
+4. 由于兼容层采用rt-thread内核自带的堆内存分配方式，因此免去了原版uCOS-II中配置任务以及各内核对象内存池大小的步骤，遂需要在rtconfig.h中定义`RT_USING_MEMHEAP`
+
+
+
+## 2.3 os_cfg.h配置文件
+
+由于兼容层采用rt-thread内核自带的堆内存分配方式，因此免去了原版uCOS-II中配置任务以及各内核对象内存池大小的步骤，遂上述相关宏定义在兼容层中**均被删除**，涉及到：
+
+```c
+
+```
+
+
+
+## 2.4 运行
+
+### 2.4.1 手动初始化流程
+
+本兼容层完全兼容官方给出的标准初始化流程，如果您兼容老项目，μCOS-III初始化部分无需做任何修改。
+
+
+
+### 2.4.2 自动初始化流程
+
+如果您在应用层中不想手动初始化本兼容层，可以在`rtconfig.h`文件中定义`PKG_USING_UCOSII_WRAPPER_AUTOINIT`宏定义。请参见 [6.2.1章节](#6.2.1 Enable uCOS-III wrapper automatically init)（**如无特殊要求，建议采用该种方式**）。
+
+
+
+## 2.5 注意
+
+1. μCOS-II的任务堆栈大小单位是`sizeof(CPU_STK)`，而RT-Thread的线程堆栈大小单位是`sizeof(rt_uint8_t)`，虽然在兼容层已经做了转换，但是在填写时一定要注意，所有涉及到μCOS-II的API、宏定义全部是按照μCOS-II的标准，即堆栈大小为`sizeof(CPU_STK)`，**切勿混搭**！这种错误极其隐晦，一定要注意！**下面是混搭的错误示例**：</br>
+
+   ```c
+   ALIGN(RT_ALIGN_SIZE)
+   static rt_uint8_t thread2_stack[1024];//错误：混搭RT-Thread的数据类型定义线程堆栈
+   
+   OSTaskCreateExt(task,
+                   0,
+                   &task_stack[TASK_SIZE-1],
+                   TASK_PRIO,
+                   0,
+                   &task_stack[0],
+                   sizeof(thread2_stack),//任务堆栈大小(错误：这个参数的单位是sizeof(CPU_STK))
+                   0,
+                   OS_TASK_OPT_STK_CHK|OS_TASK_OPT_STK_CLR);
+   ```
+
+   **下面是正确写法**：</br>
+
+   ```c
+   #define THREAD_STACK_SIZE       256 //正确，要通过宏定义单独定义堆栈大小，单位为sizeof(CPU_STK)
+   ALIGN(RT_ALIGN_SIZE)
+       static CPU_STK thread2_stack[THREAD_STACK_SIZE];//正确，使用uCOS-III自己的数据类型定义任务堆栈
+   
+   OSTaskCreateExt(task,
+                   0,
+                   &task_stack[TASK_SIZE-1],
+                   TASK_PRIO,
+                   0,
+                   &task_stack[0],
+                   THREAD_STACK_SIZE,//任务堆栈大小(正确)
+                   0,
+                   OS_TASK_OPT_STK_CHK|OS_TASK_OPT_STK_CLR);
+   ```
+
+2. 本封装层文件内含有中文注释，编码格式**ANSI - GB2312**，并非UTF-8编码。
+
+
+
+
+
+# 3 接口
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # 7 友情链接
 
 ## 7.1 RT-Thread Nano移植教程
@@ -121,7 +223,7 @@ Keil工程路径：[rt-thread-3.1.3/bsp/stm32f103/Project.uvprojx](rt-thread-3.1
 
 ## 8.1 联系方式
 
-维护：Meco Man https://github.com/mysterywolf/
+维护：[Meco Man](https://github.com/mysterywolf/)
 
 联系方式：jiantingman@foxmail.com
 
