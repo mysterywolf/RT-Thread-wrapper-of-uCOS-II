@@ -148,7 +148,7 @@ Keil工程路径：[rt-thread-3.1.3/bsp/stm32f103/Project.uvprojx](rt-thread-3.1
    ```c
    #define THREAD_STACK_SIZE       256 //正确，要通过宏定义单独定义堆栈大小，单位为sizeof(CPU_STK)
    ALIGN(RT_ALIGN_SIZE)
-       static CPU_STK thread2_stack[THREAD_STACK_SIZE];//正确，使用uCOS-III自己的数据类型定义任务堆栈
+       static CPU_STK thread2_stack[THREAD_STACK_SIZE];//正确，使用uCOS-II自己的数据类型定义任务堆栈
    
    OSTaskCreateExt(task,
                    0,
@@ -169,17 +169,73 @@ Keil工程路径：[rt-thread-3.1.3/bsp/stm32f103/Project.uvprojx](rt-thread-3.1
 
 # 3 接口
 
+## 3.1 新增的API
+
+```c
+OS_EVENT  *OSMutexCreateEx (INT8U  *perr);
+OS_EVENT  *OSQCreateEx (INT16U    size);
+```
 
 
 
+## 3.2 没有实现兼容的API
+
+```c
+INT8U         OSTaskCreate            (void           (*task)(void *p_arg),
+                                       void            *p_arg,
+                                       OS_STK          *ptos,
+                                       INT8U            prio);
+```
 
 
 
+## 3.3 钩子函数
+
+**μCOS-II的钩子函数仅对μCOS-II兼容层负责。** 即如果你注册了`OSTaskDelHook`函数，他仅会在调用OSTaskDel函数时被调用，不会在调用`rt_thread_detach`函数时被调用(这个由RTT的钩子函数负责)。这样做是为了层次分明，防止μCOS-II兼容层插手RT-Thread内部事务。
+
+μCOS-II的钩子函数在两个文件中实现：`os_cpu_c.c`和`app_hooks.c` 。按照μCOS-II的思想，`os_cpu_c.c`提供原始的钩子函数（即这些钩子函数被相应的函数直接调用），该文件以及其内部的钩子函数是移植工程师编写的内容，应用工程师不应该操作这个文件的内容，`os_cpu_c.c`文件的钩子函数提供相应的函数指针供`app_hooks.c`文件内的钩子函数注册和使用，这个文件内的钩子函数应用工程师是可以操作的。换句话说，我们有什么需要在钩子函数中调用的函数，应该放在`app_hooks.c`文件中。
+
+以下原版μCOS-II钩子函数将予以取消，由RT-Thread接管相关钩子函数接管：
+
+```c
+void          OSTaskReturnHook          (OS_TCB *p_tcb);
+void          OSTaskSwHook              (void);
+void          OSTimeTickHook            (void);
+```
+
+​	同时，上述钩子函数对应的应用级钩子函数也被取消：
+
+```c
+void  App_TaskReturnHook (OS_TCB  *p_tcb);
+void  App_TaskSwHook (void);
+void  App_TimeTickHook (void);
+```
 
 
 
+## 3.4 统计任务（OS_TaskStat()）
+
+在μCOS-III中，统计任务是一个系统任务，通过`OS_TASK_STAT_EN`宏决定是否开启，可以在系统运行时做一些统计工作。CPU的利用率用一个0-100之间的整数表示（对应0% - 100%）。
+
+但是RT-Thread并没有统计任务，因此需要创建一个任务来兼容原版μCOS-II的统计任务，完成上述功能。该统计任务会在兼容层初始化时自动创建，用户无需干预。**用户仅需调用`OSCPUUsage`全局变量即可获取当前的CPU使用率，CPU使用率的计算策略和原版μCOS-II完全一致。**
 
 
+
+# 4 Env工具自动化配置到工程中
+
+## 4.1 配置方法
+
+uCOS-II兼容层在RT-Thread Nano版中需要手动添加到工程中，但如果使用RT-Thread完整版，则可以通过Env工具进行自动化添加到工程中。方法如下：
+
+```
+RT-Thread online packages
+    system packages --->
+        [*] Micrium: Micrium software products porting for RT-Thread --->
+            [*] uCOS-II Wrapper --->
+                [*]   Enable uCOS-II wrapper automatically init
+                [*]   Enable uCOS-II wrapper tiny mode
+                Version (latest)  --->
+```
 
 
 
