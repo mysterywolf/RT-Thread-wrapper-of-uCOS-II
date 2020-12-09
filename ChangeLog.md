@@ -125,6 +125,4 @@
 
 # TODO
 
-OSQPendAbort OSSemPendAbort函数需要做进一步检查
-
 检查OSTmrTime以及涉及到OS_TMR_CFG_TICKS_PER_SEC换算的问题

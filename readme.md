@@ -50,10 +50,10 @@ RT-Thread操作系统的μCOS-III兼容层：https://github.com/mysterywolf/RT-T
 
 ## 1.2 版本详细信息
 
-|    组件名称    | 版本号  |         配置文件          |                说明                 |
-| :------------: | :-----: | :-----------------------: | :---------------------------------: |
-| RT-Thread nano |  3.1.3  |        rtconfig.h         |                                     |
-|    μC/OS-II    | 2.93.00 | os_cfg.h<br />app_hooks.c | 兼容层兼容2.00-2.93全部μCOS-III版本 |
+|    组件名称    | 版本号  |         配置文件          |                说明                |
+| :------------: | :-----: | :-----------------------: | :--------------------------------: |
+| RT-Thread nano |  3.1.3  |        rtconfig.h         |                                    |
+|    μC/OS-II    | 2.93.00 | os_cfg.h<br />app_hooks.c | 兼容层兼容2.00-2.93全部μCOS-II版本 |
 
 
 
@@ -63,7 +63,7 @@ RT-Thread：https://www.rt-thread.org/
 文档中心：https://www.rt-thread.org/document/site/tutorial/nano/an0038-nano-introduction/
 
 μCOS-II：https://www.micrium.com/  
-文档中心：[µC/OS-II - µC/OS-II Documentation - Micrium Documentation](https://doc.micrium.com/pages/viewpage.action?pageId=10753158)
+文档中心：https://doc.micrium.com/pages/viewpage.action?pageId=10753158
 
 
 
@@ -81,7 +81,7 @@ Keil工程路径：[rt-thread-3.1.3/bsp/stm32f103/Project.uvprojx](rt-thread-3.1
 
 **注意：调试串口使用的是USART2，不是USART1**
 
-<img src="C:/Users/92036/Desktop/ucosiii/docs/pic/usart2.png" alt="usart2"  />
+<img src="docs\pic\usart2.png" alt="usart2"  />
 
 
 
@@ -114,7 +114,7 @@ Keil工程路径：[rt-thread-3.1.3/bsp/stm32f103/Project.uvprojx](rt-thread-3.1
 
 ### 2.4.1 手动初始化流程
 
-本兼容层完全兼容官方给出的标准初始化流程，如果您兼容老项目，μCOS-III初始化部分无需做任何修改。
+本兼容层完全兼容官方给出的标准初始化流程，如果您兼容老项目，μCOS-II初始化部分无需做任何修改。
 
 
 
@@ -221,6 +221,8 @@ void  App_TimeTickHook (void);
 
 
 
+
+
 # 4 Env工具自动化配置到工程中
 
 ## 4.1 配置方法
@@ -236,8 +238,6 @@ RT-Thread online packages
                 [*]   Enable uCOS-II wrapper tiny mode
                 Version (latest)  --->
 ```
-
-
 
 
 
@@ -303,4 +303,5 @@ RT-Thread online packages
 
 如果您喜欢本项目**可以在本页右上角点一下Star**，可以赏我五毛钱，用以满足我小小的虚荣心，并激励我继续维护好这个项目。
 
-<img src="C:/Users/92036/Desktop/ucosiii/docs/pic/donate.png" style="zoom: 67%;" />
+![donate](docs\pic\donate.png)
+

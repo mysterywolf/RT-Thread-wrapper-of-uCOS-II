@@ -12,9 +12,14 @@ static OS_EVENT *pSem;
 //task1 tx
 static void task1(void *p_arg)
 {
+//    INT8U err; 
+    
+//    OSTimeDly(1000);
+//    OSSemPendAbort(pSem, OS_PEND_OPT_BROADCAST, &err);
+    
     while(1)
     {
-        OSSemPost(pSem);
+        OSSemPost(pSem);  
         OSTimeDly(1000);
     }
 }
@@ -30,6 +35,10 @@ static void task2(void *p_arg)
         if(err == OS_ERR_NONE)
         {
             rt_kprintf("success!\r\n");
+        }
+        else if (err == OS_ERR_PEND_ABORT)
+        {
+            rt_kprintf("abort!\r\n");
         }
         else
         {
