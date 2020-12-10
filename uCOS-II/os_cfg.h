@@ -51,7 +51,7 @@
 
 #define OS_DEBUG_EN               0u   /* Enable(1) debug variables                                    */
 
-#define OS_EVENT_MULTI_EN         1u   /* Include code for OSEventPendMulti()                          */
+#define OS_EVENT_MULTI_EN         0u   /* Ö»¶Á Include code for OSEventPendMulti()                     */
 #define OS_EVENT_NAME_EN          1u   /* Enable names for Sem, Mutex, Mbox and Q                      */
 
 #define OS_LOWEST_PRIO    RT_THREAD_PRIORITY_MAX /* Ö»¶Á Defines the lowest priority that can be assigned...*/
@@ -95,8 +95,6 @@
 #define OS_FLAG_DEL_EN            0u   /*     Include code for OSFlagDel()                             */
 #define OS_FLAG_QUERY_EN          0u   /*     Include code for OSFlagQuery()                           */
 #define OS_FLAG_WAIT_CLR_EN       0u   /* Include code for Wait on Clear EVENT FLAGS                   */
-#define OS_FLAGS_NBITS           16u   /* Size in #bits of OS_FLAGS data type (8, 16 or 32)            */
-
 
                                        /* --------------------- MEMORY MANAGEMENT -------------------- */
 #define OS_MEM_EN                 1u   /* Enable (1) or Disable (0) code generation for MEMORY MANAGER */

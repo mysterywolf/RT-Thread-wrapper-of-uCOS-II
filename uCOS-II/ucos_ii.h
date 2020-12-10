@@ -1342,10 +1342,6 @@ rt_err_t      rt_mq_send_all            (rt_mq_t mq, void *buffer, rt_size_t siz
 #error  "OS_CFG.H, Missing OS_FLAG_EN: Enable (1) or Disable (0) code generation for Event Flags"
 #else
 
-    #ifndef OS_FLAGS_NBITS
-    #error  "OS_CFG.H, Missing OS_FLAGS_NBITS: Determine #bits used for event flags, MUST be either 8, 16 or 32"
-    #endif
-
     #ifndef OS_FLAG_WAIT_CLR_EN
     #error  "OS_CFG.H, Missing OS_FLAG_WAIT_CLR_EN: Include code for Wait on Clear EVENT FLAGS"
     #endif
