@@ -102,6 +102,16 @@ Keil工程路径：[rt-thread-3.1.3/bsp/stm32f103/Project.uvprojx](rt-thread-3.1
 
 ## 2.3 os_cfg.h配置文件
 
+ ```c
+#define  OS_TMR_CFG_TICKS_PER_SEC  10u   /* Rate at which timer management task runs (Hz) */
+ ```
+
+在原版μCOS-II中，该宏定义定义了软件定时器的时基信号，这与RT-Thread的软件定时器有本质的不同，在RT-Thread中，软件定时器的时基信号就等于OS Ticks。因此为了能够将μCOS-II软件定时器时间参数转为RT-Thread软件定时器的时间参数，需要用到该宏定义。请使该宏定义与原工程使用μCOS-II时的该宏定义参数一致。
+
+需要注意的是，虽然在兼容层中定义了软件定时器的时基频率，但是在兼容层内部使用的RT-Thread软件定时器的时基频率等同于OS Ticks，因此`OS_TMR`结构体的`.OSTmrMatch`和`.Remain`成员变量其保存的数值是以OS Ticks频率来计算的。
+
+
+
 由于兼容层采用rt-thread内核自带的堆内存分配方式，因此免去了原版uCOS-II中配置任务以及各内核对象内存池大小的步骤，遂上述相关宏定义在兼容层中**均被删除**，涉及到：
 
 ```c
@@ -120,7 +130,7 @@ Keil工程路径：[rt-thread-3.1.3/bsp/stm32f103/Project.uvprojx](rt-thread-3.1
 
 ### 2.4.2 自动初始化流程
 
-如果您在应用层中不想手动初始化本兼容层，可以在`rtconfig.h`文件中定义`PKG_USING_UCOSII_WRAPPER_AUTOINIT`宏定义。请参见 [6.2.1章节](#6.2.1 Enable uCOS-III wrapper automatically init)（**如无特殊要求，建议采用该种方式**）。
+如果您在应用层中不想手动初始化本兼容层，可以在`rtconfig.h`文件中定义`PKG_USING_UCOSII_WRAPPER_AUTOINIT`宏定义。请参见 [6.2.1章节](#6.2.1 Enable uCOS-II wrapper automatically init)（**如无特殊要求，建议采用该种方式**）。
 
 
 
@@ -215,7 +225,7 @@ void  App_TimeTickHook (void);
 
 ## 3.4 统计任务（OS_TaskStat()）
 
-在μCOS-III中，统计任务是一个系统任务，通过`OS_TASK_STAT_EN`宏决定是否开启，可以在系统运行时做一些统计工作。CPU的利用率用一个0-100之间的整数表示（对应0% - 100%）。
+在μCOS-II中，统计任务是一个系统任务，通过`OS_TASK_STAT_EN`宏决定是否开启，可以在系统运行时做一些统计工作。CPU的利用率用一个0-100之间的整数表示（对应0% - 100%）。
 
 但是RT-Thread并没有统计任务，因此需要创建一个任务来兼容原版μCOS-II的统计任务，完成上述功能。该统计任务会在兼容层初始化时自动创建，用户无需干预。**用户仅需调用`OSCPUUsage`全局变量即可获取当前的CPU使用率，CPU使用率的计算策略和原版μCOS-II完全一致。**
 

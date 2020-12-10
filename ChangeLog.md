@@ -125,4 +125,6 @@
 
 # TODO
 
-检查OSTmrTime以及涉及到OS_TMR_CFG_TICKS_PER_SEC换算的问题
+检查OSTmrTime以及涉及到OS_TMR_CFG_TICKS_PER_SEC换算的问题 内部单位不统一
+
+OSTCBCyclesTot OSTCBCyclesStart

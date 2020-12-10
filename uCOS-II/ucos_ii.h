@@ -382,44 +382,14 @@ typedef struct os_event {
 *********************************************************************************************************
 */
 
-#if (OS_FLAG_EN > 0u) && (OS_MAX_FLAGS > 0u)
-
-#if OS_FLAGS_NBITS == 8u                    /* Determine the size of OS_FLAGS (8, 16 or 32 bits)       */
-typedef  INT8U    OS_FLAGS;
-#endif
-
-#if OS_FLAGS_NBITS == 16u
-typedef  INT16U   OS_FLAGS;
-#endif
-
-#if OS_FLAGS_NBITS == 32u
-typedef  INT32U   OS_FLAGS;
-#endif
-
+#if (OS_FLAG_EN > 0u)
+typedef  rt_uint32_t   OS_FLAGS;
 
 typedef struct os_flag_grp {                /* Event Flag Group                                        */
-    INT8U         OSFlagType;               /* Should be set to OS_EVENT_TYPE_FLAG                     */
-    void         *OSFlagWaitList;           /* Pointer to first NODE of task waiting on event flag     */
-    OS_FLAGS      OSFlagFlags;              /* 8, 16 or 32 bit flags                                   */
-#if OS_FLAG_NAME_EN > 0u
-    INT8U        *OSFlagName;
-#endif
+    struct  rt_event  FlagGrp;              /* rt-thread event                                         */
+    OS_FLAGS      OSFlagFlags;              /* 32 bit flags                                            */
 } OS_FLAG_GRP;
 
-
-
-typedef struct os_flag_node {               /* Event Flag Wait List Node                               */
-    void         *OSFlagNodeNext;           /* Pointer to next     NODE in wait list                   */
-    void         *OSFlagNodePrev;           /* Pointer to previous NODE in wait list                   */
-    void         *OSFlagNodeTCB;            /* Pointer to TCB of waiting task                          */
-    void         *OSFlagNodeFlagGrp;        /* Pointer to Event Flag Group                             */
-    OS_FLAGS      OSFlagNodeFlags;          /* Event flag to wait on                                   */
-    INT8U         OSFlagNodeWaitType;       /* Type of wait:                                           */
-                                            /*      OS_FLAG_WAIT_AND                                   */
-                                            /*      OS_FLAG_WAIT_ALL                                   */
-                                            /*      OS_FLAG_WAIT_OR                                    */
-                                            /*      OS_FLAG_WAIT_ANY                                   */
-} OS_FLAG_NODE;
 #endif
 
 
@@ -567,10 +537,7 @@ typedef struct os_tcb {
     OS_EVENT        *OSTCBEventPtr;         /* Pointer to           event control block                */
 #endif
 
-#if (OS_FLAG_EN > 0u) && (OS_MAX_FLAGS > 0u)
-#if OS_TASK_DEL_EN > 0u
-    OS_FLAG_NODE    *OSTCBFlagNode;         /* Pointer to event flag node                              */
-#endif
+#if (OS_FLAG_EN > 0u)
     OS_FLAGS         OSTCBFlagsRdy;         /* Event flags that made task ready to run                 */
 #endif
 
@@ -782,7 +749,7 @@ void          OS_TLS_TaskSw           (void);
 *********************************************************************************************************
 */
 
-#if (OS_FLAG_EN > 0u) && (OS_MAX_FLAGS > 0u)
+#if (OS_FLAG_EN > 0u)
 
 #if OS_FLAG_ACCEPT_EN > 0u
 OS_FLAGS      OSFlagAccept            (OS_FLAG_GRP     *pgrp,
@@ -1229,9 +1196,8 @@ INT16U        OSVersion               (void);
 *********************************************************************************************************
 */
 
-#if (OS_FLAG_EN > 0u) && (OS_MAX_FLAGS > 0u)
+#if (OS_FLAG_EN > 0u)
 void          OS_FlagInit             (void);
-void          OS_FlagUnlink           (OS_FLAG_NODE    *pnode);
 #endif
 
 void          OS_MemClr               (INT8U           *pdest,
@@ -1390,10 +1356,6 @@ rt_err_t      rt_mq_send_all            (rt_mq_t mq, void *buffer, rt_size_t siz
 
     #ifndef OS_FLAG_DEL_EN
     #error  "OS_CFG.H, Missing OS_FLAG_DEL_EN: Include code for OSFlagDel()"
-    #endif
-
-    #ifndef OS_FLAG_NAME_EN
-    #error  "OS_CFG.H, Missing OS_FLAG_NAME_EN: Enable flag group names"
     #endif
 
     #ifndef OS_FLAG_QUERY_EN

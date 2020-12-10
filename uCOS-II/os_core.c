@@ -879,10 +879,6 @@ INT8U  OS_TCBInit (INT8U    prio,
         ptcb->OSTCBEventPtr      = (OS_EVENT  *)0;         /* Task is not pending on an  event         */
 #endif
 
-#if (OS_FLAG_EN > 0u) && (OS_MAX_FLAGS > 0u) && (OS_TASK_DEL_EN > 0u)
-        ptcb->OSTCBFlagNode      = (OS_FLAG_NODE *)0;      /* Task is not pending on an event flag     */
-#endif
-
 #if OS_TASK_PROFILE_EN > 0u
         ptcb->OSTCBCyclesStart   = 0uL;
         ptcb->OSTCBCyclesTot     = 0uL;
