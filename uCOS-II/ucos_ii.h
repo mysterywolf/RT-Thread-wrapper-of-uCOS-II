@@ -386,7 +386,7 @@ typedef struct os_event {
 typedef  rt_uint32_t   OS_FLAGS;
 
 typedef struct os_flag_grp {                /* Event Flag Group                                        */
-    struct  rt_event  FlagGrp;              /* rt-thread event                                         */
+    rt_event_t    pFlagGrp;                 /* rt-thread event                                         */
     OS_FLAGS      OSFlagFlags;              /* 32 bit flags                                            */
 } OS_FLAG_GRP;
 

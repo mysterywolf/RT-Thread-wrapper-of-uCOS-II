@@ -93,7 +93,7 @@
 #endif
 #define OS_FLAG_ACCEPT_EN         0u   /*     Include code for OSFlagAccept()                          */
 #define OS_FLAG_DEL_EN            0u   /*     Include code for OSFlagDel()                             */
-#define OS_FLAG_QUERY_EN          0u   /*     Include code for OSFlagQuery()                           */
+#define OS_FLAG_QUERY_EN          1u   /*     Include code for OSFlagQuery()                           */
 #define OS_FLAG_WAIT_CLR_EN       0u   /* Include code for Wait on Clear EVENT FLAGS                   */
 
                                        /* --------------------- MEMORY MANAGEMENT -------------------- */

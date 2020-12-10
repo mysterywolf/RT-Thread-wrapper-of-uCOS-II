@@ -19,6 +19,7 @@ void timer_example (void);
 void sem_example (void);
 void mutex_example (void);
 void messagequeue_example (void);
+void flag_example (void);
 
 int main(void)/*RT-Thread main线程*/
 {
@@ -33,5 +34,6 @@ int main(void)/*RT-Thread main线程*/
 //    timer_example(); 
 //    sem_example();   
 //    mutex_example();
-    messagequeue_example();
+//    messagequeue_example();
+    flag_example();
 }
