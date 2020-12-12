@@ -547,6 +547,11 @@
               <FilePath>..\..\..\uCOS-II\os_task.c</FilePath>
             </File>
             <File>
+              <FileName>os_flag.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\uCOS-II\os_flag.c</FilePath>
+            </File>
+            <File>
               <FileName>os_time.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\uCOS-II\os_time.c</FilePath>
@@ -585,6 +590,11 @@
               <FileName>timer_example.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\examples\timer_example.c</FilePath>
+            </File>
+            <File>
+              <FileName>flag_example.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\examples\flag_example.c</FilePath>
             </File>
           </Files>
         </Group>

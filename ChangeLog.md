@@ -113,6 +113,15 @@
 
 - 增加SConscript脚本
 
+### 2020-12-11
+
+- 实现`OSFlagCreate()`、`OSFlagPendGetFlagsRdy()`、`OSFlagQuery()`函数
+
+
+### 2020-12-12
+
+- 完成事件标志组的兼容
+
 
 
 # Release

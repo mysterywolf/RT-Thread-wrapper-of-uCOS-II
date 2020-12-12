@@ -162,7 +162,11 @@ OS_EVENT  *OSQCreate (void    **start,
 
     pevent->ipc_ptr = (struct rt_ipc_object *)   /* invoke rt-thread API to create message queue       */
         rt_mq_create("uCOS-II", sizeof(rt_ubase_t), size, RT_IPC_FLAG_FIFO);
-
+    if(!pevent->ipc_ptr) {
+        RT_KERNEL_FREE(pevent);
+        return ((OS_EVENT *)0);
+    }
+    
     return (pevent);
 }
 

@@ -91,10 +91,10 @@
 #else
 #define OS_FLAG_EN                0u   /* Ö»¶Á Enable (1) or Disable (0) code generation for EVENT FLAGS*/
 #endif
-#define OS_FLAG_ACCEPT_EN         0u   /*     Include code for OSFlagAccept()                          */
-#define OS_FLAG_DEL_EN            0u   /*     Include code for OSFlagDel()                             */
+#define OS_FLAG_ACCEPT_EN         1u   /*     Include code for OSFlagAccept()                          */
+#define OS_FLAG_DEL_EN            1u   /*     Include code for OSFlagDel()                             */
 #define OS_FLAG_QUERY_EN          1u   /*     Include code for OSFlagQuery()                           */
-#define OS_FLAG_WAIT_CLR_EN       0u   /* Include code for Wait on Clear EVENT FLAGS                   */
+#define OS_FLAG_WAIT_CLR_EN       1u   /* Include code for Wait on Clear EVENT FLAGS                   */
 
                                        /* --------------------- MEMORY MANAGEMENT -------------------- */
 #define OS_MEM_EN                 1u   /* Enable (1) or Disable (0) code generation for MEMORY MANAGER */
