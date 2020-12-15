@@ -633,7 +633,7 @@ OS_EXT  OS_STK            OSTaskStatStk[OS_TASK_STAT_STK_SIZE];      /* Statisti
 
 #define OSLockNesting     rt_critical_level()       /* Multitasking lock nesting level                 */
 
-//OS_EXT  INT8U             OSPrioCur;                /* Priority of current task                        */
+#define OSPrioCur do{rt_thread_self()->current_priority}while(0) /* Priority of current task           */
 //OS_EXT  INT8U             OSPrioHighRdy;            /* Priority of highest priority task               */
 
 OS_EXT  BOOLEAN           OSRunning;                       /* Flag indicating that kernel is running   */
@@ -641,14 +641,14 @@ OS_EXT  BOOLEAN           OSRunning;                       /* Flag indicating th
 OS_EXT  INT8U             OSTaskCtr;                       /* Number of tasks created                  */
 
 #if OS_TASK_STAT_EN > 0u
-OS_EXT  volatile  INT32U  OSIdleCtr;                                 /* Idle counter                   */
+OS_EXT  volatile  INT32U  OSIdleCtr;                       /* Idle counter                             */
 #endif
 
 #ifdef OS_SAFETY_CRITICAL_IEC61508
 OS_EXT  BOOLEAN           OSSafetyCriticalStartFlag;
 #endif
 
-#define OSTCBCur         ((OS_TCB*)rt_thread_self())                        /* Pointer to currently running TCB         */
+#define OSTCBCur         ((OS_TCB*)rt_thread_self())       /* Pointer to currently running TCB         */
 OS_EXT  OS_TCB           *OSTCBFreeList;                   /* Pointer to list of free TCBs             */
 OS_EXT  OS_TCB           *OSTCBList;                       /* Pointer to doubly linked list of TCBs    */
 OS_EXT  OS_TCB           *OSTCBPrioTbl[OS_LOWEST_PRIO + 1u];    /* Table of pointers to created TCBs   */

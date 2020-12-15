@@ -122,6 +122,12 @@
 
 - 完成事件标志组的兼容
 
+### 2020-12-16
+
+- 修复`OSTmrRemainGet()`函数返回结果单位不一致的问题
+- 修复`OS_TMR`结构体`.OSTmrMatch`成员变量数值单位不一致的问题
+- 修复从RT-Thread到uCOS-II定时器换算公式没有考虑到Systick变化的问题
+
 
 
 # Release
@@ -133,7 +139,5 @@
 
 
 # TODO
-
-检查OSTmrTime以及涉及到OS_TMR_CFG_TICKS_PER_SEC换算的问题 内部单位不统一
 
 OSTCBCyclesTot OSTCBCyclesStart

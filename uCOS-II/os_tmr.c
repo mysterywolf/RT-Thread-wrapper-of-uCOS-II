@@ -150,12 +150,12 @@ OS_TMR  *OSTmrCreate (INT32U           dly,
     if(opt == OS_TMR_OPT_ONE_SHOT)
     {
         rt_flag = RT_TIMER_FLAG_ONE_SHOT|RT_TIMER_FLAG_SOFT_TIMER;
-        time = dly * (1000 / OS_TMR_CFG_TICKS_PER_SEC);     /* RTT和uCOS-III在定时器时钟源的设计不同,需要进行转换     */
+        time = dly * (OS_TICKS_PER_SEC / OS_TMR_CFG_TICKS_PER_SEC);     /* RTT和uCOS-III在定时器时钟源的设计不同,需要进行转换     */
     }
     else if(opt == OS_TMR_OPT_PERIODIC)
     {
         rt_flag = RT_TIMER_FLAG_PERIODIC|RT_TIMER_FLAG_SOFT_TIMER;     
-        time = period * (1000 / OS_TMR_CFG_TICKS_PER_SEC);
+        time = period * (OS_TICKS_PER_SEC / OS_TMR_CFG_TICKS_PER_SEC);
     }
     
     ptmr = RT_KERNEL_MALLOC(sizeof(OS_TMR));                /* malloc OS_TMR                                          */
@@ -183,7 +183,7 @@ OS_TMR  *OSTmrCreate (INT32U           dly,
     OSSchedUnlock();
     
     if(opt == OS_TMR_OPT_PERIODIC && dly != 0) {            /* 带有延迟的周期性延时                                   */
-        time2 = dly * (1000 / OS_TMR_CFG_TICKS_PER_SEC);
+        time2 = dly * (OS_TICKS_PER_SEC / OS_TMR_CFG_TICKS_PER_SEC);
         rt_timer_init(&ptmr->OSTmr, (const char*)pname,     /* invoke rt_timer_create to create a timer               */
             OS_TmrCallback, ptmr, time2, RT_TIMER_FLAG_ONE_SHOT|RT_TIMER_FLAG_SOFT_TIMER);
     }
@@ -386,6 +386,7 @@ INT32U  OSTmrRemainGet (OS_TMR  *ptmr,
         case OS_TMR_STATE_RUNNING:
              ptmr->OSTmrMatch = ptmr->OSTmr.timeout_tick;
              remain = ptmr->OSTmrMatch - OSTmrTime;    /* Determine how much time is left to timeout                  */
+             remain = remain / (OS_TICKS_PER_SEC / OS_TMR_CFG_TICKS_PER_SEC); /* translate from rt-thread to ucos     */
              OSSchedUnlock();
              *perr  = OS_ERR_NONE;
              return (remain);
@@ -723,7 +724,7 @@ static void OS_TmrCallback(void *p_ara)
     if(ptmr->OSTmrOpt == OS_TMR_OPT_PERIODIC && ptmr->_dly != 0)
     {
         ptmr->_dly = 0;
-        ptmr->OSTmr.init_tick = ptmr->OSTmrPeriod * (1000 / OS_TMR_CFG_TICKS_PER_SEC);
+        ptmr->OSTmr.init_tick = ptmr->OSTmrPeriod * (OS_TICKS_PER_SEC / OS_TMR_CFG_TICKS_PER_SEC);
         ptmr->OSTmr.timeout_tick = rt_tick_get() + ptmr->OSTmr.init_tick;
         ptmr->OSTmr.parent.flag |= RT_TIMER_FLAG_PERIODIC;       /* 定时器设置为周期模式                    */        
         ptmr->OSTmrMatch = rt_tick_get() + ptmr->OSTmr.init_tick;/* 重新设定下一次定时器的参数              */

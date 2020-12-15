@@ -101,7 +101,7 @@ INT8U  OSTaskChangePrio (INT8U  oldprio,
 
     ptcb->OSTCBPrio = newprio;                              /* Set new task priority                   */
     OS_EXIT_CRITICAL();
-    
+
     rt_thread_control(&(ptcb->OSTask), RT_THREAD_CTRL_CHANGE_PRIORITY, &newprio);
     
     if (OSRunning == OS_TRUE) {
