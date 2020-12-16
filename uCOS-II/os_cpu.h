@@ -26,19 +26,8 @@
 /*
 *********************************************************************************************************
 *
-*                                             ARMv7-M Port
-*
 * Filename  : os_cpu.h
 * Version   : V2.93.00
-*********************************************************************************************************
-* For       : ARMv7-M Cortex-M
-* Mode      : Thumb-2 ISA
-* Toolchain : ARM C Compiler
-*********************************************************************************************************
-* Note(s)   : (1) This port supports the ARM Cortex-M3, Cortex-M4 and Cortex-M7 architectures.
-*             (2) It has been tested with the following Hardware Floating Point Unit.
-*                 (a) Single-precision: FPv4-SP-D16-M and FPv5-SP-D16-M
-*                 (b) Double-precision: FPv5-D16-M
 *********************************************************************************************************
 */
 
@@ -89,7 +78,6 @@ typedef rt_ubase_t     OS_CPU_SR;                /* Define size of CPU status re
 
 /*
 *********************************************************************************************************
-*                                              Cortex-M
 *                                      Critical Section Management
 *
 * Method #1:  Disable/Enable interrupts using simple instructions.  After critical section, interrupts
@@ -122,7 +110,7 @@ typedef rt_ubase_t     OS_CPU_SR;                /* Define size of CPU status re
 
 /*
 *********************************************************************************************************
-*                                        Cortex-M Miscellaneous
+*                                           Miscellaneous
 *********************************************************************************************************
 */
 #if defined(ARCH_CPU_STACK_GROWS_UPWARD)
