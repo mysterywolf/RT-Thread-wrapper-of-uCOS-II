@@ -175,14 +175,21 @@ Keil工程路径：[rt-thread-3.1.3/bsp/stm32f103/Project.uvprojx](rt-thread-3.1
 
 ## 3.1 新增的API
 
+额外实现`OSMutexCreateEx()`函数，该函数并不在uCOS-II原版的函数中，`OSMutexCreate()`函数中第一个参数`prio`在兼容层中没有任何意义，因此该函数将`OSMutexCreate()`函数中的第一个参数略去，以方便用户使用。原因是由于uCOS-II的实现方式过于落后，不支持相同任务在同一优先级。推荐用户使用这个API：
+
 ```c
 OS_EVENT  *OSMutexCreateEx (INT8U  *perr);
+```
+
+额外实现`OSQCreateEx()`函数，该函数并不在uCOS-II原版的函数中，`OSQCreateEx()`函数中第一个参数`size`在本兼容层中没有意义，因此该函数将`OSQCreateEx()`函数中的第一个参数略去，以方便用户使用。推荐用户使用这个API：
+
+```c
 OS_EVENT  *OSQCreateEx (INT16U    size);
 ```
 
 
 
-## 3.2 没有实现兼容的API
+## 3.2 没有实现兼容的API (仅1个)
 
 ```c
 INT8U         OSTaskCreate            (void           (*task)(void *p_arg),
