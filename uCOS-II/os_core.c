@@ -244,10 +244,6 @@ void  OSInit (void)
     OS_InitTaskStat();                                           /* Create the Statistic Task                */
 #endif
 
-#if OS_TMR_EN > 0u
-    OSTmr_Init();                                                /* Initialize the Timer Manager             */
-#endif
-
 #if OS_CPU_HOOKS_EN > 0u
     OSInitHookEnd();                                             /* Call port specific init. code            */
 #endif
@@ -880,8 +876,6 @@ INT8U  OS_TCBInit (INT8U    prio,
 #endif
 
 #if OS_TASK_PROFILE_EN > 0u
-        ptcb->OSTCBCyclesStart   = 0uL;
-        ptcb->OSTCBCyclesTot     = 0uL;
         ptcb->OSTCBStkBase       = (OS_STK *)0;
         ptcb->OSTCBStkUsed       = 0uL;
 #endif

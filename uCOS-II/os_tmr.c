@@ -682,24 +682,6 @@ BOOLEAN  OSTmrStop (OS_TMR  *ptmr,
 
 
 /*
-*********************************************************************************************************
-*                                                    INITIALIZATION
-*                                          INITIALIZE THE FREE LIST OF TIMERS
-*
-* Description: This function is called by OSInit() to initialize the free list of OS_TMRs.
-*
-* Arguments  : none
-*
-* Returns    : none
-*********************************************************************************************************
-*/
-
-void  OSTmr_Init (void)
-{
-    /*nothing to do*/
-}
-
-/*
 ************************************************************************************************************************
 *                                                   内部回调函数
 *

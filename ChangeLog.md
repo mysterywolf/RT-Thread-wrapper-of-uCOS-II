@@ -128,6 +128,11 @@
 - 修复`OS_TMR`结构体`.OSTmrMatch`成员变量数值单位不一致的问题
 - 修复从RT-Thread到uCOS-II定时器换算公式没有考虑到Systick变化的问题
 
+### 2020-12-17
+
+- 整理代码
+- 实现`.OSTCBFlagsRdy`成员变量
+
 
 
 # Release
@@ -138,6 +143,13 @@
 
 
 
+## v0.2.0
+
+**[add]** 实现`.OSTCBFlagsRdy`成员变量
+
+
+
+
+
 # TODO
 
-OSTCBCyclesTot OSTCBCyclesStart

@@ -155,14 +155,14 @@ INT8U  OSTaskChangePrio (INT8U  oldprio,
 */
 
 #if OS_TASK_CREATE_EN > 0u
-//INT8U  OSTaskCreate (void   (*task)(void *p_arg),
-//                     void    *p_arg,
-//                     OS_STK  *ptos,
-//                     INT8U    prio)
-//{
-//    /*TODO*/
-//    return OS_ERR_TASK_NO_MORE_TCB;
-//}
+INT8U  OSTaskCreate (void   (*task)(void *p_arg),
+                     void    *p_arg,
+                     OS_STK  *ptos,
+                     INT8U    prio)
+{
+    /*TODO*/
+    return OS_ERR_TASK_NO_MORE_TCB;
+}
 #endif
 
 
@@ -298,7 +298,7 @@ INT8U  OSTaskCreateExt (void   (*task)(void *p_arg),
         return (err); 
     }
 
-    snprintf(name,RT_NAME_MAX,"uCTask%02d",prio);
+    rt_snprintf(name,RT_NAME_MAX,"uCTask%02d",prio);
     rt_thread_init(&ptcb->OSTask,name,task,p_arg,convert,stk_size*sizeof(OS_STK),prio,0);
     rt_thread_startup(&ptcb->OSTask);        /*start the task                                          */
 

@@ -576,6 +576,7 @@ OS_FLAGS  OSFlagPend (OS_FLAG_GRP  *pgrp,
     OSTCBCur->OSTCBStat     |= OS_STAT_FLAG;          /* Resource not available, pend on semaphore     */
     OSTCBCur->OSTCBStatPend  = OS_STAT_PEND_OK;
     OSTCBCur->OSTCBDly       = timeout;               /* Store pend timeout in TCB                     */
+    OSTCBCur->OSTCBFlagsRdy  = rt_thread_self()->event_set;
     OS_EXIT_CRITICAL();
 
     if(timeout) {                                     /* 0ÎªÓÀ¾ÃµÈ´ý                                   */
@@ -599,6 +600,7 @@ OS_FLAGS  OSFlagPend (OS_FLAG_GRP  *pgrp,
     }
 
     OS_ENTER_CRITICAL();
+    OSTCBCur->OSTCBFlagsRdy      = rt_thread_self()->event_set;
     OSTCBCur->OSTCBStat          =  OS_STAT_RDY;      /* Set   task  status to ready                   */
     OS_EXIT_CRITICAL();
 
@@ -630,6 +632,7 @@ OS_FLAGS  OSFlagPendGetFlagsRdy (void)
 
     OS_ENTER_CRITICAL();
     flags = rt_thread_self()->event_set;
+    OSTCBCur->OSTCBFlagsRdy = flags;
     OS_EXIT_CRITICAL();
     return (flags);
 }
@@ -715,6 +718,7 @@ OS_FLAGS  OSFlagPost (OS_FLAG_GRP  *pgrp,
     }
 
     OS_ENTER_CRITICAL();
+    OSTCBCur->OSTCBFlagsRdy = rt_thread_self()->event_set;
     flags = pgrp->pFlagGrp->set;
     OS_EXIT_CRITICAL();
     return (flags);

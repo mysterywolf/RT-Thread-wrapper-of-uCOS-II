@@ -54,7 +54,6 @@ extern "C" {
 #include "os_cfg.h"
 #include "os_cpu.h"
 #include <rtthread.h>
-#include <stdio.h>
 
 /*
 *********************************************************************************************************
@@ -551,8 +550,6 @@ typedef struct os_tcb {
 #endif
 
 #if OS_TASK_PROFILE_EN > 0u
-    INT32U           OSTCBCyclesTot;        /* Total number of clock cycles the task has been running  */
-    INT32U           OSTCBCyclesStart;      /* Snapshot of cycle counter at start of task resumption   */
     OS_STK          *OSTCBStkBase;          /* Pointer to the beginning of the task stack              */
     INT32U           OSTCBStkUsed;          /* Number of bytes used from the stack                     */
 #endif
@@ -1196,10 +1193,6 @@ INT16U        OSVersion               (void);
 *********************************************************************************************************
 */
 
-#if (OS_FLAG_EN > 0u)
-void          OS_FlagInit             (void);
-#endif
-
 void          OS_MemClr               (INT8U           *pdest,
                                        INT16U           size);
 
@@ -1211,10 +1204,6 @@ void          OS_MemCopy              (INT8U           *pdest,
 void          OS_MemInit              (void);
 #endif
 
-#if OS_Q_EN > 0u
-void          OS_QInit                (void);
-#endif
-
 void          OS_Sched                (void);
 
 #if (OS_EVENT_NAME_EN > 0u) || (OS_FLAG_NAME_EN > 0u) || (OS_MEM_NAME_EN > 0u) || (OS_TASK_NAME_EN > 0u)
@@ -1223,16 +1212,8 @@ INT8U         OS_StrLen               (INT8U           *psrc);
 
 void          OS_TaskIdle             (void);
 
-void          OS_TaskReturn           (void);
-
 #if OS_TASK_STAT_EN > 0u
 void          OS_TaskStat             (void            *p_arg);
-#endif
-
-#if (OS_TASK_STAT_STK_CHK_EN > 0u) && (OS_TASK_CREATE_EXT_EN > 0u)
-void          OS_TaskStkClr           (OS_STK          *pbos,
-                                       INT32U           size,
-                                       INT16U           opt);
 #endif
 
 #if (OS_TASK_STAT_STK_CHK_EN > 0u) && (OS_TASK_CREATE_EXT_EN > 0u)
@@ -1247,10 +1228,6 @@ INT8U         OS_TCBInit              (INT8U            prio,
                                        void            *pext,
                                        INT16U           opt,
                                        OS_TCB         **pptcb);
-
-#if OS_TMR_EN > 0u
-void          OSTmr_Init              (void);
-#endif
 
 
 /*
