@@ -91,7 +91,7 @@ Keil工程路径：[rt-thread-3.1.3/bsp/stm32f103/Project.uvprojx](rt-thread-3.1
 
 ## 2.2 迁移步骤
 
-**（如果使用的是RT-Thread Nano版请参见以下步骤；若使用RT-Thread完整版可以直接跳转至[Env工具自动化配置到工程中](#6 Env工具自动化配置到工程中)章节）**
+**（如果使用的是RT-Thread Nano版请参见以下步骤；若使用RT-Thread完整版可以直接跳转至[Env工具自动化配置到工程中](#4 Env工具自动化配置到工程中)章节）**
 
 1. 将uCOS-II文件夹内的所有文件都加入到你的工程中，最好保持原有文件夹的结构。相较于原版μCOS-II增加了`os_rtwrap.c`文件，负责对RT-Thread和μCOS-II的转换提供支持。
 2. 配置`os_cfg.h`  
@@ -240,6 +240,125 @@ void  App_TimeTickHook (void);
 
 
 
+## 3.5 任务控制块、内核对象控制块（结构体）
+
+本兼容层尽可能的兼容任务、内核对象控制块（结构体）的每个成员变量，确保迁移过来的老程序如果直接访问这些结构体的成员变量也是可以直接运行，无需做修改的（尽管直接访问结构体的成员变量μCOS-II官方并不建议甚至十分反对）。
+
+例如，`OS_TCB`结构体的各个成员变量如下，可以看到，其包含了原版绝大多数成员变量。如果不用兼容原版成员变量，可以定义宏`PKG_USING_UCOSII_WRAPPER_TINY`，可以看到`OS_TCB`结构体大幅度缩减。也可以将`OS_TASK_PROFILE_EN`、 `OS_TASK_NAME_EN` 、`OS_CFG_TASK_REG_TBL_SIZE` 关闭以进一步裁剪。
+
+```c
+typedef struct os_tcb {
+    struct rt_thread OSTask;
+    OS_STK          *OSTCBStkPtr;           /* Pointer to current top of stack                         */
+
+#if OS_TASK_CREATE_EXT_EN > 0u
+    void            *OSTCBExtPtr;           /* Pointer to user definable data for TCB extension        */
+    OS_STK          *OSTCBStkBottom;        /* Pointer to bottom of stack                              */
+    INT32U           OSTCBStkSize;          /* Size of task stack (in number of stack elements)        */
+    INT16U           OSTCBOpt;              /* Task options as passed by OSTaskCreateExt()             */
+    INT16U           OSTCBId;               /* Task ID (0..65535)                                      */
+#endif
+
+    struct os_tcb   *OSTCBNext;             /* Pointer to next     TCB in the TCB list                 */
+    struct os_tcb   *OSTCBPrev;             /* Pointer to previous TCB in the TCB list                 */
+
+#if OS_TASK_CREATE_EXT_EN > 0u
+#if defined(OS_TLS_TBL_SIZE) && (OS_TLS_TBL_SIZE > 0u)
+    OS_TLS           OSTCBTLSTbl[OS_TLS_TBL_SIZE];
+#endif
+#endif
+
+#ifndef PKG_USING_UCOSII_WRAPPER_TINY
+#if (OS_EVENT_EN)
+    OS_EVENT        *OSTCBEventPtr;         /* Pointer to           event control block                */
+#endif
+#if (OS_FLAG_EN > 0u)
+    OS_FLAGS         OSTCBFlagsRdy;         /* Event flags that made task ready to run                 */
+#endif
+    INT32U           OSTCBDly;              /* Nbr ticks to delay task or, timeout waiting for event   */
+#endif
+    INT8U            OSTCBStat;             /* Task      status                                        */
+    INT8U            OSTCBStatPend;         /* Task PEND status                                        */
+    INT8U            OSTCBPrio;             /* Task priority (0 == highest)                            */
+
+#if OS_TASK_DEL_EN > 0u
+    INT8U            OSTCBDelReq;           /* Indicates whether a task needs to delete itself         */
+#endif
+
+#if OS_TASK_PROFILE_EN > 0u
+    OS_STK          *OSTCBStkBase;          /* Pointer to the beginning of the task stack              */
+    INT32U           OSTCBStkUsed;          /* Number of bytes used from the stack                     */
+#endif
+
+#if OS_TASK_NAME_EN > 0u
+    INT8U           *OSTCBTaskName;
+#endif
+
+#if OS_TASK_REG_TBL_SIZE > 0u
+    INT32U           OSTCBRegTbl[OS_TASK_REG_TBL_SIZE];
+#endif
+} OS_TCB;
+```
+
+
+
+## 3.6 全局变量
+
+目前，本兼容层可以使用以下μCOS-II原版全局变量（位于`ucos_ii.h`）。这些全局变量的具体含义请参见[2.2节](#2.2 迁移步骤)中所列举出的参考资料。
+
+```c
+#if OS_TASK_STAT_EN > 0u
+OS_EXT  INT8U             OSCPUUsage;               /* Percentage of CPU used                          */
+OS_EXT  INT32U            OSIdleCtrMax;             /* Max. value that idle ctr can take in 1 sec.     */
+OS_EXT  INT32U            OSIdleCtrRun;             /* Val. reached by idle ctr at run time in 1 sec.  */
+OS_EXT  BOOLEAN           OSStatRdy;                /* Flag indicating that the statistic task is rdy  */
+OS_EXT  OS_STK            OSTaskStatStk[OS_TASK_STAT_STK_SIZE];      /* Statistics task stack          */
+#endif
+
+#define OSIntNesting      rt_interrupt_get_nest()   /* Interrupt nesting level                         */
+
+#define OSLockNesting     rt_critical_level()       /* Multitasking lock nesting level                 */
+
+#define OSPrioCur rt_thread_self()->current_priority       /* Priority of current task                 */
+
+OS_EXT  BOOLEAN           OSRunning;                       /* Flag indicating that kernel is running   */
+
+OS_EXT  INT8U             OSTaskCtr;                       /* Number of tasks created                  */
+
+#if OS_TASK_STAT_EN > 0u
+OS_EXT  volatile  INT32U  OSIdleCtr;                       /* Idle counter                             */
+#endif
+
+#ifdef OS_SAFETY_CRITICAL_IEC61508
+OS_EXT  BOOLEAN           OSSafetyCriticalStartFlag;
+#endif
+
+#define OSTCBCur         ((OS_TCB*)rt_thread_self())       /* Pointer to currently running TCB         */
+OS_EXT  OS_TCB           *OSTCBFreeList;                   /* Pointer to list of free TCBs             */
+OS_EXT  OS_TCB           *OSTCBList;                       /* Pointer to doubly linked list of TCBs    */
+OS_EXT  OS_TCB           *OSTCBPrioTbl[OS_LOWEST_PRIO + 1u];    /* Table of pointers to created TCBs   */
+OS_EXT  OS_TCB            OSTCBTbl[OS_MAX_TASKS + OS_N_SYS_TASKS];   /* Table of TCBs                  */
+
+#if (OS_MEM_EN > 0u) && (OS_MAX_MEM_PART > 0u)
+OS_EXT  OS_MEM           *OSMemFreeList;            /* Pointer to free list of memory partitions       */
+OS_EXT  OS_MEM            OSMemTbl[OS_MAX_MEM_PART];/* Storage for memory partition manager            */
+#endif
+
+#if OS_TASK_REG_TBL_SIZE > 0u
+OS_EXT  INT8U             OSTaskRegNextAvailID;     /* Next available Task register ID                 */
+#endif
+
+#if OS_TIME_GET_SET_EN > 0u
+#define   OSTime          rt_tick_get()             /* Current value of system time (in ticks)         */
+#endif
+
+#if OS_TMR_EN > 0u
+#define   OSTmrTime       rt_tick_get()             /* Current timer time                              */
+#endif
+```
+
+
+
 
 
 # 4 Env工具自动化配置到工程中
@@ -301,6 +420,8 @@ INIT_PREV_EXPORT(rt_ucosii_autoinit);
 ### 4.2.2 Enable uCOS-II wrapper tiny mode 
 
 如果你在使用过程中不需要兼容任务/内核对象结构体的成员变量，可使能该选项。ENV将自动在`rtconfig.h`文件中定义`PKG_USING_UCOSII_WRAPPER_TINY`宏定义。该模式可满足所有API的基本兼容需求，**建议勾选该选项**。
+
+
 
 
 
