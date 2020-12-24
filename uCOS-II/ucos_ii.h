@@ -532,15 +532,15 @@ typedef struct os_tcb {
 #endif
 #endif
 
+#ifndef PKG_USING_UCOSII_WRAPPER_TINY
 #if (OS_EVENT_EN)
     OS_EVENT        *OSTCBEventPtr;         /* Pointer to           event control block                */
 #endif
-
 #if (OS_FLAG_EN > 0u)
     OS_FLAGS         OSTCBFlagsRdy;         /* Event flags that made task ready to run                 */
 #endif
-
     INT32U           OSTCBDly;              /* Nbr ticks to delay task or, timeout waiting for event   */
+#endif
     INT8U            OSTCBStat;             /* Task      status                                        */
     INT8U            OSTCBStatPend;         /* Task PEND status                                        */
     INT8U            OSTCBPrio;             /* Task priority (0 == highest)                            */

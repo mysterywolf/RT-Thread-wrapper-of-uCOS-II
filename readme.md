@@ -300,13 +300,7 @@ INIT_PREV_EXPORT(rt_ucosii_autoinit);
 
 ### 4.2.2 Enable uCOS-II wrapper tiny mode 
 
-如果你在使用过程中不需要兼容任务/内核对象结构体的成员变量，可使能该选项。ENV将自动在`rtconfig.h`文件中定义`PKG_USING_UCOSII_WRAPPER_TINY`宏定义。以`OS_SEM`结构体为例：
-
-```c
-目前尚未实现该功能
-```
-
-可以看到，在定义`PKG_USING_UCOSII_WRAPPER_TINY`后，`OS_SEM`结构体得到了大幅度精简。该模式可满足所有API的基本兼容需求，**建议勾选该选项**。
+如果你在使用过程中不需要兼容任务/内核对象结构体的成员变量，可使能该选项。ENV将自动在`rtconfig.h`文件中定义`PKG_USING_UCOSII_WRAPPER_TINY`宏定义。该模式可满足所有API的基本兼容需求，**建议勾选该选项**。
 
 
 

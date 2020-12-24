@@ -323,8 +323,10 @@ void  OSSemPend (OS_EVENT  *pevent,
     OS_ENTER_CRITICAL();                              /* Otherwise, must wait until event occurs       */
     OSTCBCur->OSTCBStat     |= OS_STAT_SEM;           /* Resource not available, pend on semaphore     */
     OSTCBCur->OSTCBStatPend  = OS_STAT_PEND_OK;
+#ifndef PKG_USING_UCOSII_WRAPPER_TINY
     OSTCBCur->OSTCBDly       = timeout;               /* Store pend timeout in TCB                     */
     OSTCBCur->OSTCBEventPtr  = pevent;
+#endif
     OS_EXIT_CRITICAL();
 
     if(timeout) {                                     /* 0ÎªÓÀ¾ÃµÈ´ý                                   */
@@ -362,7 +364,9 @@ void  OSSemPend (OS_EVENT  *pevent,
     }
     OSTCBCur->OSTCBStat          =  OS_STAT_RDY;      /* Set   task  status to ready                   */
     OSTCBCur->OSTCBStatPend      =  OS_STAT_PEND_OK;  /* Clear pend  status                            */
+#ifndef PKG_USING_UCOSII_WRAPPER_TINY
     OSTCBCur->OSTCBEventPtr      = (OS_EVENT  *)0;    /* Clear event pointers                          */
+#endif
     OS_EXIT_CRITICAL();
 }
 

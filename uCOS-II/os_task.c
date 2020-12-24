@@ -389,8 +389,9 @@ INT8U  OSTaskDel (INT8U prio)
         OS_EXIT_CRITICAL();
         return (OS_ERR_TASK_DEL);
     }
-
+#ifndef PKG_USING_UCOSII_WRAPPER_TINY
     ptcb->OSTCBDly      = 0u;                           /* Prevent OSTimeTick() from updating          */
+#endif
     ptcb->OSTCBStat     = OS_STAT_RDY;                  /* Prevent task from being resumed             */
     ptcb->OSTCBStatPend = OS_STAT_PEND_OK;
 #if OS_CPU_HOOKS_EN > 0u

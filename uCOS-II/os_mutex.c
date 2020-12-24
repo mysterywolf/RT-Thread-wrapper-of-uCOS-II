@@ -412,8 +412,10 @@ void  OSMutexPend (OS_EVENT  *pevent,
     OS_ENTER_CRITICAL();   
     OSTCBCur->OSTCBStat     |= OS_STAT_MUTEX;         /* Mutex not available, pend current task        */
     OSTCBCur->OSTCBStatPend  = OS_STAT_PEND_OK;
+#ifndef PKG_USING_UCOSII_WRAPPER_TINY
     OSTCBCur->OSTCBDly       = timeout;               /* Store timeout in current task's TCB           */
     OSTCBCur->OSTCBEventPtr  = pevent;
+#endif
     OS_EXIT_CRITICAL();
 
     if(timeout) {                                     /* 0ÎªÓÀ¾ÃµÈ´ý                                   */
@@ -451,7 +453,9 @@ void  OSMutexPend (OS_EVENT  *pevent,
     }
     OSTCBCur->OSTCBStat          =  OS_STAT_RDY;      /* Set   task  status to ready                   */
     OSTCBCur->OSTCBStatPend      =  OS_STAT_PEND_OK;  /* Clear pend  status                            */
+#ifndef PKG_USING_UCOSII_WRAPPER_TINY
     OSTCBCur->OSTCBEventPtr      = (OS_EVENT  *)0;    /* Clear event pointers                          */
+#endif
     OS_EXIT_CRITICAL();
 }
 

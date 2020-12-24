@@ -136,6 +136,7 @@
 ### 2020-12-23
 
 - 删除`OS_DEBUG_EN`宏
+- 实现`PKG_USING_UCOSII_WRAPPER_TINY`功能
 
 
 
@@ -152,6 +153,8 @@
 **[add]** 实现`.OSTCBFlagsRdy`成员变量
 
 **[del]** 删除`OS_DEBUG_EN`宏
+
+实现`PKG_USING_UCOSII_WRAPPER_TINY`功能
 
 
 

@@ -183,8 +183,9 @@ INT8U  OSTimeDlyResume (INT8U prio)
         OS_EXIT_CRITICAL();
         return (OS_ERR_TIME_NOT_DLY);                          /* Indicate that task was not delayed   */
     }
-
+#ifndef PKG_USING_UCOSII_WRAPPER_TINY
     ptcb->OSTCBDly = 0u;                                       /* Clear the time delay                 */
+#endif
     if ((ptcb->OSTCBStat & OS_STAT_PEND_ANY) != OS_STAT_RDY) {
         ptcb->OSTCBStat     &= ~OS_STAT_PEND_ANY;              /* Yes, Clear status flag               */
         ptcb->OSTCBStatPend  =  OS_STAT_PEND_TO;               /* Indicate PEND timeout                */

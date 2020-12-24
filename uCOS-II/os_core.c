@@ -847,7 +847,9 @@ INT8U  OS_TCBInit (INT8U    prio,
         ptcb->OSTCBPrio          = prio;                   /* Load task priority into TCB              */
         ptcb->OSTCBStat          = OS_STAT_RDY;            /* Task is ready to run                     */
         ptcb->OSTCBStatPend      = OS_STAT_PEND_OK;        /* Clear pend status                        */
+#ifndef PKG_USING_UCOSII_WRAPPER_TINY
         ptcb->OSTCBDly           = 0u;                     /* Task is not delayed                      */
+#endif
 
 #if OS_TASK_CREATE_EXT_EN > 0u
         ptcb->OSTCBExtPtr        = pext;                   /* Store pointer to TCB extension           */
@@ -867,8 +869,10 @@ INT8U  OS_TCBInit (INT8U    prio,
         ptcb->OSTCBDelReq        = OS_ERR_NONE;
 #endif
 
-#if (OS_EVENT_EN)
+#ifndef PKG_USING_UCOSII_WRAPPER_TINY
+#if (OS_EVENT_EN) 
         ptcb->OSTCBEventPtr      = (OS_EVENT  *)0;         /* Task is not pending on an  event         */
+#endif
 #endif
 
 #if OS_TASK_PROFILE_EN > 0u
