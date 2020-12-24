@@ -49,10 +49,8 @@
 
 #define OS_ARG_CHK_EN             1u   /* Enable (1) or Disable (0) argument checking                  */
 
-#define OS_DEBUG_EN               0u   /* Enable(1) debug variables                                    */
-
 #define OS_EVENT_MULTI_EN         0u   /* Ö»¶Á Include code for OSEventPendMulti()                     */
-#define OS_EVENT_NAME_EN          1u   /* Enable names for Sem, Mutex, Mbox and Q                      */
+#define OS_EVENT_NAME_EN          0u   /* Ö»¶Á Enable names for Sem, Mutex, Mbox and Q                      */
 
 #define OS_LOWEST_PRIO    RT_THREAD_PRIORITY_MAX /* Ö»¶Á Defines the lowest priority that can be assigned...*/
                                        /* ... MUST NEVER be higher than 254!                           */

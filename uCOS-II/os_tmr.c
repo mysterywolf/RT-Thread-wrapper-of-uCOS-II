@@ -697,7 +697,6 @@ static void OS_TmrCallback(void *p_ara)
 #if OS_CFG_CALLED_FROM_ISR_CHK_EN > 0u    
     if(OSIntNesting > 0u)                                        /* 检查是否在中断中运行                    */
     {
-        RT_DEBUG_LOG(OS_DEBUG_EN,("uCOS-II的定时器是在任务中运行的,不可以在RTT的Hard模式下运行\n"));
         return;
     }
 #endif

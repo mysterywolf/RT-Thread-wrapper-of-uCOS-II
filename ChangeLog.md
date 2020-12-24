@@ -133,6 +133,10 @@
 - 整理代码
 - 实现`.OSTCBFlagsRdy`成员变量
 
+### 2020-12-23
+
+- 删除`OS_DEBUG_EN`宏
+
 
 
 # Release
@@ -146,6 +150,8 @@
 ## v0.2.0
 
 **[add]** 实现`.OSTCBFlagsRdy`成员变量
+
+**[del]** 删除`OS_DEBUG_EN`宏
 
 
 

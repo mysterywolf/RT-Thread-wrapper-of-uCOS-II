@@ -630,8 +630,7 @@ OS_EXT  OS_STK            OSTaskStatStk[OS_TASK_STAT_STK_SIZE];      /* Statisti
 
 #define OSLockNesting     rt_critical_level()       /* Multitasking lock nesting level                 */
 
-#define OSPrioCur do{rt_thread_self()->current_priority}while(0) /* Priority of current task           */
-//OS_EXT  INT8U             OSPrioHighRdy;            /* Priority of highest priority task               */
+#define OSPrioCur rt_thread_self()->current_priority       /* Priority of current task                 */
 
 OS_EXT  BOOLEAN           OSRunning;                       /* Flag indicating that kernel is running   */
 
@@ -1237,10 +1236,6 @@ INT8U         OS_TCBInit              (INT8U            prio,
 *********************************************************************************************************
 */
 
-#if OS_DEBUG_EN > 0u
-void          OSDebugInit             (void);
-#endif
-
 void          OSInitHookBegin         (void);
 void          OSInitHookEnd           (void);
 
@@ -1633,11 +1628,6 @@ rt_err_t      rt_mq_send_all            (rt_mq_t mq, void *buffer, rt_size_t siz
 #endif
 
 
-#ifndef OS_DEBUG_EN
-#error  "OS_CFG.H, Missing OS_DEBUG_EN: Allows you to include variables for debugging or not"
-#endif
-
-
 #ifndef OS_LOWEST_PRIO
 #error  "OS_CFG.H, Missing OS_LOWEST_PRIO: Defines the lowest priority that can be assigned"
 #endif
@@ -1677,10 +1667,6 @@ rt_err_t      rt_mq_send_all            (rt_mq_t mq, void *buffer, rt_size_t siz
 
 #if    OS_APP_HOOKS_EN > 0u
 #error "OS_CFG.H, OS_APP_HOOKS_EN must be disabled for safety-critical release code"
-#endif
-
-#if    OS_DEBUG_EN > 0u
-#error "OS_CFG.H, OS_DEBUG_EN must be disabled for safety-critical release code"
 #endif
 
 #ifdef CANTATA
