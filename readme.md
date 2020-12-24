@@ -24,11 +24,15 @@ _____________
 
 支持版本：μC/OS-II 2.00-2.93全部版本
 
+
+
+## 1.1 RT-Thread的其他RTOS兼容层
+
 RT-Thread操作系统的μCOS-III兼容层：https://github.com/mysterywolf/RT-Thread-wrapper-of-uCOS-III
 
 
 
-## 1.1 本兼容层适合于：
+## 1.2 本兼容层适合于
 
 - 之前学习过μCOS-II操作系统，意图转向学习RT-Thread国产操作系统。本兼容层可以帮您用已有的μCOS-II编程经验和习惯快速将项目跑起来，日后在应用过程中深入熟悉RT-Thread的API函数，逐步向RT-Thread过度，降低您的学习门槛和时间成本。**有了本兼容层，对RT-Thread API以及编程风格的不熟悉再也不是您学习RT-Thread的阻力！**
 
@@ -48,7 +52,7 @@ RT-Thread操作系统的μCOS-III兼容层：https://github.com/mysterywolf/RT-T
 
 
 
-## 1.2 版本详细信息
+## 1.3 版本详细信息
 
 |    组件名称    | 版本号  |         配置文件          |                说明                |
 | :------------: | :-----: | :-----------------------: | :--------------------------------: |
@@ -57,7 +61,7 @@ RT-Thread操作系统的μCOS-III兼容层：https://github.com/mysterywolf/RT-T
 
 
 
-## 1.3 官网
+## 1.4 官网
 
 RT-Thread：https://www.rt-thread.org/   
 文档中心：https://www.rt-thread.org/document/site/tutorial/nano/an0038-nano-introduction/
@@ -106,9 +110,7 @@ Keil工程路径：[rt-thread-3.1.3/bsp/stm32f103/Project.uvprojx](rt-thread-3.1
 #define  OS_TMR_CFG_TICKS_PER_SEC  10u   /* Rate at which timer management task runs (Hz) */
  ```
 
-在原版μCOS-II中，该宏定义定义了软件定时器的时基信号，这与RT-Thread的软件定时器有本质的不同，在RT-Thread中，软件定时器的时基信号就等于OS Ticks。因此为了能够将μCOS-II软件定时器时间参数转为RT-Thread软件定时器的时间参数，需要用到该宏定义。请使该宏定义与原工程使用μCOS-II时的该宏定义参数一致。
-
-需要注意的是，虽然在兼容层中定义了软件定时器的时基频率，但是在兼容层内部使用的RT-Thread软件定时器的时基频率等同于OS Ticks，因此`OS_TMR`结构体的`.OSTmrMatch`成员变量其保存的数值是以OS Ticks频率来计算的。
+在原版μCOS-II中，该宏定义定义了软件定时器的时基信号，这与RT-Thread的软件定时器有本质的不同，在RT-Thread中，软件定时器的时基信号就等于OS Ticks。因此为了能够将μCOS-II软件定时器时间参数转为RT-Thread软件定时器的时间参数，需要用到该宏定义。请使该宏定义与原工程使用μCOS-II时的该宏定义参数一致。需要注意的是，虽然在兼容层中定义了软件定时器的时基频率，但是在兼容层内部使用的RT-Thread软件定时器的时基频率等同于OS Ticks，因此`OS_TMR`结构体的`.OSTmrMatch`成员变量其保存的数值是以OS Ticks频率来计算的。
 
 由于兼容层采用rt-thread内核自带的堆内存分配方式，因此免去了原版uCOS-II中配置任务以及各内核对象内存池大小的步骤，遂相关宏定义在兼容层中**均被删除**。
 
@@ -124,7 +126,7 @@ Keil工程路径：[rt-thread-3.1.3/bsp/stm32f103/Project.uvprojx](rt-thread-3.1
 
 ### 2.4.2 自动初始化流程
 
-如果您在应用层中不想手动初始化本兼容层，可以在`rtconfig.h`文件中定义`PKG_USING_UCOSII_WRAPPER_AUTOINIT`宏定义。请参见 [6.2.1章节](#6.2.1 Enable uCOS-II wrapper automatically init)（**如无特殊要求，建议采用该种方式**）。
+如果您在应用层中不想手动初始化本兼容层，可以在`rtconfig.h`文件中定义`PKG_USING_UCOSII_WRAPPER_AUTOINIT`宏定义。请参见 [4.2.1章节](#4.2.1 Enable uCOS-II wrapper automatically init)（**如无特殊要求，建议采用该种方式**）。
 
 
 
@@ -189,13 +191,19 @@ OS_EVENT  *OSQCreateEx (INT16U    size);
 
 
 
-## 3.2 没有实现兼容的API (仅1个)
+## 3.2 没有实现兼容的API (仅2个)
 
 ```c
 INT8U         OSTaskCreate            (void           (*task)(void *p_arg),
                                        void            *p_arg,
                                        OS_STK          *ptos,
                                        INT8U            prio);
+
+INT16U        OSEventPendMulti        (OS_EVENT       **pevents_pend,
+                                       OS_EVENT       **pevents_rdy,
+                                       void           **pmsgs_rdy,
+                                       INT32U           timeout,
+                                       INT8U           *perr);
 ```
 
 
@@ -252,11 +260,59 @@ RT-Thread online packages
 
 
 
+## 4.2 可选功能说明
+
+### 4.2.1 Enable uCOS-II wrapper automatically init
+
+uCOS-II兼容层支持按照uCOS-II原版的初始化步骤进行初始化，但是在有些情况，用户不想手动初始化uCOS-II兼容层，想要直接运行应用层任务或模块，则可以使用该宏定义。在`rtconfig.h`中定义本宏定义后，在RT-Thread初始化完成并进入到main线程之前会自动将uCOS-II兼容层初始化完毕，用户仅需要专注于uCOS-II的应用级任务即可。
+
+若将该功能开启，则会在`rtconfig.h`文件中中定义`PKG_USING_UCOSII_WRAPPER_AUTOINIT`宏。在`os_rtwrap.c`文件中的以下函数将被使能并**在RT-Thread初始化时自动执行**。
+
+若没有使用完整版（即nano版）也想使用本功能，可以在`rtconfig.h`中手动添加定义宏定义`PKG_USING_UCOSII_WRAPPER_AUTOINIT`。
+
+```c
+/**
+ * 自动初始化
+ * uCOS-II兼容层支持按照uCOS-II原版的初始化步骤进行初始化，但是在有些情况，
+ * 用户不想手动初始化uCOS-II兼容层，想要直接运行应用层任务或模块，则可以使用该
+ * 宏定义。在rtconfig.h中定义本宏定义后，在RT-Thread初始化完成并进入到main线程之前
+ * 会自动将uCOS-II兼容层初始化完毕，用户仅需要专注于uCOS-II的应用级任务即可。
+ * The wrapper supports uCOS-II standard startup procedure. Alternatively,
+ * if you want to run uCOS-II apps directly and ignore the startup procedure, 
+ * you can choose this option.
+ */
+#ifdef PKG_USING_UCOSII_WRAPPER_AUTOINIT
+static int rt_ucosii_autoinit(void)
+{
+    OSInit();                                       /*uCOS-II操作系统初始化*/
+    OSStart();                                      /*开始运行uCOS-II操作系统*/
+
+#if OS_TASK_STAT_EN > 0u
+    OSStatInit();
+#endif
+    return 0;
+}
+INIT_PREV_EXPORT(rt_ucosii_autoinit);
+#endif
+```
 
 
-# 7 友情链接
 
-## 7.1 RT-Thread Nano移植教程
+### 4.2.2 Enable uCOS-II wrapper tiny mode 
+
+如果你在使用过程中不需要兼容任务/内核对象结构体的成员变量，可使能该选项。ENV将自动在`rtconfig.h`文件中定义`PKG_USING_UCOSII_WRAPPER_TINY`宏定义。以`OS_SEM`结构体为例：
+
+```c
+目前尚未实现该功能
+```
+
+可以看到，在定义`PKG_USING_UCOSII_WRAPPER_TINY`后，`OS_SEM`结构体得到了大幅度精简。该模式可满足所有API的基本兼容需求，**建议勾选该选项**。
+
+
+
+# 5 友情链接
+
+## 5.1 RT-Thread Nano移植教程
 
 官方文档：
 
@@ -272,7 +328,7 @@ RT-Thread online packages
 
 
 
-## 7.2 RT-Thread FinSH控制台教程
+## 5.2 RT-Thread FinSH控制台教程
 
 官方文档：
 
@@ -286,9 +342,9 @@ RT-Thread online packages
 
 
 
-# 8 其他
+# 6 其他
 
-## 8.1 联系方式
+## 6.1 联系方式
 
 维护：[Meco Man](https://github.com/mysterywolf/)
 
@@ -296,7 +352,7 @@ RT-Thread online packages
 
 
 
-## 8.2 主页
+## 6.2 主页
 
 > https://github.com/mysterywolf/RT-Thread-wrapper-of-uCOS-II 
 >
@@ -304,13 +360,13 @@ RT-Thread online packages
 
 
 
-## 8.3 开源协议
+## 6.3 开源协议
 
 采用 Apache-2.0 开源协议，细节请阅读项目中的 LICENSE 文件内容。
 
 
 
-## 8.4 支持
+## 6.4 支持
 
 如果您喜欢本项目**可以在本页右上角点一下Star**，可以赏我五毛钱，用以满足我小小的虚荣心，并激励我继续维护好这个项目。
 
