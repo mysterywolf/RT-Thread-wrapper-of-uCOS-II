@@ -101,7 +101,7 @@ OS_TMR  *OSTmrCreate (INT32U           dly,
     OS_TMR    *ptmr;
     rt_tick_t  time, time2;
     rt_uint8_t rt_flag;
-    
+
 #ifdef OS_SAFETY_CRITICAL
     if (perr == (INT8U *)0) {
         OS_SAFETY_CRITICAL_EXCEPTION();
@@ -116,7 +116,7 @@ OS_TMR  *OSTmrCreate (INT32U           dly,
         return ((OS_TMR *)0);
     }
 #endif
-    
+
 #if OS_ARG_CHK_EN > 0u
     switch (opt) {                                          /* Validate arguments                                     */
         case OS_TMR_OPT_PERIODIC:
@@ -141,7 +141,7 @@ OS_TMR  *OSTmrCreate (INT32U           dly,
     if (OSIntNesting > 0u) {                                /* See if trying to call from an ISR                      */
         *perr  = OS_ERR_TMR_ISR;
         return ((OS_TMR *)0);
-    }    
+    }
 
     /*
      * uCOS-III原版定时器回调函数就是在定时器线程中调用的,而非在中断中调用,
@@ -154,16 +154,16 @@ OS_TMR  *OSTmrCreate (INT32U           dly,
     }
     else if(opt == OS_TMR_OPT_PERIODIC)
     {
-        rt_flag = RT_TIMER_FLAG_PERIODIC|RT_TIMER_FLAG_SOFT_TIMER;     
+        rt_flag = RT_TIMER_FLAG_PERIODIC|RT_TIMER_FLAG_SOFT_TIMER;
         time = period * (OS_TICKS_PER_SEC / OS_TMR_CFG_TICKS_PER_SEC);
     }
-    
+
     ptmr = RT_KERNEL_MALLOC(sizeof(OS_TMR));                /* malloc OS_TMR                                          */
     if(!ptmr){
         *perr = OS_ERR_TMR_NON_AVAIL;
         return ((OS_TMR *)0);
     }
-        
+
     OSSchedLock();
     ptmr->OSTmrState       = OS_TMR_STATE_STOPPED;          /* Indicate that timer is not running yet                 */
     ptmr->OSTmrDly         = dly;
@@ -179,9 +179,9 @@ OS_TMR  *OSTmrCreate (INT32U           dly,
     } else {
         ptmr->OSTmrName    = pname;
     }
-#endif  
+#endif
     OSSchedUnlock();
-    
+
     if(opt == OS_TMR_OPT_PERIODIC && dly != 0) {            /* 带有延迟的周期性延时                                   */
         time2 = dly * (OS_TICKS_PER_SEC / OS_TMR_CFG_TICKS_PER_SEC);
         rt_timer_init(&ptmr->OSTmr, (const char*)pname,     /* invoke rt_timer_create to create a timer               */
@@ -189,11 +189,11 @@ OS_TMR  *OSTmrCreate (INT32U           dly,
     }
     else {
         rt_timer_init(&ptmr->OSTmr, (const char*)pname,     /* invoke rt_timer_create to create a timer               */
-            OS_TmrCallback, ptmr, time, rt_flag);        
+            OS_TmrCallback, ptmr, time, rt_flag);
     }
-    
+
     *perr = OS_ERR_NONE;
-    return (ptmr);   
+    return (ptmr);
 }
 
 
@@ -245,7 +245,7 @@ BOOLEAN  OSTmrDel (OS_TMR  *ptmr,
         return (OS_FALSE);
     }
 #endif
-    
+
     if (ptmr->OSTmrType != OS_TMR_TYPE) {                   /* Validate timer structure                               */
         *perr = OS_ERR_TMR_INVALID_TYPE;
         return (OS_FALSE);
@@ -262,7 +262,7 @@ BOOLEAN  OSTmrDel (OS_TMR  *ptmr,
     OSSchedLock();
     ptmr->OSTmrState = OS_TMR_STATE_UNUSED;
     OSSchedUnlock();
-    
+
     rt_timer_detach(&ptmr->OSTmr);                          /* 删除rt-thread定时器                                    */
     RT_KERNEL_FREE(ptmr);
     return (OS_TRUE);
@@ -326,7 +326,7 @@ INT8U  OSTmrNameGet (OS_TMR   *ptmr,
         *perr = OS_ERR_TMR_INACTIVE;
         return (0u);
     }
-    
+
     *pdest = ptmr->OSTmrName;
     return OS_StrLen(*pdest);
 }
@@ -359,7 +359,7 @@ INT32U  OSTmrRemainGet (OS_TMR  *ptmr,
                         INT8U   *perr)
 {
     INT32U  remain;
-    
+
 #ifdef OS_SAFETY_CRITICAL
     if (perr == (INT8U *)0) {
         OS_SAFETY_CRITICAL_EXCEPTION();
@@ -538,7 +538,7 @@ BOOLEAN  OSTmrStart (OS_TMR   *ptmr,
         return (OS_FALSE);
     }
 #endif
-    
+
     if (ptmr->OSTmrType != OS_TMR_TYPE) {                   /* Validate timer structure                               */
         *perr = OS_ERR_TMR_INVALID_TYPE;
         return (OS_FALSE);
@@ -546,13 +546,13 @@ BOOLEAN  OSTmrStart (OS_TMR   *ptmr,
     if (OSIntNesting > 0u) {                                /* See if trying to call from an ISR                      */
         *perr  = OS_ERR_TMR_ISR;
         return (OS_FALSE);
-    }   
+    }
     if(ptmr->OSTmrState == OS_TMR_STATE_UNUSED)
     {
         *perr = OS_ERR_TMR_INACTIVE;
         return (OS_FALSE);
     }
-    
+
     rt_timer_start(&ptmr->OSTmr);
     OSSchedLock();
     ptmr->OSTmrMatch = ptmr->OSTmr.timeout_tick;
@@ -605,7 +605,7 @@ BOOLEAN  OSTmrStop (OS_TMR  *ptmr,
                     INT8U   *perr)
 {
     OS_TMR_CALLBACK  pfnct;
-    
+
 #ifdef OS_SAFETY_CRITICAL
     if (perr == (INT8U *)0) {
         OS_SAFETY_CRITICAL_EXCEPTION();
@@ -693,21 +693,21 @@ static void OS_TmrCallback(void *p_ara)
 {
     OS_TMR   *ptmr;
     ptmr = (OS_TMR*)p_ara;
-    
-#if OS_CFG_CALLED_FROM_ISR_CHK_EN > 0u    
+
+#if OS_CFG_CALLED_FROM_ISR_CHK_EN > 0u
     if(OSIntNesting > 0u)                                        /* 检查是否在中断中运行                    */
     {
         return;
     }
 #endif
-    
-    OSSchedLock(); 
+
+    OSSchedLock();
     if(ptmr->OSTmrOpt == OS_TMR_OPT_PERIODIC && ptmr->_dly != 0)
     {
         ptmr->_dly = 0;
         ptmr->OSTmr.init_tick = ptmr->OSTmrPeriod * (OS_TICKS_PER_SEC / OS_TMR_CFG_TICKS_PER_SEC);
         ptmr->OSTmr.timeout_tick = rt_tick_get() + ptmr->OSTmr.init_tick;
-        ptmr->OSTmr.parent.flag |= RT_TIMER_FLAG_PERIODIC;       /* 定时器设置为周期模式                    */        
+        ptmr->OSTmr.parent.flag |= RT_TIMER_FLAG_PERIODIC;       /* 定时器设置为周期模式                    */
         ptmr->OSTmrMatch = rt_tick_get() + ptmr->OSTmr.init_tick;/* 重新设定下一次定时器的参数              */
         rt_timer_start(&(ptmr->OSTmr));                          /* 开启定时器                              */
     }

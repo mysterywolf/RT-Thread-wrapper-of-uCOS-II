@@ -50,13 +50,13 @@
 ;
 ;                  void Task (void *p_arg)
 ;                  {
-;                  #if OS_CRITICAL_METHOD == 3          // Allocate storage for CPU status register  
+;                  #if OS_CRITICAL_METHOD == 3          // Allocate storage for CPU status register
 ;                      OS_CPU_SR  cpu_sr;
 ;                  #endif
 ;
 ;                          :
 ;                          :
-;                      OS_ENTER_CRITICAL();             // cpu_sr = OS_CPU_SR_Save(new_basepri); 
+;                      OS_ENTER_CRITICAL();             // cpu_sr = OS_CPU_SR_Save(new_basepri);
 ;                          :
 ;                          :
 ;                      OS_EXIT_CRITICAL();              // OS_CPU_RestoreSR(cpu_sr);

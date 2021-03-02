@@ -18,7 +18,7 @@ void timer_example (void)
 {
     OS_TMR* tmr1;
     INT8U err;
-    
+
     tmr1=OSTmrCreate(30,10,OS_TMR_OPT_PERIODIC,tmr_callback,0,(INT8U*)"tmr",&err);
-    OSTmrStart(tmr1,&err);    
+    OSTmrStart(tmr1,&err);
 }

@@ -60,7 +60,7 @@
 static  void  OS_InitMisc (void)
 {
     OSTaskCtr                 = 0u;                        /* Clear the number of tasks                */
-    OSRunning                 = OS_TRUE;                   /* 初始化时,rt-thread已经启动因此直接为OS_TRUE*/    
+    OSRunning                 = OS_TRUE;                   /* 初始化时,rt-thread已经启动因此直接为OS_TRUE*/
 
 #if OS_TASK_STAT_EN > 0u
     OSIdleCtrRun              = 0uL;
@@ -97,8 +97,8 @@ static  void  OS_InitTCBList (void)
     INT8U    ix_next;
     OS_TCB  *ptcb1;
     OS_TCB  *ptcb2;
-    
-    OS_MemClr((INT8U *)&OSTCBPrioTbl[0], sizeof(OSTCBPrioTbl));  /* Clear the priority table           */    
+
+    OS_MemClr((INT8U *)&OSTCBPrioTbl[0], sizeof(OSTCBPrioTbl));  /* Clear the priority table           */
     OS_MemClr((INT8U *)&OSTCBTbl[0],     sizeof(OSTCBTbl));      /* Clear all the TCBs                 */
     for (ix = 0u; ix < (OS_MAX_TASKS + OS_N_SYS_TASKS - 1u); ix++) {    /* Init. list of free TCBs     */
         ix_next =  ix + 1u;
@@ -116,7 +116,7 @@ static  void  OS_InitTCBList (void)
 #endif
     OSTCBList               = (OS_TCB *)0;                       /* TCB lists initializations          */
     OSTCBFreeList           = &OSTCBTbl[0];
-    
+
     OSTCBPrioTbl[OS_MAX_TASKS + OS_N_SYS_TASKS - 1u] = OS_TCB_RESERVED; /* 空闲任务标记为已经使用      */
 }
 
@@ -137,7 +137,7 @@ static  void  OS_InitTCBList (void)
 
 static  void  OS_InitTaskIdle (void)
 {
-    rt_thread_idle_sethook(OS_TaskIdle);                    /*向RTT注册μCOS-III兼容层空闲任务(实则为回调函数)         */ 
+    rt_thread_idle_sethook(OS_TaskIdle);                    /*向RTT注册μCOS-III兼容层空闲任务(实则为回调函数)         */
 }
 #endif
 
@@ -229,7 +229,7 @@ void  OSInit (void)
 
     OSSchedLock();
 
-#if OS_CPU_HOOKS_EN > 0u    
+#if OS_CPU_HOOKS_EN > 0u
     OSInitHookBegin();                                           /* Call port specific initialization code   */
 #endif
     OS_InitMisc();                                               /* Initialize miscellaneous variables       */
@@ -238,7 +238,7 @@ void  OSInit (void)
 #if (OS_MEM_EN > 0u) && (OS_MAX_MEM_PART > 0u)
     OS_MemInit();                                                /* Initialize the memory manager            */
 #endif
- 
+
 #if OS_TASK_STAT_EN > 0u
     OS_InitTaskIdle();                                           /* Create the Idle Task                     */
     OS_InitTaskStat();                                           /* Create the Statistic Task                */
@@ -247,7 +247,7 @@ void  OSInit (void)
 #if OS_CPU_HOOKS_EN > 0u
     OSInitHookEnd();                                             /* Call port specific init. code            */
 #endif
- 
+
     OSSchedUnlock();
 }
 
@@ -359,7 +359,7 @@ void  OSSchedLock (void)
 {
     if (OSRunning == OS_TRUE) {                  /* Make sure multitasking is running                  */
         rt_enter_critical();
-    }        
+    }
 }
 #endif
 
@@ -870,7 +870,7 @@ INT8U  OS_TCBInit (INT8U    prio,
 #endif
 
 #ifndef PKG_USING_UCOSII_WRAPPER_TINY
-#if (OS_EVENT_EN) 
+#if (OS_EVENT_EN)
         ptcb->OSTCBEventPtr      = (OS_EVENT  *)0;         /* Task is not pending on an  event         */
 #endif
 #endif

@@ -7,7 +7,7 @@
  * Date           Author       Notes
  * 2020-07-12     Meco Man     the first verion
  */
- 
+
 #include "ucos_ii.h"
 #include <string.h>
 #include <rthw.h>
@@ -26,21 +26,21 @@ rt_err_t rt_ipc_pend_abort_1 (rt_list_t *list)
     struct rt_thread *thread;
     register rt_ubase_t temp;
     OS_TCB  *p_tcb;
-    
+
     temp = rt_hw_interrupt_disable();
     /* get thread entry */
     thread = rt_list_entry(list->next, struct rt_thread, tlist);
     p_tcb = (OS_TCB*)thread;
     /* set error code to RT_ERROR */
     thread->error = -RT_ERROR;
-    
+
     /*标记当前任务放弃等待*/
-    p_tcb->OSTCBStatPend = OS_STAT_PEND_ABORT; 
-    
+    p_tcb->OSTCBStatPend = OS_STAT_PEND_ABORT;
+
     rt_hw_interrupt_enable(temp);
-    
+
     /* resume it */
-    rt_thread_resume(thread); 
+    rt_thread_resume(thread);
 
     return RT_EOK;
 }
@@ -70,10 +70,10 @@ rt_uint16_t rt_ipc_pend_abort_all (rt_list_t *list)
         p_tcb = ((OS_TCB*)thread);
         /* set error code to RT_ERROR */
         thread->error = -RT_ERROR;
-                
+
         /*标记当前任务放弃等待*/
         p_tcb->OSTCBStatPend = OS_STAT_PEND_ABORT;
-        
+
         /*
          * resume thread
          * In rt_thread_resume function, it will remove current thread from
@@ -83,7 +83,7 @@ rt_uint16_t rt_ipc_pend_abort_all (rt_list_t *list)
 
         /* enable interrupt */
         rt_hw_interrupt_enable(temp);
-        
+
         i++;
     }
 
@@ -101,7 +101,7 @@ static rt_err_t rt_ipc_post_all (rt_list_t *list)
 {
     struct rt_thread *thread;
     register rt_ubase_t temp;
-    
+
     /* wakeup all suspend threads */
     while (!rt_list_isempty(list))
     {
@@ -109,8 +109,8 @@ static rt_err_t rt_ipc_post_all (rt_list_t *list)
         temp = rt_hw_interrupt_disable();
 
         /* get next suspend thread */
-        thread = rt_list_entry(list->next, struct rt_thread, tlist);       
-        
+        thread = rt_list_entry(list->next, struct rt_thread, tlist);
+
         /*
          * resume thread
          * In rt_thread_resume function, it will remove current thread from
@@ -158,7 +158,7 @@ rt_err_t rt_mq_send_all(rt_mq_t mq, void *buffer, rt_size_t size)
 
     /* 获取当前n个线程被当前消息队列挂起 */
     suspend_len = rt_list_len(&mq->parent.suspend_thread);
-    
+
     /* 将相同的消息复制n次,一会一起发出去 */
     while(suspend_len)
     {
@@ -232,7 +232,7 @@ rt_err_t rt_mq_send_all(rt_mq_t mq, void *buffer, rt_size_t size)
  * 宏定义。在rtconfig.h中定义本宏定义后，在RT-Thread初始化完成并进入到main线程之前
  * 会自动将uCOS-II兼容层初始化完毕，用户仅需要专注于uCOS-II的应用级任务即可。
  * The wrapper supports uCOS-II standard startup procedure. Alternatively,
- * if you want to run uCOS-II apps directly and ignore the startup procedure, 
+ * if you want to run uCOS-II apps directly and ignore the startup procedure,
  * you can choose this option.
  */
 #ifdef PKG_USING_UCOSII_WRAPPER_AUTOINIT

@@ -117,7 +117,7 @@ OS_FLAGS  OSFlagAccept (OS_FLAG_GRP  *pgrp,
     }
 #endif
     if (rt_object_get_type(&pgrp->pFlagGrp->parent.parent) /* Validate event block type                */
-        != RT_Object_Class_Event) {  
+        != RT_Object_Class_Event) {
         *perr = OS_ERR_EVENT_TYPE;
         return ((OS_FLAGS)0);
     }
@@ -152,11 +152,11 @@ OS_FLAGS  OSFlagAccept (OS_FLAG_GRP  *pgrp,
             *perr = OS_ERR_FLAG_WAIT_TYPE;
             return 0;
     }
-    
+
     if (consume == OS_TRUE){
         rt_option |= RT_EVENT_FLAG_CLEAR;
     }
-    
+
     rt_err = rt_event_recv(pgrp->pFlagGrp,
                            flags,
                            rt_option,
@@ -168,7 +168,7 @@ OS_FLAGS  OSFlagAccept (OS_FLAG_GRP  *pgrp,
     } else {
         *perr = OS_ERR_NONE;
     }
-    
+
     return (flags_rdy);
 }
 #endif
@@ -204,7 +204,7 @@ OS_FLAG_GRP  *OSFlagCreate (OS_FLAGS  flags,
     OS_CPU_SR    cpu_sr = 0u;
 #endif
     rt_event_t rt_event;
-    
+
 #ifdef OS_SAFETY_CRITICAL
     if (perr == (INT8U *)0) {
         OS_SAFETY_CRITICAL_EXCEPTION();
@@ -225,11 +225,11 @@ OS_FLAG_GRP  *OSFlagCreate (OS_FLAGS  flags,
         return ((OS_FLAG_GRP *)0);
     }
 
-    pgrp = RT_KERNEL_MALLOC(sizeof(OS_FLAG_GRP));    
+    pgrp = RT_KERNEL_MALLOC(sizeof(OS_FLAG_GRP));
     if (pgrp == (OS_FLAG_GRP *)0) {                 /* Get an event control block               */
         return ((OS_FLAG_GRP *)0);
     }
-    
+
     rt_event = rt_event_create("uCOS-II", RT_IPC_FLAG_FIFO);
     if(!rt_event) {
         *perr = OS_ERR_FLAG_GRP_DEPLETED;
@@ -237,12 +237,12 @@ OS_FLAG_GRP  *OSFlagCreate (OS_FLAGS  flags,
     } else {
         *perr = OS_ERR_NONE;
     }
-    
+
     OS_ENTER_CRITICAL();
     pgrp->pFlagGrp    = rt_event;
     pgrp->OSFlagFlags = flags;
     OS_EXIT_CRITICAL();
-    
+
     return (pgrp);                                  /* Return pointer to event flag group              */
 }
 
@@ -325,7 +325,7 @@ OS_FLAG_GRP  *OSFlagDel (OS_FLAG_GRP  *pgrp,
         return (pgrp);
     }
     if (rt_object_get_type(&pgrp->pFlagGrp->parent.parent) /* Validate event block type                */
-        != RT_Object_Class_Event) {  
+        != RT_Object_Class_Event) {
         *perr = OS_ERR_EVENT_TYPE;
         return (pgrp);
     }
@@ -531,7 +531,7 @@ OS_FLAGS  OSFlagPend (OS_FLAG_GRP  *pgrp,
         return ((OS_FLAGS)0);
     }
     if (rt_object_get_type(&pgrp->pFlagGrp->parent.parent) /* Validate event block type                */
-        != RT_Object_Class_Event) {  
+        != RT_Object_Class_Event) {
         *perr = OS_ERR_EVENT_TYPE;
         return ((OS_FLAGS)0);
     }
@@ -711,7 +711,7 @@ OS_FLAGS  OSFlagPost (OS_FLAG_GRP  *pgrp,
 #endif
 
     if (rt_object_get_type(&pgrp->pFlagGrp->parent.parent) /* Validate event block type                */
-        != RT_Object_Class_Event) {  
+        != RT_Object_Class_Event) {
         *perr = OS_ERR_EVENT_TYPE;
         return ((OS_FLAGS)0);
     }
@@ -776,7 +776,7 @@ OS_FLAGS  OSFlagQuery (OS_FLAG_GRP  *pgrp,
     }
 #endif
     if (rt_object_get_type(&pgrp->pFlagGrp->parent.parent) /* Validate event block type                */
-        != RT_Object_Class_Event) {  
+        != RT_Object_Class_Event) {
         *perr = OS_ERR_EVENT_TYPE;
         return ((OS_FLAGS)0);
     }

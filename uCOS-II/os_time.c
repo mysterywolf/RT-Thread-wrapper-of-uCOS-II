@@ -178,7 +178,7 @@ INT8U  OSTimeDlyResume (INT8U prio)
         OS_EXIT_CRITICAL();
         return (OS_ERR_TASK_NOT_EXIST);                        /* The task does not exist              */
     }
-    if (!(ptcb->OSTask.thread_timer.parent.flag 
+    if (!(ptcb->OSTask.thread_timer.parent.flag
             & RT_TIMER_FLAG_ACTIVATED)) {                      /* See if task is delayed               */
         OS_EXIT_CRITICAL();
         return (OS_ERR_TIME_NOT_DLY);                          /* Indicate that task was not delayed   */

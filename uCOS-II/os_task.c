@@ -103,7 +103,7 @@ INT8U  OSTaskChangePrio (INT8U  oldprio,
     OS_EXIT_CRITICAL();
 
     rt_thread_control(&(ptcb->OSTask), RT_THREAD_CTRL_CHANGE_PRIORITY, &newprio);
-    
+
     if (OSRunning == OS_TRUE) {
         OS_Sched();                                         /* Find new highest priority task          */
     }
@@ -285,7 +285,7 @@ INT8U  OSTaskCreateExt (void   (*task)(void *p_arg),
 #if OS_STK_GROWTH == 1u                      /* 若为向下增长需要将堆栈首地址转换一下                   */
     convert = ptos - (stk_size - 1);
 #endif
-    
+
     err = OS_TCBInit(prio, ptos, pbos, id, stk_size, pext, opt, &ptcb);
     if (err == OS_ERR_NONE) {
         if (OSRunning == OS_TRUE) {          /* Find HPT if multitasking has started                   */
@@ -295,7 +295,7 @@ INT8U  OSTaskCreateExt (void   (*task)(void *p_arg),
         OS_ENTER_CRITICAL();
         OSTCBPrioTbl[prio] = (OS_TCB *)0;    /* Make this priority avail. to others                    */
         OS_EXIT_CRITICAL();
-        return (err); 
+        return (err);
     }
 
     rt_snprintf(name,RT_NAME_MAX,"uCTask%02d",prio);
@@ -413,14 +413,14 @@ INT8U  OSTaskDel (INT8U prio)
         ptcb->OSTCBNext->OSTCBPrev = ptcb->OSTCBPrev;
     }
     ptcb->OSTCBNext     = OSTCBFreeList;                /* Return TCB to free TCB list                 */
-    OSTCBFreeList       = ptcb;    
+    OSTCBFreeList       = ptcb;
 #if OS_TASK_NAME_EN > 0u
     ptcb->OSTCBTaskName = (INT8U *)(void *)"?";
 #endif
     OS_EXIT_CRITICAL();
-    
+
     rt_thread_detach((rt_thread_t)ptcb);                /* delate rt-thread thread                     */
-    
+
     if (OSRunning == OS_TRUE) {
         OS_Sched();                                     /* Find new highest priority task              */
     }
@@ -738,8 +738,8 @@ INT8U  OSTaskResume (INT8U prio)
     if ((ptcb->OSTCBStat & OS_STAT_SUSPEND) != OS_STAT_RDY) { /* Task must be suspended                */
         ptcb->OSTCBStat &= (INT8U)~(INT8U)OS_STAT_SUSPEND;    /* Remove suspension                     */
         if ((ptcb->OSTCBStat & OS_STAT_PEND_ANY) == OS_STAT_RDY) { /* See if task is now ready         */
-            OS_EXIT_CRITICAL();            
-            rt_thread_resume((rt_thread_t)ptcb);              /* rt-thread thread resume API           */               
+            OS_EXIT_CRITICAL();
+            rt_thread_resume((rt_thread_t)ptcb);              /* rt-thread thread resume API           */
             if (OSRunning == OS_TRUE) {
                 OS_Sched();                                   /* Find new highest priority task        */
             }

@@ -95,7 +95,7 @@ void  *OSQAccept (OS_EVENT  *pevent,
     pmq = (rt_mq_t)pevent->ipc_ptr;
 
     if (rt_object_get_type(&pmq->parent.parent)  /* Validate event block type                     */
-        != RT_Object_Class_MessageQueue) {  
+        != RT_Object_Class_MessageQueue) {
         *perr = OS_ERR_EVENT_TYPE;
         return ((void *)0);
     }
@@ -166,7 +166,7 @@ OS_EVENT  *OSQCreate (void    **start,
         RT_KERNEL_FREE(pevent);
         return ((OS_EVENT *)0);
     }
-    
+
     return (pevent);
 }
 
@@ -259,11 +259,11 @@ OS_EVENT  *OSQDel (OS_EVENT  *pevent,
         return (pevent);
     }
 #endif
-    
+
     pmq = (rt_mq_t)pevent->ipc_ptr;
-    
+
     if (rt_object_get_type(&pmq->parent.parent)            /* Validate event block type                */
-        != RT_Object_Class_MessageQueue) {  
+        != RT_Object_Class_MessageQueue) {
        *perr = OS_ERR_EVENT_TYPE;
         return (pevent);
     }
@@ -272,17 +272,17 @@ OS_EVENT  *OSQDel (OS_EVENT  *pevent,
         *perr = OS_ERR_DEL_ISR;                            /* ... can't DELETE from an ISR             */
         return (pevent);
     }
-    
+
     switch (opt) {
         case OS_DEL_NO_PEND:                               /* Delete queue only if no task waiting     */
             if(rt_list_isempty(&(pmq->parent.suspend_thread))) { /* 若没有线程等待信号量               */
                 rt_mq_delete(pmq);                         /* invoke RT-Thread API                     */
                 RT_KERNEL_FREE(pevent);
                 *perr = OS_ERR_NONE;
-                pevent_return =  (OS_EVENT *)0; 
+                pevent_return =  (OS_EVENT *)0;
             } else {
                 *perr = OS_ERR_TASK_WAITING;
-                pevent_return = pevent; 
+                pevent_return = pevent;
             }
             break;
 
@@ -290,7 +290,7 @@ OS_EVENT  *OSQDel (OS_EVENT  *pevent,
             rt_mq_delete(pmq);                             /* invoke RT-Thread API                     */
             RT_KERNEL_FREE(pevent);
             *perr = OS_ERR_NONE;
-            pevent_return =  (OS_EVENT *)0; 
+            pevent_return =  (OS_EVENT *)0;
             break;
 
         default:
@@ -336,11 +336,11 @@ INT8U  OSQFlush (OS_EVENT *pevent)
         return (OS_ERR_PEVENT_NULL);
     }
 #endif
-    
+
     pmq = (rt_mq_t)pevent->ipc_ptr;
-    
+
     if (rt_object_get_type(&pmq->parent.parent)       /* Validate event block type                     */
-        != RT_Object_Class_MessageQueue) {  
+        != RT_Object_Class_MessageQueue) {
         return (OS_ERR_EVENT_TYPE);
     }
 
@@ -352,7 +352,7 @@ INT8U  OSQFlush (OS_EVENT *pevent)
         pmq->msg_queue_head = msg->next;              /* move message queue head                       */
         if (pmq->msg_queue_tail == msg)               /* reach queue tail, set to NULL                 */
             pmq->msg_queue_tail = RT_NULL;
-        pmq->entry --;                                /* decrease message entry                        */   
+        pmq->entry --;                                /* decrease message entry                        */
         msg->next = (struct _rt_mq_message *)pmq->msg_queue_free; /* put message to free list          */
         pmq->msg_queue_free = msg;
     }
@@ -425,7 +425,7 @@ void  *OSQPend (OS_EVENT  *pevent,
 #endif
 
     pmq = (rt_mq_t)pevent->ipc_ptr;
-    
+
     if (rt_object_get_type(&pmq->parent.parent)  /* Validate event block type                          */
         != RT_Object_Class_MessageQueue) {
         *perr = OS_ERR_EVENT_TYPE;
@@ -447,7 +447,7 @@ void  *OSQPend (OS_EVENT  *pevent,
     OSTCBCur->OSTCBDly       = timeout;          /* Load timeout into TCB                              */
     OSTCBCur->OSTCBEventPtr  = pevent;
 #endif
-    OS_EXIT_CRITICAL(); 
+    OS_EXIT_CRITICAL();
 
     if(timeout) {
         rt_err = rt_mq_recv(pmq,                          /* invoke rt-thread API                          */
@@ -467,7 +467,7 @@ void  *OSQPend (OS_EVENT  *pevent,
                      (void*)&ucos_msg,                    /* uCOS消息段                                    */
                      sizeof(ucos_msg_t),                  /* uCOS消息段长度                                */
                      RT_WAITING_FOREVER);
-        OS_ENTER_CRITICAL();        
+        OS_ENTER_CRITICAL();
         if(OSTCBCur->OSTCBStatPend == OS_STAT_PEND_ABORT) {
             OSTCBCur->OSTCBStatPend = OS_STAT_PEND_ABORT;
         }else {
@@ -558,7 +558,7 @@ INT8U  OSQPendAbort (OS_EVENT  *pevent,
 #endif
 
     pmq = (rt_mq_t)pevent->ipc_ptr;
-    
+
     if (rt_object_get_type(&pmq->parent.parent)            /* Validate event block type                          */
         != RT_Object_Class_MessageQueue) {
         *perr = OS_ERR_EVENT_TYPE;
@@ -629,7 +629,7 @@ INT8U  OSQPost (OS_EVENT  *pevent,
         return (OS_ERR_Q_FULL);
     }
 
-    return (OS_ERR_NONE);    
+    return (OS_ERR_NONE);
 }
 #endif
 
@@ -682,7 +682,7 @@ INT8U  OSQPostFront (OS_EVENT  *pevent,
     if(rt_err == -RT_EFULL) {
         return (OS_ERR_Q_FULL);
     }
-    
+
     return (OS_ERR_NONE);
 }
 #endif
@@ -726,7 +726,7 @@ INT8U  OSQPostOpt (OS_EVENT  *pevent,
     INT8U      err;
     ucos_msg_t ucos_msg;
     rt_err_t   rt_err;
-    
+
 #if OS_ARG_CHK_EN > 0u
     if (pevent == (OS_EVENT *)0) {                    /* Validate 'pevent'                             */
         return (OS_ERR_PEVENT_NULL);

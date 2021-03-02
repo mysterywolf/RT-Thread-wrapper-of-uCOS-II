@@ -91,7 +91,7 @@ BOOLEAN  OSMutexAccept (OS_EVENT  *pevent,
 #endif
 
     pmutex = (rt_mutex_t)pevent->ipc_ptr;
-    
+
     if (rt_object_get_type(&pmutex->parent.parent)     /* Validate event block type                    */
         != RT_Object_Class_Mutex) {
         *perr = OS_ERR_EVENT_TYPE;
@@ -103,11 +103,11 @@ BOOLEAN  OSMutexAccept (OS_EVENT  *pevent,
     }
 
     *perr = OS_ERR_NONE;
-    
+
     if(rt_mutex_take(pmutex, RT_WAITING_NO) == RT_EOK) {
         return (OS_TRUE);
     }
-    
+
     return (OS_FALSE);
 }
 #endif
@@ -184,13 +184,13 @@ OS_EVENT  *OSMutexCreate (INT8U   prio,
        *perr = OS_ERR_PEVENT_NULL;                         /* No more event control blocks             */
         return (pevent);
     }
-    
+
     pevent->ipc_ptr = (struct rt_ipc_object *)
         rt_mutex_create("uCOS-II", RT_IPC_FLAG_PRIO);
     if(pevent->ipc_ptr == 0) {
         RT_KERNEL_FREE(pevent);
         *perr = OS_ERR_PEVENT_NULL;
-        return ((OS_EVENT *)0); 
+        return ((OS_EVENT *)0);
     }
 
    *perr = OS_ERR_NONE;
@@ -286,7 +286,7 @@ OS_EVENT  *OSMutexDel (OS_EVENT  *pevent,
 #endif
 
     pmutex = (rt_mutex_t)pevent->ipc_ptr;
-    
+
     if (rt_object_get_type(&pmutex->parent.parent)         /* Validate event block type                */
         != RT_Object_Class_Mutex) {
         *perr = OS_ERR_EVENT_TYPE;
@@ -303,10 +303,10 @@ OS_EVENT  *OSMutexDel (OS_EVENT  *pevent,
                 rt_mutex_delete(pmutex);                   /* invoke RT-Thread API                     */
                 RT_KERNEL_FREE(pevent);
                 *perr = OS_ERR_NONE;
-                pevent_return =  (OS_EVENT *)0; 
+                pevent_return =  (OS_EVENT *)0;
             } else {
                 *perr = OS_ERR_TASK_WAITING;
-                pevent_return = pevent; 
+                pevent_return = pevent;
             }
             break;
 
@@ -314,7 +314,7 @@ OS_EVENT  *OSMutexDel (OS_EVENT  *pevent,
             rt_mutex_delete(pmutex);                       /* invoke RT-Thread API                     */
             RT_KERNEL_FREE(pevent);
             *perr = OS_ERR_NONE;
-            pevent_return =  (OS_EVENT *)0; 
+            pevent_return =  (OS_EVENT *)0;
             break;
 
         default:
@@ -392,9 +392,9 @@ void  OSMutexPend (OS_EVENT  *pevent,
         return;
     }
 #endif
-    
+
     pmutex = (rt_mutex_t)pevent->ipc_ptr;
-    
+
     if (rt_object_get_type(&pmutex->parent.parent)         /* Validate event block type                */
         != RT_Object_Class_Mutex) {
         *perr = OS_ERR_EVENT_TYPE;
@@ -409,7 +409,7 @@ void  OSMutexPend (OS_EVENT  *pevent,
         return;
     }
 
-    OS_ENTER_CRITICAL();   
+    OS_ENTER_CRITICAL();
     OSTCBCur->OSTCBStat     |= OS_STAT_MUTEX;         /* Mutex not available, pend current task        */
     OSTCBCur->OSTCBStatPend  = OS_STAT_PEND_OK;
 #ifndef PKG_USING_UCOSII_WRAPPER_TINY
@@ -420,7 +420,7 @@ void  OSMutexPend (OS_EVENT  *pevent,
 
     if(timeout) {                                     /* 0ÎªÓÀ¾ÃµÈ´ý                                   */
         rt_err = rt_mutex_take(pmutex, timeout);
-        OS_ENTER_CRITICAL(); 
+        OS_ENTER_CRITICAL();
         if (rt_err == RT_EOK) {
             OSTCBCur->OSTCBStatPend = OS_STAT_PEND_OK;
         } else if(OSTCBCur->OSTCBStatPend == OS_STAT_PEND_ABORT) {
@@ -430,7 +430,7 @@ void  OSMutexPend (OS_EVENT  *pevent,
         }
     }else {
         rt_mutex_take(pmutex, RT_WAITING_FOREVER);
-        OS_ENTER_CRITICAL(); 
+        OS_ENTER_CRITICAL();
         if(OSTCBCur->OSTCBStatPend == OS_STAT_PEND_ABORT) {
             OSTCBCur->OSTCBStatPend = OS_STAT_PEND_ABORT;
         }else {
@@ -501,7 +501,7 @@ INT8U  OSMutexPost (OS_EVENT *pevent)
 #endif
 
     pmutex = (rt_mutex_t)pevent->ipc_ptr;
-    
+
     if (rt_object_get_type(&pmutex->parent.parent)    /* Validate event block type                     */
         != RT_Object_Class_Mutex) {
         return (OS_ERR_EVENT_TYPE);
@@ -512,7 +512,7 @@ INT8U  OSMutexPost (OS_EVENT *pevent)
         return (OS_ERR_NOT_MUTEX_OWNER);
     }
     OS_EXIT_CRITICAL();
-    
+
     rt_mutex_release(pmutex);                         /* invoke rt-thread API                          */
     return (OS_ERR_NONE);
 }
@@ -556,9 +556,9 @@ INT8U  OSMutexQuery (OS_EVENT       *pevent,
         return (OS_ERR_PDATA_NULL);
     }
 #endif
-    
+
     pmutex = (rt_mutex_t)pevent->ipc_ptr;
-    
+
     if (rt_object_get_type(&pmutex->parent.parent)         /* Validate event block type                */
         != RT_Object_Class_Mutex) {
         return (OS_ERR_EVENT_TYPE);

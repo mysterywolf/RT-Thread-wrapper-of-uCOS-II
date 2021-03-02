@@ -23,16 +23,16 @@ void flag_example (void);
 
 int main(void)/*RT-Thread mainÏß³Ì*/
 {
-    OSInit();    
+    OSInit();
     OSStart();
-    
+
 #if OS_TASK_STAT_EN > 0u
     OSStatInit();
 #endif
-    
+
 //    task_example();
-//    timer_example(); 
-//    sem_example();   
+//    timer_example();
+//    sem_example();
 //    mutex_example();
 //    messagequeue_example();
     flag_example();

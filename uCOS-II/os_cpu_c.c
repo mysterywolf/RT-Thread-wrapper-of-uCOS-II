@@ -51,7 +51,7 @@
 #if OS_CPU_HOOKS_EN > 0u
 void  OSInitHookBegin (void)
 {
-    
+
 }
 #endif
 

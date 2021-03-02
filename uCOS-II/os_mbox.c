@@ -321,7 +321,7 @@ INT8U  OSMboxQuery (OS_EVENT      *pevent,
 {
     INT8U err;
     OS_Q_DATA q_data;
-    
+
     err = OSQQuery(pevent, &q_data);
     p_mbox_data->OSMsg = q_data.OSMsg;
     return err;

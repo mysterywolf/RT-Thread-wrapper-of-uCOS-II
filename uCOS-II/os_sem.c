@@ -66,10 +66,10 @@ INT16U  OSSemAccept (OS_EVENT *pevent)
         return (0u);
     }
 #endif
-    
+
     psem = (rt_sem_t)pevent->ipc_ptr;
-    
-    if (rt_object_get_type(&psem->parent.parent) 
+
+    if (rt_object_get_type(&psem->parent.parent)
         != RT_Object_Class_Semaphore) {               /* Validate event block type                     */
         return (0u);
     }
@@ -104,7 +104,7 @@ INT16U  OSSemAccept (OS_EVENT *pevent)
 OS_EVENT  *OSSemCreate (INT16U cnt)
 {
     OS_EVENT  *pevent;
-    
+
 #ifdef OS_SAFETY_CRITICAL_IEC61508
     if (OSSafetyCriticalStartFlag == OS_TRUE) {
         OS_SAFETY_CRITICAL_EXCEPTION();
@@ -116,7 +116,7 @@ OS_EVENT  *OSSemCreate (INT16U cnt)
         return ((OS_EVENT *)0);                            /* ... can't CREATE from an ISR             */
     }
 
-    pevent = RT_KERNEL_MALLOC(sizeof(OS_EVENT));    
+    pevent = RT_KERNEL_MALLOC(sizeof(OS_EVENT));
     if (pevent == (OS_EVENT *)0) {                         /* Get an event control block               */
         return ((OS_EVENT *)0);
     }
@@ -127,7 +127,7 @@ OS_EVENT  *OSSemCreate (INT16U cnt)
         RT_KERNEL_FREE(pevent);
         return ((OS_EVENT *)0);
     }
- 
+
     return (pevent);
 }
 
@@ -206,10 +206,10 @@ OS_EVENT  *OSSemDel (OS_EVENT  *pevent,
 #endif
 
     psem = (rt_sem_t)pevent->ipc_ptr;
-    
+
     if (rt_object_get_type(&psem->parent.parent)           /* Validate event block type                */
         != RT_Object_Class_Semaphore) {
-        return (pevent);       
+        return (pevent);
     }
     if (OSIntNesting > 0u) {                               /* See if called from ISR ...               */
         *perr = OS_ERR_DEL_ISR;                            /* ... can't DELETE from an ISR             */
@@ -222,18 +222,18 @@ OS_EVENT  *OSSemDel (OS_EVENT  *pevent,
                 rt_sem_delete(psem);                       /* invoke RT-Thread API                     */
                 RT_KERNEL_FREE(pevent);
                 *perr = OS_ERR_NONE;
-                pevent_return =  (OS_EVENT *)0; 
+                pevent_return =  (OS_EVENT *)0;
             } else {
                 *perr = OS_ERR_TASK_WAITING;
-                pevent_return = pevent; 
+                pevent_return = pevent;
             }
             break;
-            
+
         case OS_DEL_ALWAYS:                                /* Always delete the semaphore              */
             rt_sem_delete(psem);                           /* invoke RT-Thread API                     */
             RT_KERNEL_FREE(pevent);
             *perr = OS_ERR_NONE;
-            pevent_return =  (OS_EVENT *)0; 
+            pevent_return =  (OS_EVENT *)0;
             break;
 
         default:
@@ -341,7 +341,7 @@ void  OSSemPend (OS_EVENT  *pevent,
         }
     }else {
         rt_sem_take(psem, RT_WAITING_FOREVER);
-        OS_ENTER_CRITICAL();        
+        OS_ENTER_CRITICAL();
         if(OSTCBCur->OSTCBStatPend == OS_STAT_PEND_ABORT) {
             OSTCBCur->OSTCBStatPend = OS_STAT_PEND_ABORT;
         }else {
@@ -411,7 +411,7 @@ INT8U  OSSemPendAbort (OS_EVENT  *pevent,
 {
     rt_sem_t   psem;
     INT8U      nbr_tasks = 0u;
-    
+
 #ifdef OS_SAFETY_CRITICAL
     if (perr == (INT8U *)0) {
         OS_SAFETY_CRITICAL_EXCEPTION();
@@ -479,14 +479,14 @@ INT8U  OSSemPost (OS_EVENT *pevent)
 #endif
 
     psem = (rt_sem_t)pevent->ipc_ptr;
-    
+
     if (rt_object_get_type(&psem->parent.parent)      /* Validate event block type                     */
         != RT_Object_Class_Semaphore) {
         return (OS_ERR_EVENT_TYPE);
     }
     if (rt_sem_release(psem) == RT_EOK) {
         return (OS_ERR_NONE);
-    }   
+    }
     return (OS_ERR_SEM_OVF);
 }
 
@@ -527,9 +527,9 @@ INT8U  OSSemQuery (OS_EVENT     *pevent,
         return (OS_ERR_PDATA_NULL);
     }
 #endif
-    
+
     psem = (rt_sem_t)(pevent->ipc_ptr);
-    
+
     if (rt_object_get_type(&psem->parent.parent)           /* Validate event block type                */
         != RT_Object_Class_Semaphore) {
         return (OS_ERR_EVENT_TYPE);
@@ -590,9 +590,9 @@ void  OSSemSet (OS_EVENT  *pevent,
         return;
     }
 #endif
-    
+
     psem = (rt_sem_t)pevent->ipc_ptr;
-    
+
     if (rt_object_get_type(&psem->parent.parent)      /* Validate event block type                     */
         != RT_Object_Class_Semaphore) {
         *perr = OS_ERR_EVENT_TYPE;

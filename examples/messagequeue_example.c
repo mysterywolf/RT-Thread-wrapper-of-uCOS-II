@@ -31,14 +31,14 @@ static void task2(void *p_arg)
 void messagequeue_example (void)
 {
     p_mq = OSQCreateEx(10);
- 
-#if OS_STK_GROWTH == 0u      
+
+#if OS_STK_GROWTH == 0u
     OSTaskCreateExt(task1,0,&task1_stack[0],TASK_PRIO,0,&task1_stack[TASK_SIZE-1],TASK_SIZE,0,OS_TASK_OPT_STK_CHK|OS_TASK_OPT_STK_CLR);
 #else
     OSTaskCreateExt(task1,0,&task1_stack[TASK_SIZE-1],TASK1_PRIO,0,&task1_stack[0],TASK_SIZE,0,OS_TASK_OPT_STK_CHK|OS_TASK_OPT_STK_CLR);
 #endif
-    
-#if OS_STK_GROWTH == 0u      
+
+#if OS_STK_GROWTH == 0u
     OSTaskCreateExt(task2,0,&task2_stack[0],TASK_PRIO,0,&task2_stack[TASK_SIZE-1],TASK_SIZE,0,OS_TASK_OPT_STK_CHK|OS_TASK_OPT_STK_CLR);
 #else
     OSTaskCreateExt(task2,0,&task2_stack[TASK_SIZE-1],TASK2_PRIO,0,&task2_stack[0],TASK_SIZE,0,OS_TASK_OPT_STK_CHK|OS_TASK_OPT_STK_CLR);
