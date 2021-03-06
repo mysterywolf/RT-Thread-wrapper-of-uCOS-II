@@ -127,7 +127,7 @@ BOOLEAN  OSMutexAccept (OS_EVENT  *pevent,
 *                            mutex. If the priority is specified as OS_PRIO_MUTEX_CEIL_DIS, then the
 *                            priority ceiling promotion is disabled. This way, the tasks accessing the
 *                            semaphore do not have their priority promoted.
-*                            ÓÉÓÚRT-ThreadÄÚºËÖ§³ÖÍ¬Ò»ÓÅÏÈ¼¶º¬¶à¸öÈÎÎñ,Òò´ËprioÔÚ±¾¼æÈİ²ãÎŞÓÃ,Ëæ±ãÌîÊ²Ã´¶¼ĞĞ
+*                            ç”±äºRT-Threadå†…æ ¸æ”¯æŒåŒä¸€ä¼˜å…ˆçº§å«å¤šä¸ªä»»åŠ¡,å› æ­¤prioåœ¨æœ¬å…¼å®¹å±‚æ— ç”¨,éšä¾¿å¡«ä»€ä¹ˆéƒ½è¡Œ
 *
 *              perr          is a pointer to an error code which will be returned to your application:
 *                               OS_ERR_NONE                     if the call was successful.
@@ -157,7 +157,7 @@ BOOLEAN  OSMutexAccept (OS_EVENT  *pevent,
 OS_EVENT  *OSMutexCreate (INT8U   prio,
                           INT8U  *perr)
 {
-    OS_EVENT  *pevent;                                            /* ÓÉÓÚRT-ThreadÄÚºËÖ§³ÖÍ¬Ò»ÓÅÏÈ¼¶º¬¶à¸öÈÎÎñ,Òò´ËprioÔÚ±¾¼æÈİ²ãÎŞÓÃ*/
+    OS_EVENT  *pevent;                                            /* ç”±äºRT-Threadå†…æ ¸æ”¯æŒåŒä¸€ä¼˜å…ˆçº§å«å¤šä¸ªä»»åŠ¡,å› æ­¤prioåœ¨æœ¬å…¼å®¹å±‚æ— ç”¨*/
 
 #ifdef OS_SAFETY_CRITICAL
     if (perr == (INT8U *)0) {
@@ -201,10 +201,10 @@ OS_EVENT  *OSMutexCreate (INT8U   prio,
 /*
 *********************************************************************************************************
 *                                 CREATE A MUTUAL EXCLUSION SEMAPHORE
-*   ¶îÍâÊµÏÖOSMutexCreateEx()º¯Êı£¬¸Ãº¯Êı²¢²»ÔÚuCOS-IIÔ­°æµÄº¯ÊıÖĞ£¬OSMutexCreate()º¯ÊıÖĞµÚÒ»¸ö
-* ²ÎÊıprioÔÚ¼æÈİ²ãÖĞÃ»ÓĞÈÎºÎÒâÒå£¬Òò´Ë¸Ãº¯Êı½«OSMutexCreate()º¯ÊıÖĞµÄµÚÒ»¸ö²ÎÊıÂÔÈ¥£¬ÒÔ·½±ãÓÃ»§
-* Ê¹ÓÃ¡£Ô­ÒòÊÇÓÉÓÚuCOS-IIµÄÊµÏÖ·½Ê½¹ıÓÚÂäºó£¬²»Ö§³ÖÏàÍ¬ÈÎÎñÔÚÍ¬Ò»ÓÅÏÈ¼¶¡£
-*   ÍÆ¼öÓÃ»§Ê¹ÓÃÕâ¸öAPI
+*   é¢å¤–å®ç°OSMutexCreateEx()å‡½æ•°ï¼Œè¯¥å‡½æ•°å¹¶ä¸åœ¨uCOS-IIåŸç‰ˆçš„å‡½æ•°ä¸­ï¼ŒOSMutexCreate()å‡½æ•°ä¸­ç¬¬ä¸€ä¸ª
+* å‚æ•°prioåœ¨å…¼å®¹å±‚ä¸­æ²¡æœ‰ä»»ä½•æ„ä¹‰ï¼Œå› æ­¤è¯¥å‡½æ•°å°†OSMutexCreate()å‡½æ•°ä¸­çš„ç¬¬ä¸€ä¸ªå‚æ•°ç•¥å»ï¼Œä»¥æ–¹ä¾¿ç”¨æˆ·
+* ä½¿ç”¨ã€‚åŸå› æ˜¯ç”±äºuCOS-IIçš„å®ç°æ–¹å¼è¿‡äºè½åï¼Œä¸æ”¯æŒç›¸åŒä»»åŠ¡åœ¨åŒä¸€ä¼˜å…ˆçº§ã€‚
+*   æ¨èç”¨æˆ·ä½¿ç”¨è¿™ä¸ªAPI
 *********************************************************************************************************
 */
 OS_EVENT  *OSMutexCreateEx (INT8U  *perr)
@@ -299,7 +299,7 @@ OS_EVENT  *OSMutexDel (OS_EVENT  *pevent,
 
     switch (opt) {
         case OS_DEL_NO_PEND:                               /* DELETE MUTEX ONLY IF NO TASK WAITING --- */
-            if(rt_list_isempty(&(pmutex->parent.suspend_thread))) { /* ÈôÃ»ÓĞÏß³ÌµÈ´ıĞÅºÅÁ¿            */
+            if(rt_list_isempty(&(pmutex->parent.suspend_thread))) { /* è‹¥æ²¡æœ‰çº¿ç¨‹ç­‰å¾…ä¿¡å·é‡            */
                 rt_mutex_delete(pmutex);                   /* invoke RT-Thread API                     */
                 RT_KERNEL_FREE(pevent);
                 *perr = OS_ERR_NONE;
@@ -418,7 +418,7 @@ void  OSMutexPend (OS_EVENT  *pevent,
 #endif
     OS_EXIT_CRITICAL();
 
-    if(timeout) {                                     /* 0ÎªÓÀ¾ÃµÈ´ı                                   */
+    if(timeout) {                                     /* 0ä¸ºæ°¸ä¹…ç­‰å¾…                                   */
         rt_err = rt_mutex_take(pmutex, timeout);
         OS_ENTER_CRITICAL();
         if (rt_err == RT_EOK) {

@@ -38,7 +38,7 @@ static void task2(void *p_arg)
 void mutex_example (void)
 {
     INT8U err;
-    pMutex = OSMutexCreate(0,&err); /*第一个参数在兼容层中没有意义,可以随意填写*/
+    pMutex = OSMutexCreate(0,&err); /*绗竴涓弬鏁板湪鍏煎灞備腑娌℃湁鎰忎箟,鍙互闅忔剰濉啓*/
 
 #if OS_STK_GROWTH == 0u
     OSTaskCreateExt(task1,0,&task1_stack[0],TASK_PRIO,0,&task1_stack[TASK_SIZE-1],TASK_SIZE,0,OS_TASK_OPT_STK_CHK|OS_TASK_OPT_STK_CLR);

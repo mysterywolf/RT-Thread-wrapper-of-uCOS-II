@@ -15,11 +15,11 @@
 extern void (*rt_object_put_hook)(struct rt_object *object);
 
 /**
- * ÈÃµ±¹ÒÆð±íµÚÒ»¸öÈÎÎñ·ÅÆúµÈ´ýIPC,½øÈë¾ÍÐ÷Ì¬(ÓÉrt_ipc_list_resumeº¯Êý¸Ä±à)
+ * è®©å½“æŒ‚èµ·è¡¨ç¬¬ä¸€ä¸ªä»»åŠ¡æ”¾å¼ƒç­‰å¾…IPC,è¿›å…¥å°±ç»ªæ€(ç”±rt_ipc_list_resumeå‡½æ•°æ”¹ç¼–)
  *
- * @param ¹ÒÆð±í±íÍ·Ö¸Õë
+ * @param æŒ‚èµ·è¡¨è¡¨å¤´æŒ‡é’ˆ
  *
- * @return ´íÎóÂë
+ * @return é”™è¯¯ç 
  */
 rt_err_t rt_ipc_pend_abort_1 (rt_list_t *list)
 {
@@ -34,7 +34,7 @@ rt_err_t rt_ipc_pend_abort_1 (rt_list_t *list)
     /* set error code to RT_ERROR */
     thread->error = -RT_ERROR;
 
-    /*±ê¼Çµ±Ç°ÈÎÎñ·ÅÆúµÈ´ý*/
+    /*æ ‡è®°å½“å‰ä»»åŠ¡æ”¾å¼ƒç­‰å¾…*/
     p_tcb->OSTCBStatPend = OS_STAT_PEND_ABORT;
 
     rt_hw_interrupt_enable(temp);
@@ -46,11 +46,11 @@ rt_err_t rt_ipc_pend_abort_1 (rt_list_t *list)
 }
 
 /**
- * ÈÃËùÓÐµÈ´ý¸ÃIPCµÄÈÎÎñÈ«²¿·ÅÆúµÈ´ý£¬½øÈë¾ÍÐ÷Ì¬(ÓÉrt_ipc_list_resume_allº¯Êý¸Ä±à)
+ * è®©æ‰€æœ‰ç­‰å¾…è¯¥IPCçš„ä»»åŠ¡å…¨éƒ¨æ”¾å¼ƒç­‰å¾…ï¼Œè¿›å…¥å°±ç»ªæ€(ç”±rt_ipc_list_resume_allå‡½æ•°æ”¹ç¼–)
  *
- * @param ¹ÒÆð±í±íÍ·Ö¸Õë
+ * @param æŒ‚èµ·è¡¨è¡¨å¤´æŒ‡é’ˆ
  *
- * @return ·ÅÆúÁË¶àÉÙ¸öÈÎÎñ
+ * @return æ”¾å¼ƒäº†å¤šå°‘ä¸ªä»»åŠ¡
  */
 rt_uint16_t rt_ipc_pend_abort_all (rt_list_t *list)
 {
@@ -71,7 +71,7 @@ rt_uint16_t rt_ipc_pend_abort_all (rt_list_t *list)
         /* set error code to RT_ERROR */
         thread->error = -RT_ERROR;
 
-        /*±ê¼Çµ±Ç°ÈÎÎñ·ÅÆúµÈ´ý*/
+        /*æ ‡è®°å½“å‰ä»»åŠ¡æ”¾å¼ƒç­‰å¾…*/
         p_tcb->OSTCBStatPend = OS_STAT_PEND_ABORT;
 
         /*
@@ -91,11 +91,11 @@ rt_uint16_t rt_ipc_pend_abort_all (rt_list_t *list)
 }
 
 /**
- * ÈÃËùÓÐµÈ´ý¸ÃIPCµÄÈÎÎñÈ«²¿Åú×¼½øÈë¾ÍÐ÷Ì¬(ÓÉrt_ipc_list_resume_allº¯Êý¸Ä±à)
+ * è®©æ‰€æœ‰ç­‰å¾…è¯¥IPCçš„ä»»åŠ¡å…¨éƒ¨æ‰¹å‡†è¿›å…¥å°±ç»ªæ€(ç”±rt_ipc_list_resume_allå‡½æ•°æ”¹ç¼–)
  *
- * @param ¹ÒÆð±í±íÍ·Ö¸Õë
+ * @param æŒ‚èµ·è¡¨è¡¨å¤´æŒ‡é’ˆ
  *
- * @return ´íÎóÂë
+ * @return é”™è¯¯ç 
  */
 static rt_err_t rt_ipc_post_all (rt_list_t *list)
 {
@@ -127,7 +127,7 @@ static rt_err_t rt_ipc_post_all (rt_list_t *list)
 
 /**
  * This function will wake ALL threads which are WAITTING for message queue (FIFO)
- * ¸Ä±à×Ôrt_mq_sendº¯Êý
+ * æ”¹ç¼–è‡ªrt_mq_sendå‡½æ•°
  *
  * @param mq the message queue object
  * @param buffer the message
@@ -156,10 +156,10 @@ rt_err_t rt_mq_send_all(rt_mq_t mq, void *buffer, rt_size_t size)
     /* disable interrupt */
     temp = rt_hw_interrupt_disable();
 
-    /* »ñÈ¡µ±Ç°n¸öÏß³Ì±»µ±Ç°ÏûÏ¢¶ÓÁÐ¹ÒÆð */
+    /* èŽ·å–å½“å‰nä¸ªçº¿ç¨‹è¢«å½“å‰æ¶ˆæ¯é˜Ÿåˆ—æŒ‚èµ· */
     suspend_len = rt_list_len(&mq->parent.suspend_thread);
 
-    /* ½«ÏàÍ¬µÄÏûÏ¢¸´ÖÆn´Î,Ò»»áÒ»Æð·¢³öÈ¥ */
+    /* å°†ç›¸åŒçš„æ¶ˆæ¯å¤åˆ¶næ¬¡,ä¸€ä¼šä¸€èµ·å‘å‡ºåŽ» */
     while(suspend_len)
     {
         /* get a free list, there must be an empty item */
@@ -207,7 +207,7 @@ rt_err_t rt_mq_send_all(rt_mq_t mq, void *buffer, rt_size_t size)
     /* resume suspended thread */
     if (!rt_list_isempty(&mq->parent.suspend_thread))
     {
-        /* ½«µÈ´ý±¾ÏûÏ¢¶ÓÁÐµÄËùÓÐÏß³ÌÈ«²¿½â¹Ò,´ËÊ±ËûÃÇ½«Í¬Ê±»ñµÃÏàÍ¬µÄÏûÏ¢ */
+        /* å°†ç­‰å¾…æœ¬æ¶ˆæ¯é˜Ÿåˆ—çš„æ‰€æœ‰çº¿ç¨‹å…¨éƒ¨è§£æŒ‚,æ­¤æ—¶ä»–ä»¬å°†åŒæ—¶èŽ·å¾—ç›¸åŒçš„æ¶ˆæ¯ */
         rt_ipc_post_all(&(mq->parent.suspend_thread));
 
         /* enable interrupt */
@@ -226,11 +226,11 @@ rt_err_t rt_mq_send_all(rt_mq_t mq, void *buffer, rt_size_t size)
 
 
 /**
- * ×Ô¶¯³õÊ¼»¯
- * uCOS-II¼æÈÝ²ãÖ§³Ö°´ÕÕuCOS-IIÔ­°æµÄ³õÊ¼»¯²½Öè½øÐÐ³õÊ¼»¯£¬µ«ÊÇÔÚÓÐÐ©Çé¿ö£¬
- * ÓÃ»§²»ÏëÊÖ¶¯³õÊ¼»¯uCOS-II¼æÈÝ²ã£¬ÏëÒªÖ±½ÓÔËÐÐÓ¦ÓÃ²ãÈÎÎñ»òÄ£¿é£¬Ôò¿ÉÒÔÊ¹ÓÃ¸Ã
- * ºê¶¨Òå¡£ÔÚrtconfig.hÖÐ¶¨Òå±¾ºê¶¨Òåºó£¬ÔÚRT-Thread³õÊ¼»¯Íê³É²¢½øÈëµ½mainÏß³ÌÖ®Ç°
- * »á×Ô¶¯½«uCOS-II¼æÈÝ²ã³õÊ¼»¯Íê±Ï£¬ÓÃ»§½öÐèÒª×¨×¢ÓÚuCOS-IIµÄÓ¦ÓÃ¼¶ÈÎÎñ¼´¿É¡£
+ * è‡ªåŠ¨åˆå§‹åŒ–
+ * uCOS-IIå…¼å®¹å±‚æ”¯æŒæŒ‰ç…§uCOS-IIåŽŸç‰ˆçš„åˆå§‹åŒ–æ­¥éª¤è¿›è¡Œåˆå§‹åŒ–ï¼Œä½†æ˜¯åœ¨æœ‰äº›æƒ…å†µï¼Œ
+ * ç”¨æˆ·ä¸æƒ³æ‰‹åŠ¨åˆå§‹åŒ–uCOS-IIå…¼å®¹å±‚ï¼Œæƒ³è¦ç›´æŽ¥è¿è¡Œåº”ç”¨å±‚ä»»åŠ¡æˆ–æ¨¡å—ï¼Œåˆ™å¯ä»¥ä½¿ç”¨è¯¥
+ * å®å®šä¹‰ã€‚åœ¨rtconfig.hä¸­å®šä¹‰æœ¬å®å®šä¹‰åŽï¼Œåœ¨RT-Threadåˆå§‹åŒ–å®Œæˆå¹¶è¿›å…¥åˆ°mainçº¿ç¨‹ä¹‹å‰
+ * ä¼šè‡ªåŠ¨å°†uCOS-IIå…¼å®¹å±‚åˆå§‹åŒ–å®Œæ¯•ï¼Œç”¨æˆ·ä»…éœ€è¦ä¸“æ³¨äºŽuCOS-IIçš„åº”ç”¨çº§ä»»åŠ¡å³å¯ã€‚
  * The wrapper supports uCOS-II standard startup procedure. Alternatively,
  * if you want to run uCOS-II apps directly and ignore the startup procedure,
  * you can choose this option.
@@ -238,8 +238,8 @@ rt_err_t rt_mq_send_all(rt_mq_t mq, void *buffer, rt_size_t size)
 #ifdef PKG_USING_UCOSII_WRAPPER_AUTOINIT
 static int rt_ucosii_autoinit(void)
 {
-    OSInit();                                       /*uCOS-II²Ù×÷ÏµÍ³³õÊ¼»¯*/
-    OSStart();                                      /*¿ªÊ¼ÔËÐÐuCOS-II²Ù×÷ÏµÍ³*/
+    OSInit();                                       /*uCOS-IIæ“ä½œç³»ç»Ÿåˆå§‹åŒ–*/
+    OSStart();                                      /*å¼€å§‹è¿è¡ŒuCOS-IIæ“ä½œç³»ç»Ÿ*/
 
 #if OS_TASK_STAT_EN > 0u
     OSStatInit();

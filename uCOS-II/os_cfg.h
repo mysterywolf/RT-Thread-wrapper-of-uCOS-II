@@ -40,19 +40,19 @@
 #include <rtconfig.h>
                                        /* ---------------------- MISCELLANEOUS ----------------------- */
 #if defined RT_USING_HOOK && defined RT_USING_IDLE_HOOK
-#define OS_APP_HOOKS_EN           1u   /* ��д Application-defined hooks are called from the uC/OS-II hooks */
-#define OS_CPU_HOOKS_EN           1u   /* ��д uC/OS-II hooks are found in the processor port files    */
+#define OS_APP_HOOKS_EN           1u   /* 读写 Application-defined hooks are called from the uC/OS-II hooks */
+#define OS_CPU_HOOKS_EN           1u   /* 读写 uC/OS-II hooks are found in the processor port files    */
 #else
-#define OS_APP_HOOKS_EN           0u   /* ֻ�� Application-defined hooks are called from the uC/OS-II hooks */
-#define OS_CPU_HOOKS_EN           0u   /* ֻ�� uC/OS-II hooks are found in the processor port files    */
+#define OS_APP_HOOKS_EN           0u   /* 只读 Application-defined hooks are called from the uC/OS-II hooks */
+#define OS_CPU_HOOKS_EN           0u   /* 只读 uC/OS-II hooks are found in the processor port files    */
 #endif
 
 #define OS_ARG_CHK_EN             1u   /* Enable (1) or Disable (0) argument checking                  */
 
-#define OS_EVENT_MULTI_EN         0u   /* ֻ�� Include code for OSEventPendMulti()                     */
-#define OS_EVENT_NAME_EN          0u   /* ֻ�� Enable names for Sem, Mutex, Mbox and Q                      */
+#define OS_EVENT_MULTI_EN         0u   /* 只读 Include code for OSEventPendMulti()                     */
+#define OS_EVENT_NAME_EN          0u   /* 只读 Enable names for Sem, Mutex, Mbox and Q                      */
 
-#define OS_LOWEST_PRIO    RT_THREAD_PRIORITY_MAX /* ֻ�� Defines the lowest priority that can be assigned...*/
+#define OS_LOWEST_PRIO    RT_THREAD_PRIORITY_MAX /* 只读 Defines the lowest priority that can be assigned...*/
                                        /* ... MUST NEVER be higher than 254!                           */
 
 #define OS_MAX_MEM_PART           5u   /* Max. number of memory partitions                             */
@@ -60,7 +60,7 @@
 
 #define OS_SCHED_LOCK_EN          1u   /* Include code for OSSchedLock() and OSSchedUnlock()           */
 
-#define OS_TICKS_PER_SEC  RT_TICK_PER_SECOND /* ֻ�� Set the number of ticks in one second             */
+#define OS_TICKS_PER_SEC  RT_TICK_PER_SECOND /* 只读 Set the number of ticks in one second             */
 
 #define OS_TLS_TBL_SIZE           0u   /* Size of Thread-Local Storage Table                           */
 
@@ -70,7 +70,7 @@
 
                                        /* --------------------- TASK MANAGEMENT ---------------------- */
 #define OS_TASK_CHANGE_PRIO_EN    1u   /*     Include code for OSTaskChangePrio()                      */
-#define OS_TASK_CREATE_EN         0u   /*ֻ�� Include code for OSTaskCreate()                          */
+#define OS_TASK_CREATE_EN         0u   /*只读 Include code for OSTaskCreate()                          */
 #define OS_TASK_CREATE_EXT_EN     1u   /*     Include code for OSTaskCreateExt()                       */
 #define OS_TASK_DEL_EN            1u   /*     Include code for OSTaskDel()                             */
 #define OS_TASK_NAME_EN           1u   /*     Enable task names                                        */
@@ -84,10 +84,10 @@
 
 
                                        /* ----------------------- EVENT FLAGS ------------------------ */
-#ifdef RT_USING_EVENT                  /* �Ƿ�����RT-Thread�ӹ�                                      */
-#define OS_FLAG_EN                1u   /* ��д Enable (1) or Disable (0) code generation for EVENT FLAGS*/
+#ifdef RT_USING_EVENT                  /* 是否开启由RT-Thread接管                                      */
+#define OS_FLAG_EN                1u   /* 读写 Enable (1) or Disable (0) code generation for EVENT FLAGS*/
 #else
-#define OS_FLAG_EN                0u   /* ֻ�� Enable (1) or Disable (0) code generation for EVENT FLAGS*/
+#define OS_FLAG_EN                0u   /* 只读 Enable (1) or Disable (0) code generation for EVENT FLAGS*/
 #endif
 #define OS_FLAG_ACCEPT_EN         1u   /*     Include code for OSFlagAccept()                          */
 #define OS_FLAG_DEL_EN            1u   /*     Include code for OSFlagDel()                             */
@@ -101,10 +101,10 @@
 
 
                                        /* ---------------- MUTUAL EXCLUSION SEMAPHORES --------------- */
-#ifdef RT_USING_MUTEX                  /* �Ƿ�����RT-Thread�ӹ�                                      */
-#define OS_MUTEX_EN               1u   /* ��д Enable (1) or Disable (0) code generation for MUTEX     */
+#ifdef RT_USING_MUTEX                  /* 是否开启由RT-Thread接管                                      */
+#define OS_MUTEX_EN               1u   /* 读写 Enable (1) or Disable (0) code generation for MUTEX     */
 #else
-#define OS_MUTEX_EN               0u   /* ֻ�� Enable (1) or Disable (0) code generation for MUTEX     */
+#define OS_MUTEX_EN               0u   /* 只读 Enable (1) or Disable (0) code generation for MUTEX     */
 #endif
 #define OS_MUTEX_ACCEPT_EN        1u   /*     Include code for OSMutexAccept()                         */
 #define OS_MUTEX_DEL_EN           1u   /*     Include code for OSMutexDel()                            */
@@ -112,10 +112,10 @@
 
 
                                        /* ---------------------- MESSAGE QUEUES ---------------------- */
-#ifdef RT_USING_MESSAGEQUEUE           /* �Ƿ�����RT-Thread�ӹ�                                      */
-#define OS_Q_EN                   1u   /* ��д Enable (1) or Disable (0) code generation for QUEUES    */
+#ifdef RT_USING_MESSAGEQUEUE           /* 是否开启由RT-Thread接管                                      */
+#define OS_Q_EN                   1u   /* 读写 Enable (1) or Disable (0) code generation for QUEUES    */
 #else
-#define OS_Q_EN                   0u   /* ֻ�� Enable (1) or Disable (0) code generation for QUEUES    */
+#define OS_Q_EN                   0u   /* 只读 Enable (1) or Disable (0) code generation for QUEUES    */
 #endif
 #define OS_Q_ACCEPT_EN            1u   /*     Include code for OSQAccept()                             */
 #define OS_Q_DEL_EN               1u   /*     Include code for OSQDel()                                */
@@ -128,7 +128,7 @@
 
 
                                        /* -------------------- MESSAGE MAILBOXES --------------------- */
-#define OS_MBOX_EN           OS_Q_EN   /* ֻ�� Enable (1) or Disable (0) code generation for MAILBOXES */
+#define OS_MBOX_EN           OS_Q_EN   /* 只读 Enable (1) or Disable (0) code generation for MAILBOXES */
 #define OS_MBOX_ACCEPT_EN         1u   /*     Include code for OSMboxAccept()                          */
 #define OS_MBOX_DEL_EN            1u   /*     Include code for OSMboxDel()                             */
 #define OS_MBOX_PEND_ABORT_EN     1u   /*     Include code for OSMboxPendAbort()                       */
@@ -138,10 +138,10 @@
 
 
                                        /* ------------------------ SEMAPHORES ------------------------ */
-#ifdef RT_USING_SEMAPHORE              /* �Ƿ�����RT-Thread�ӹ�                                      */
-#define OS_SEM_EN                 1u   /* ��д Enable (1) or Disable (0) code generation for SEMAPHORES*/
+#ifdef RT_USING_SEMAPHORE              /* 是否开启由RT-Thread接管                                      */
+#define OS_SEM_EN                 1u   /* 读写 Enable (1) or Disable (0) code generation for SEMAPHORES*/
 #else
-#define OS_SEM_EN                 0u   /* ֻ�� Enable (1) or Disable (0) code generation for SEMAPHORES*/
+#define OS_SEM_EN                 0u   /* 只读 Enable (1) or Disable (0) code generation for SEMAPHORES*/
 #endif
 #define OS_SEM_ACCEPT_EN          1u   /*    Include code for OSSemAccept()                            */
 #define OS_SEM_DEL_EN             1u   /*    Include code for OSSemDel()                               */
@@ -157,10 +157,10 @@
 
 
                                        /* --------------------- TIMER MANAGEMENT --------------------- */
-#ifdef RT_USING_TIMER_SOFT             /* �Ƿ�����RT-Thread�ӹ�                                      */
-#define OS_TMR_EN                 1u   /* ��д Enable (1) or Disable (0) code generation for TIMERS    */
+#ifdef RT_USING_TIMER_SOFT             /* 是否开启由RT-Thread接管                                      */
+#define OS_TMR_EN                 1u   /* 读写 Enable (1) or Disable (0) code generation for TIMERS    */
 #else
-#define OS_TMR_EN                 0u   /* ֻ�� Enable (1) or Disable (0) code generation for TIMERS    */
+#define OS_TMR_EN                 0u   /* 只读 Enable (1) or Disable (0) code generation for TIMERS    */
 #endif
 #define OS_TMR_CFG_NAME_EN        1u   /*     Determine timer names                                    */
 #define OS_TMR_CFG_TICKS_PER_SEC 10u   /*     Rate at which timer management task runs (Hz)            */

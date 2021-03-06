@@ -282,7 +282,7 @@ INT8U  OSTaskCreateExt (void   (*task)(void *p_arg),
     }
     OS_EXIT_CRITICAL();
 
-#if OS_STK_GROWTH == 1u                      /* ÈôÎªÏòÏÂÔö³¤ÐèÒª½«¶ÑÕ»Ê×µØÖ·×ª»»Ò»ÏÂ                   */
+#if OS_STK_GROWTH == 1u                      /* è‹¥ä¸ºå‘ä¸‹å¢žé•¿éœ€è¦å°†å †æ ˆé¦–åœ°å€è½¬æ¢ä¸€ä¸‹                   */
     convert = ptos - (stk_size - 1);
 #endif
 
@@ -829,7 +829,7 @@ INT8U  OSTaskStkChk (INT8U         prio,
         nfree++;
     }
 #endif
-    nfree = nfree / sizeof(OS_STK);                   /* RT-ThreadÓëuCOS-II¶ÑÕ»´óÐ¡µÄµ¥Î»²»Ò»Ñù        */
+    nfree = nfree / sizeof(OS_STK);                   /* RT-Threadä¸ŽuCOS-IIå †æ ˆå¤§å°çš„å•ä½ä¸ä¸€æ ·        */
     p_stk_data->OSFree = nfree;                       /* Store   number of free entries on the stk     */
     p_stk_data->OSUsed = size - nfree;                /* Compute number of entries used on the stk     */
     return (OS_ERR_NONE);

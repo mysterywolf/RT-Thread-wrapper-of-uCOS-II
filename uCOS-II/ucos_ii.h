@@ -455,15 +455,15 @@ typedef struct os_mutex_data {
 
 #if OS_Q_EN > 0u
 
-/*ÓÉÓÚÔÚipc.cÎÄ¼þÖÐµÄstruct rt_mq_messageÃ»ÓÐ±©Â¶³öÀ´,Òò´ËÐèÒª¸´ÖÆÒ»·Ý,Îª±ÜÃâÖØ¸´¸ÄÃûÎªstruct _rt_mq_message*/
+/*ç”±äºŽåœ¨ipc.cæ–‡ä»¶ä¸­çš„struct rt_mq_messageæ²¡æœ‰æš´éœ²å‡ºæ¥,å› æ­¤éœ€è¦å¤åˆ¶ä¸€ä»½,ä¸ºé¿å…é‡å¤æ”¹åä¸ºstruct _rt_mq_message*/
 struct _rt_mq_message
 {
     struct _rt_mq_message *next;
 };
 
-typedef  struct                             /* uCOSÏûÏ¢¶Î                                              */
+typedef  struct                             /* uCOSæ¶ˆæ¯æ®µ                                              */
 {
-    rt_uint8_t *data_ptr;                   /* uCOS-IIÏûÏ¢Êý¾ÝÖ¸Õë                                     */
+    rt_uint8_t *data_ptr;                   /* uCOS-IIæ¶ˆæ¯æ•°æ®æŒ‡é’ˆ                                     */
 }ucos_msg_t;
 
 typedef struct os_q {                       /* QUEUE CONTROL BLOCK                                     */
@@ -585,7 +585,7 @@ typedef  struct  os_tmr {
     INT32U           OSTmrMatch;            /* Timer expires when OSTmrTime == OSTmrMatch              */
     INT32U           OSTmrDly;              /* Delay time before periodic update starts                */
     INT32U           OSTmrPeriod;           /* Period to repeat timer                                  */
-    INT32U           _dly;                  /* ¼æÈÝ²ãÄÚ²¿±äÁ¿,ÓÃÓÚ´øÓÐÑÓÊ±µÄÖÜÆÚÑÓÊ±                   */
+    INT32U           _dly;                  /* å…¼å®¹å±‚å†…éƒ¨å˜é‡,ç”¨äºŽå¸¦æœ‰å»¶æ—¶çš„å‘¨æœŸå»¶æ—¶                   */
 #if OS_TMR_CFG_NAME_EN > 0u
     INT8U           *OSTmrName;             /* Name to give the timer                                  */
 #endif

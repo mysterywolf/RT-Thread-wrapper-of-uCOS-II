@@ -101,9 +101,9 @@ void  *OSQAccept (OS_EVENT  *pevent,
     }
 
     rt_err = rt_mq_recv(pmq,                     /* invoke rt-thread API                               */
-                 (void*)&ucos_msg,               /* uCOSÏûÏ¢¶Î                                         */
-                 sizeof(ucos_msg_t),             /* uCOSÏûÏ¢¶Î³¤¶È                                     */
-                 RT_WAITING_NO);                 /* ·Ç×èÈû                                             */
+                 (void*)&ucos_msg,               /* uCOSæ¶ˆæ¯æ®µ                                         */
+                 sizeof(ucos_msg_t),             /* uCOSæ¶ˆæ¯æ®µé•¿åº¦                                     */
+                 RT_WAITING_NO);                 /* éé˜»å¡                                             */
     if(rt_err == RT_EOK) {                       /* See if any messages in the queue                   */
         *perr = OS_ERR_NONE;
         pmsg =  ucos_msg.data_ptr;               /* Yes, extract oldest message from the queue         */
@@ -124,8 +124,8 @@ void  *OSQAccept (OS_EVENT  *pevent,
 *
 * Arguments  : start         is a pointer to the base address of the message queue storage area.  The
 *                            storage area MUST be declared as an array of pointers to 'void' as follows
-*                            ÔÚÔ­°æuCOS-IIÖĞ,ÓÃÓÚÓÃ»§Ö¸¶¨ÏûÏ¢ÄÚ´æ³ØÖ¸Õë,µ«ÊÇrt_mq_createÄÚ²¿»á×Ô¶¯´´½¨ÏûÏ¢
-*                            ÄÚ´æ³Ø,Òò´Ë¸Ã²ÎÊıÖ±½ÓÌîNULL¼´¿É
+*                            åœ¨åŸç‰ˆuCOS-IIä¸­,ç”¨äºç”¨æˆ·æŒ‡å®šæ¶ˆæ¯å†…å­˜æ± æŒ‡é’ˆ,ä½†æ˜¯rt_mq_createå†…éƒ¨ä¼šè‡ªåŠ¨åˆ›å»ºæ¶ˆæ¯
+*                            å†…å­˜æ± ,å› æ­¤è¯¥å‚æ•°ç›´æ¥å¡«NULLå³å¯
 *
 *                            void *MessageStorage[size]
 *
@@ -174,14 +174,14 @@ OS_EVENT  *OSQCreate (void    **start,
 /*
 *********************************************************************************************************
 *                                       CREATE A MESSAGE QUEUE
-*   ¶îÍâÊµÏÖOSQCreateEx()º¯Êı£¬¸Ãº¯Êı²¢²»ÔÚuCOS-IIÔ­°æµÄº¯ÊıÖĞ£¬OSQCreateEx()º¯ÊıÖĞµÚÒ»¸ö²ÎÊısizeÔÚ
-* ±¾¼æÈİ²ãÖĞÃ»ÓĞÒâÒå£¬Òò´Ë¸Ãº¯Êı½«OSQCreateEx()º¯ÊıÖĞµÄµÚÒ»¸ö²ÎÊıÂÔÈ¥£¬ÒÔ·½±ãÓÃ»§Ê¹ÓÃ¡£
-*   ÍÆ¼öÓÃ»§Ê¹ÓÃÕâ¸öAPI
+*   é¢å¤–å®ç°OSQCreateEx()å‡½æ•°ï¼Œè¯¥å‡½æ•°å¹¶ä¸åœ¨uCOS-IIåŸç‰ˆçš„å‡½æ•°ä¸­ï¼ŒOSQCreateEx()å‡½æ•°ä¸­ç¬¬ä¸€ä¸ªå‚æ•°sizeåœ¨
+* æœ¬å…¼å®¹å±‚ä¸­æ²¡æœ‰æ„ä¹‰ï¼Œå› æ­¤è¯¥å‡½æ•°å°†OSQCreateEx()å‡½æ•°ä¸­çš„ç¬¬ä¸€ä¸ªå‚æ•°ç•¥å»ï¼Œä»¥æ–¹ä¾¿ç”¨æˆ·ä½¿ç”¨ã€‚
+*   æ¨èç”¨æˆ·ä½¿ç”¨è¿™ä¸ªAPI
 *********************************************************************************************************
 */
 OS_EVENT  *OSQCreateEx (INT16U    size)
 {
-    return OSQCreate(0, size);                   /* »º³å³ØÊ×µØÖ·ÎŞĞè¸ø³ö,ÔÚ¼æÈİ²ãÖĞ¿ÉÒÔËæ±ã¸øÒ»¸ö¼´¿É  */
+    return OSQCreate(0, size);                   /* ç¼“å†²æ± é¦–åœ°å€æ— éœ€ç»™å‡º,åœ¨å…¼å®¹å±‚ä¸­å¯ä»¥éšä¾¿ç»™ä¸€ä¸ªå³å¯  */
 }
 
 
@@ -275,7 +275,7 @@ OS_EVENT  *OSQDel (OS_EVENT  *pevent,
 
     switch (opt) {
         case OS_DEL_NO_PEND:                               /* Delete queue only if no task waiting     */
-            if(rt_list_isempty(&(pmq->parent.suspend_thread))) { /* ÈôÃ»ÓĞÏß³ÌµÈ´ıĞÅºÅÁ¿               */
+            if(rt_list_isempty(&(pmq->parent.suspend_thread))) { /* è‹¥æ²¡æœ‰çº¿ç¨‹ç­‰å¾…ä¿¡å·é‡               */
                 rt_mq_delete(pmq);                         /* invoke RT-Thread API                     */
                 RT_KERNEL_FREE(pevent);
                 *perr = OS_ERR_NONE;
@@ -347,7 +347,7 @@ INT8U  OSQFlush (OS_EVENT *pevent)
     OS_ENTER_CRITICAL();
     while(pmq->entry>0)
     {
-        /* ÊµÏÖ²Î¼ûÁËrt_mq_recvº¯Êı */
+        /* å®ç°å‚è§äº†rt_mq_recvå‡½æ•° */
         msg = (struct _rt_mq_message *)(pmq->msg_queue_head);/* get message from queue                 */
         pmq->msg_queue_head = msg->next;              /* move message queue head                       */
         if (pmq->msg_queue_tail == msg)               /* reach queue tail, set to NULL                 */
@@ -451,8 +451,8 @@ void  *OSQPend (OS_EVENT  *pevent,
 
     if(timeout) {
         rt_err = rt_mq_recv(pmq,                          /* invoke rt-thread API                          */
-                     (void*)&ucos_msg,                    /* uCOSÏûÏ¢¶Î                                    */
-                     sizeof(ucos_msg_t),                  /* uCOSÏûÏ¢¶Î³¤¶È                                */
+                     (void*)&ucos_msg,                    /* uCOSæ¶ˆæ¯æ®µ                                    */
+                     sizeof(ucos_msg_t),                  /* uCOSæ¶ˆæ¯æ®µé•¿åº¦                                */
                      timeout);
         OS_ENTER_CRITICAL();
         if (rt_err == RT_EOK) {
@@ -464,8 +464,8 @@ void  *OSQPend (OS_EVENT  *pevent,
         }
     } else {
         rt_mq_recv (pmq,                                  /* invoke rt-thread API                          */
-                     (void*)&ucos_msg,                    /* uCOSÏûÏ¢¶Î                                    */
-                     sizeof(ucos_msg_t),                  /* uCOSÏûÏ¢¶Î³¤¶È                                */
+                     (void*)&ucos_msg,                    /* uCOSæ¶ˆæ¯æ®µ                                    */
+                     sizeof(ucos_msg_t),                  /* uCOSæ¶ˆæ¯æ®µé•¿åº¦                                */
                      RT_WAITING_FOREVER);
         OS_ENTER_CRITICAL();
         if(OSTCBCur->OSTCBStatPend == OS_STAT_PEND_ABORT) {
@@ -622,7 +622,7 @@ INT8U  OSQPost (OS_EVENT  *pevent,
         return (OS_ERR_EVENT_TYPE);
     }
 
-    /*×°ÌîuCOSÏûÏ¢¶Î*/
+    /*è£…å¡«uCOSæ¶ˆæ¯æ®µ*/
     ucos_msg.data_ptr = pmsg;
     rt_err = rt_mq_send(pmq,(void*)&ucos_msg,sizeof(ucos_msg_t));
     if(rt_err == -RT_EFULL) {
@@ -676,7 +676,7 @@ INT8U  OSQPostFront (OS_EVENT  *pevent,
         return (OS_ERR_EVENT_TYPE);
     }
 
-    /*×°ÌîuCOSÏûÏ¢¶Î*/
+    /*è£…å¡«uCOSæ¶ˆæ¯æ®µ*/
     ucos_msg.data_ptr = pmsg;
     rt_err = rt_mq_urgent(pmq, (void*)&ucos_msg, sizeof(ucos_msg_t));
     if(rt_err == -RT_EFULL) {
@@ -744,7 +744,7 @@ INT8U  OSQPostOpt (OS_EVENT  *pevent,
     if(opt == OS_POST_OPT_NONE) {
         err = OSQPost(pevent, pmsg);
     } else if(opt == OS_POST_OPT_BROADCAST) {
-        ucos_msg.data_ptr = pmsg; /* ×°ÌîuCOSÏûÏ¢¶Î */
+        ucos_msg.data_ptr = pmsg; /* è£…å¡«uCOSæ¶ˆæ¯æ®µ */
         rt_mq_send_all(pmq, (void*)&ucos_msg, sizeof(ucos_msg_t));
         if(rt_err == -RT_EFULL) {
             err = OS_ERR_Q_FULL;

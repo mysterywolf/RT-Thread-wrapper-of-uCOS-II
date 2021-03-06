@@ -60,7 +60,7 @@
 static  void  OS_InitMisc (void)
 {
     OSTaskCtr                 = 0u;                        /* Clear the number of tasks                */
-    OSRunning                 = OS_TRUE;                   /* ³õÊ¼»¯Ê±,rt-threadÒÑ¾­Æô¶¯Òò´ËÖ±½ÓÎªOS_TRUE*/
+    OSRunning                 = OS_TRUE;                   /* åˆå§‹åŒ–æ—¶,rt-threadå·²ç»å¯åŠ¨å› æ­¤ç›´æ¥ä¸ºOS_TRUE*/
 
 #if OS_TASK_STAT_EN > 0u
     OSIdleCtrRun              = 0uL;
@@ -117,7 +117,7 @@ static  void  OS_InitTCBList (void)
     OSTCBList               = (OS_TCB *)0;                       /* TCB lists initializations          */
     OSTCBFreeList           = &OSTCBTbl[0];
 
-    OSTCBPrioTbl[OS_MAX_TASKS + OS_N_SYS_TASKS - 1u] = OS_TCB_RESERVED; /* ¿ÕÏĞÈÎÎñ±ê¼ÇÎªÒÑ¾­Ê¹ÓÃ      */
+    OSTCBPrioTbl[OS_MAX_TASKS + OS_N_SYS_TASKS - 1u] = OS_TCB_RESERVED; /* ç©ºé—²ä»»åŠ¡æ ‡è®°ä¸ºå·²ç»ä½¿ç”¨      */
 }
 
 
@@ -137,7 +137,7 @@ static  void  OS_InitTCBList (void)
 
 static  void  OS_InitTaskIdle (void)
 {
-    rt_thread_idle_sethook(OS_TaskIdle);                    /*ÏòRTT×¢²á¦ÌCOS-III¼æÈİ²ã¿ÕÏĞÈÎÎñ(ÊµÔòÎª»Øµ÷º¯Êı)         */
+    rt_thread_idle_sethook(OS_TaskIdle);                    /*å‘RTTæ³¨å†ŒÎ¼COS-IIIå…¼å®¹å±‚ç©ºé—²ä»»åŠ¡(å®åˆ™ä¸ºå›è°ƒå‡½æ•°)         */
 }
 #endif
 
@@ -624,7 +624,7 @@ void  OS_Sched (void)
 *                 interrupts.
 *              2) This hook has been added to allow you to do such things as STOP the CPU to conserve
 *                 power.
-*              3) ÔÚ¦ÌCOS-II¼æÈİ²ãÖĞ£¬OS_TaskIdle²»ÔÙÊÇÒ»¸öº¯Êı£¬¶øÊÇÒ»¸öRT-Thread²Ù×÷ÏµÍ³IdleÈÎÎñµÄ»Øµ÷º¯Êı
+*              3) åœ¨Î¼COS-IIå…¼å®¹å±‚ä¸­ï¼ŒOS_TaskIdleä¸å†æ˜¯ä¸€ä¸ªå‡½æ•°ï¼Œè€Œæ˜¯ä¸€ä¸ªRT-Threadæ“ä½œç³»ç»ŸIdleä»»åŠ¡çš„å›è°ƒå‡½æ•°
 *********************************************************************************************************
 */
 
@@ -776,7 +776,7 @@ void  OS_TaskStatStkChk (void)
 * Description: This function is internal to uC/OS-II and is used to initialize a Task Control Block when
 *              a task is created (see OSTaskCreate() and OSTaskCreateExt()).
 *
-* Arguments  : ptcb          ¼æÈİ²ãĞÂÔö²ÎÊı
+* Arguments  : ptcb          å…¼å®¹å±‚æ–°å¢å‚æ•°
 *
 *              prio          is the priority of the task being created
 *
@@ -806,7 +806,7 @@ void  OS_TaskStatStkChk (void)
 *              opt           options as passed to 'OSTaskCreateExt()' or,
 *                            0 if called from 'OSTaskCreate()'.
 *
-*              pptcb         ·µ»ØptcbÖ¸Õë
+*              pptcb         è¿”å›ptcbæŒ‡é’ˆ
 *
 * Returns    : OS_ERR_NONE              if the call was successful
 *              OS_ERR_TASK_NO_MORE_TCB  if there are no more free TCBs to be allocated and thus, the task

@@ -144,13 +144,13 @@ OS_TMR  *OSTmrCreate (INT32U           dly,
     }
 
     /*
-     * uCOS-IIIÔ­°æ¶¨Ê±Æ÷»Øµ÷º¯Êý¾ÍÊÇÔÚ¶¨Ê±Æ÷Ïß³ÌÖÐµ÷ÓÃµÄ,¶ø·ÇÔÚÖÐ¶ÏÖÐµ÷ÓÃ,
-     * Òò´ËÒªÊ¹ÓÃRTTµÄRT_TIMER_FLAG_SOFT_TIMERÑ¡Ïî,ÔÚ´ËÖ®Ç°Ó¦½«ºê¶¨ÒåRT_USING_TIMER_SOFTÖÃ1
+     * uCOS-IIIåŽŸç‰ˆå®šæ—¶å™¨å›žè°ƒå‡½æ•°å°±æ˜¯åœ¨å®šæ—¶å™¨çº¿ç¨‹ä¸­è°ƒç”¨çš„,è€Œéžåœ¨ä¸­æ–­ä¸­è°ƒç”¨,
+     * å› æ­¤è¦ä½¿ç”¨RTTçš„RT_TIMER_FLAG_SOFT_TIMERé€‰é¡¹,åœ¨æ­¤ä¹‹å‰åº”å°†å®å®šä¹‰RT_USING_TIMER_SOFTç½®1
      */
     if(opt == OS_TMR_OPT_ONE_SHOT)
     {
         rt_flag = RT_TIMER_FLAG_ONE_SHOT|RT_TIMER_FLAG_SOFT_TIMER;
-        time = dly * (OS_TICKS_PER_SEC / OS_TMR_CFG_TICKS_PER_SEC);     /* RTTºÍuCOS-IIIÔÚ¶¨Ê±Æ÷Ê±ÖÓÔ´µÄÉè¼Æ²»Í¬,ÐèÒª½øÐÐ×ª»»     */
+        time = dly * (OS_TICKS_PER_SEC / OS_TMR_CFG_TICKS_PER_SEC);     /* RTTå’ŒuCOS-IIIåœ¨å®šæ—¶å™¨æ—¶é’Ÿæºçš„è®¾è®¡ä¸åŒ,éœ€è¦è¿›è¡Œè½¬æ¢     */
     }
     else if(opt == OS_TMR_OPT_PERIODIC)
     {
@@ -182,7 +182,7 @@ OS_TMR  *OSTmrCreate (INT32U           dly,
 #endif
     OSSchedUnlock();
 
-    if(opt == OS_TMR_OPT_PERIODIC && dly != 0) {            /* ´øÓÐÑÓ³ÙµÄÖÜÆÚÐÔÑÓÊ±                                   */
+    if(opt == OS_TMR_OPT_PERIODIC && dly != 0) {            /* å¸¦æœ‰å»¶è¿Ÿçš„å‘¨æœŸæ€§å»¶æ—¶                                   */
         time2 = dly * (OS_TICKS_PER_SEC / OS_TMR_CFG_TICKS_PER_SEC);
         rt_timer_init(&ptmr->OSTmr, (const char*)pname,     /* invoke rt_timer_create to create a timer               */
             OS_TmrCallback, ptmr, time2, RT_TIMER_FLAG_ONE_SHOT|RT_TIMER_FLAG_SOFT_TIMER);
@@ -263,7 +263,7 @@ BOOLEAN  OSTmrDel (OS_TMR  *ptmr,
     ptmr->OSTmrState = OS_TMR_STATE_UNUSED;
     OSSchedUnlock();
 
-    rt_timer_detach(&ptmr->OSTmr);                          /* É¾³ýrt-thread¶¨Ê±Æ÷                                    */
+    rt_timer_detach(&ptmr->OSTmr);                          /* åˆ é™¤rt-threadå®šæ—¶å™¨                                    */
     RT_KERNEL_FREE(ptmr);
     return (OS_TRUE);
 }
@@ -683,10 +683,10 @@ BOOLEAN  OSTmrStop (OS_TMR  *ptmr,
 
 /*
 ************************************************************************************************************************
-*                                                   ÄÚ²¿»Øµ÷º¯Êý
+*                                                   å†…éƒ¨å›žè°ƒå‡½æ•°
 *
-* Description: ÓÉÓÚRT-ThreadµÄ¶¨Ê±Æ÷»Øµ÷º¯Êý²ÎÊýÖ»ÓÐÒ»¸ö£¬¶øuCOS-IIIµÄ¶¨Ê±Æ÷»Øµ÷º¯Êý²ÎÊýÓÐÁ½¸ö£¬Òò´ËÐèÒª
-*              ÏÈÓÉRTTµ÷ÓÃÄÚ²¿»Øµ÷º¯Êý£¬ÔÙÓÉÄÚ²¿»Øµ÷º¯Êýµ÷ÓÃuCOS-IIIµÄ»Øµ÷º¯Êý£¬ÒÔ´ËÍê³É²ÎÊýµÄ×ª»»¡£
+* Description: ç”±äºŽRT-Threadçš„å®šæ—¶å™¨å›žè°ƒå‡½æ•°å‚æ•°åªæœ‰ä¸€ä¸ªï¼Œè€ŒuCOS-IIIçš„å®šæ—¶å™¨å›žè°ƒå‡½æ•°å‚æ•°æœ‰ä¸¤ä¸ªï¼Œå› æ­¤éœ€è¦
+*              å…ˆç”±RTTè°ƒç”¨å†…éƒ¨å›žè°ƒå‡½æ•°ï¼Œå†ç”±å†…éƒ¨å›žè°ƒå‡½æ•°è°ƒç”¨uCOS-IIIçš„å›žè°ƒå‡½æ•°ï¼Œä»¥æ­¤å®Œæˆå‚æ•°çš„è½¬æ¢ã€‚
 ************************************************************************************************************************
 */
 static void OS_TmrCallback(void *p_ara)
@@ -695,7 +695,7 @@ static void OS_TmrCallback(void *p_ara)
     ptmr = (OS_TMR*)p_ara;
 
 #if OS_CFG_CALLED_FROM_ISR_CHK_EN > 0u
-    if(OSIntNesting > 0u)                                        /* ¼ì²éÊÇ·ñÔÚÖÐ¶ÏÖÐÔËÐÐ                    */
+    if(OSIntNesting > 0u)                                        /* æ£€æŸ¥æ˜¯å¦åœ¨ä¸­æ–­ä¸­è¿è¡Œ                    */
     {
         return;
     }
@@ -707,9 +707,9 @@ static void OS_TmrCallback(void *p_ara)
         ptmr->_dly = 0;
         ptmr->OSTmr.init_tick = ptmr->OSTmrPeriod * (OS_TICKS_PER_SEC / OS_TMR_CFG_TICKS_PER_SEC);
         ptmr->OSTmr.timeout_tick = rt_tick_get() + ptmr->OSTmr.init_tick;
-        ptmr->OSTmr.parent.flag |= RT_TIMER_FLAG_PERIODIC;       /* ¶¨Ê±Æ÷ÉèÖÃÎªÖÜÆÚÄ£Ê½                    */
-        ptmr->OSTmrMatch = rt_tick_get() + ptmr->OSTmr.init_tick;/* ÖØÐÂÉè¶¨ÏÂÒ»´Î¶¨Ê±Æ÷µÄ²ÎÊý              */
-        rt_timer_start(&(ptmr->OSTmr));                          /* ¿ªÆô¶¨Ê±Æ÷                              */
+        ptmr->OSTmr.parent.flag |= RT_TIMER_FLAG_PERIODIC;       /* å®šæ—¶å™¨è®¾ç½®ä¸ºå‘¨æœŸæ¨¡å¼                    */
+        ptmr->OSTmrMatch = rt_tick_get() + ptmr->OSTmr.init_tick;/* é‡æ–°è®¾å®šä¸‹ä¸€æ¬¡å®šæ—¶å™¨çš„å‚æ•°              */
+        rt_timer_start(&(ptmr->OSTmr));                          /* å¼€å¯å®šæ—¶å™¨                              */
     }
     else if(ptmr->OSTmrOpt == OS_TMR_OPT_ONE_SHOT)
     {
@@ -717,9 +717,9 @@ static void OS_TmrCallback(void *p_ara)
     }
     else if(ptmr->OSTmrOpt == OS_TMR_OPT_PERIODIC)
     {
-        ptmr->OSTmrMatch = rt_tick_get() + ptmr->OSTmr.init_tick;/* ÖØÐÂÉè¶¨ÏÂÒ»´Î¶¨Ê±Æ÷µÄ²ÎÊý              */
+        ptmr->OSTmrMatch = rt_tick_get() + ptmr->OSTmr.init_tick;/* é‡æ–°è®¾å®šä¸‹ä¸€æ¬¡å®šæ—¶å™¨çš„å‚æ•°              */
     }
-    ptmr->OSTmrCallback(ptmr, ptmr->OSTmrCallbackArg);           /* µ÷ÓÃÕæÕýµÄuCOS-II¶¨Ê±Æ÷»Øµ÷º¯Êý         */
+    ptmr->OSTmrCallback(ptmr, ptmr->OSTmrCallbackArg);           /* è°ƒç”¨çœŸæ­£çš„uCOS-IIå®šæ—¶å™¨å›žè°ƒå‡½æ•°         */
     OSSchedUnlock();
 }
 

@@ -332,7 +332,7 @@ OS_FLAG_GRP  *OSFlagDel (OS_FLAG_GRP  *pgrp,
     OS_ENTER_CRITICAL();
     switch (opt) {
         case OS_DEL_NO_PEND:                               /* Delete group if no task waiting          */
-             if (rt_list_isempty(&(pgrp->pFlagGrp->parent.suspend_thread))) { /* ÈôÃ»ÓÐÏß³ÌµÈ´ýÐÅºÅÁ¿  */
+             if (rt_list_isempty(&(pgrp->pFlagGrp->parent.suspend_thread))) { /* è‹¥æ²¡æœ‰çº¿ç¨‹ç­‰å¾…ä¿¡å·é‡  */
                  pgrp->OSFlagFlags    = (OS_FLAGS)0;
                  OS_EXIT_CRITICAL();
                  rt_event_detach(pgrp->pFlagGrp);
@@ -581,7 +581,7 @@ OS_FLAGS  OSFlagPend (OS_FLAG_GRP  *pgrp,
 #endif
     OS_EXIT_CRITICAL();
 
-    if(timeout) {                                     /* 0ÎªÓÀ¾ÃµÈ´ý                                   */
+    if(timeout) {                                     /* 0ä¸ºæ°¸ä¹…ç­‰å¾…                                   */
         rt_err = rt_event_recv(pgrp->pFlagGrp,
                                flags,
                                rt_option,

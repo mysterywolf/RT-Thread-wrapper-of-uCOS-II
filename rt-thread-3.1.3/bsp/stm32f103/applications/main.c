@@ -8,9 +8,9 @@
  * 2020-09-17     Meco Man     first version
  */
 
-/*本文件展示了兼容层实现的uCOS-II官方给出的标准初始化流程*/
-/*启动以及初始化过程严格遵照官方给出的例程*/
-/*串口使用USART2*/
+/*鏈枃浠跺睍绀轰簡鍏煎灞傚疄鐜扮殑uCOS-II瀹樻柟缁欏嚭鐨勬爣鍑嗗垵濮嬪寲娴佺▼*/
+/*鍚姩浠ュ強鍒濆鍖栬繃绋嬩弗鏍奸伒鐓у畼鏂圭粰鍑虹殑渚嬬▼*/
+/*涓插彛浣跨敤USART2*/
 
 #include <ucos_ii.h>
 
@@ -21,7 +21,7 @@ void mutex_example (void);
 void messagequeue_example (void);
 void flag_example (void);
 
-int main(void)/*RT-Thread main线程*/
+int main(void)/*RT-Thread main绾跨▼*/
 {
     OSInit();
     OSStart();

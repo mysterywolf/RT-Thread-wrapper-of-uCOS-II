@@ -218,7 +218,7 @@ OS_EVENT  *OSSemDel (OS_EVENT  *pevent,
 
     switch (opt) {
         case OS_DEL_NO_PEND:                               /* Delete semaphore only if no task waiting */
-            if(rt_list_isempty(&(psem->parent.suspend_thread))) { /* хТц╩споъЁл╣х╢Щпе╨еа©              */
+            if(rt_list_isempty(&(psem->parent.suspend_thread))) { /* Х▀╔Ф╡║Ф°┴Г╨©Г╗▀Г╜┴Е╬┘Д©║Е▐╥И┤▐              */
                 rt_sem_delete(psem);                       /* invoke RT-Thread API                     */
                 RT_KERNEL_FREE(pevent);
                 *perr = OS_ERR_NONE;
@@ -329,7 +329,7 @@ void  OSSemPend (OS_EVENT  *pevent,
 #endif
     OS_EXIT_CRITICAL();
 
-    if(timeout) {                                     /* 0н╙сю╬ц╣х╢Щ                                   */
+    if(timeout) {                                     /* 0Д╦╨Ф╟╦Д╧┘Г╜┴Е╬┘                                   */
         rt_err = rt_sem_take(psem, timeout);
         OS_ENTER_CRITICAL();
         if (rt_err == RT_EOK) {
@@ -604,10 +604,10 @@ void  OSSemSet (OS_EVENT  *pevent,
     if (psem->value>0) {
         psem->value = cnt;
     } else {
-        if(rt_list_isempty(&(psem->parent.suspend_thread))) {  /* хТц╩споъЁл╣х╢Щпе╨еа©                 */
+        if(rt_list_isempty(&(psem->parent.suspend_thread))) {  /* Х▀╔Ф╡║Ф°┴Г╨©Г╗▀Г╜┴Е╬┘Д©║Е▐╥И┤▐                 */
             psem->value = cnt;
         } else {
-             *perr = OS_ERR_TASK_WAITING;             /* спхннЯуЩтз╣х╢Щ╦цпе╨еа©,╡╩©иртиХжцvalue        */
+             *perr = OS_ERR_TASK_WAITING;             /* Ф°┴Д╩╩Е┼║Ф╜ёЕ°╗Г╜┴Е╬┘Х╞╔Д©║Е▐╥И┤▐,Д╦█Е▐╞Д╩╔Х╝╬Г╫╝value        */
         }
     }
     OS_EXIT_CRITICAL();
