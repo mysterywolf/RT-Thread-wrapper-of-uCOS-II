@@ -167,7 +167,6 @@ Keil工程路径：[rt-thread-3.1.3/bsp/stm32f103/Project.uvprojx](rt-thread-3.1
                    OS_TASK_OPT_STK_CHK|OS_TASK_OPT_STK_CLR);
    ```
 
-2. 本兼容层文件内含有中文注释，编码格式**ANSI - GB2312**，并非UTF-8编码。
 
 
 
