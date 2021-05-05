@@ -138,6 +138,10 @@
 - 删除`OS_DEBUG_EN`宏
 - 实现`PKG_USING_UCOSII_WRAPPER_TINY`功能
 
+### 2021-05-05
+
+- 经过五个月的预发布测试，正式发布v1.0.0版本
+
 
 
 # Release
@@ -157,6 +161,10 @@
 实现`PKG_USING_UCOSII_WRAPPER_TINY`功能
 
 
+
+## v1.0.0
+
+经过五个月的预发布测试，正式发布v1.0.0版本
 
 
 
