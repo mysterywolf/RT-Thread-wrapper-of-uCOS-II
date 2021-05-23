@@ -230,7 +230,7 @@ OS_FLAG_GRP  *OSFlagCreate (OS_FLAGS  flags,
         return ((OS_FLAG_GRP *)0);
     }
 
-    rt_event = rt_event_create("uCOS-II", RT_IPC_FLAG_FIFO);
+    rt_event = rt_event_create("uCOS-II", RT_IPC_FLAG_PRIO);
     if(!rt_event) {
         *perr = OS_ERR_FLAG_GRP_DEPLETED;
         RT_KERNEL_FREE(pgrp);

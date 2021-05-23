@@ -142,6 +142,10 @@
 
 - 经过五个月的预发布测试，正式发布v1.0.0版本
 
+### 2021-05-23
+
+- 将`RT_IPC_FLAG_FIFO`改为`RT_IPC_FLAG_PRIO`以确保实时性
+
 
 
 # Release
@@ -149,8 +153,6 @@
 ## v0.1.0
 
 已经实现了uCOS-II的兼容，发布第一个版本
-
-
 
 ## v0.2.0
 
@@ -160,13 +162,11 @@
 
 实现`PKG_USING_UCOSII_WRAPPER_TINY`功能
 
-
-
 ## v1.0.0
 
 经过五个月的预发布测试，正式发布v1.0.0版本
 
+## v1.0.1
 
-
-# TODO
+将`RT_IPC_FLAG_FIFO`改为`RT_IPC_FLAG_PRIO`以确保实时性
 
