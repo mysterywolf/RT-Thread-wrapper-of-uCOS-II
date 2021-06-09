@@ -1,3 +1,12 @@
+/*
+ * Copyright (c) 2021, Meco Jianting Man <jiantingman@foxmail.com>
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Change Logs:
+ * Date           Author       Notes
+ * 2020-09-30     Meco Man     first version
+ */
 #include <ucos_ii.h>
 
 #define TASK_SIZE  256
