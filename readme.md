@@ -14,7 +14,7 @@ _____________
 
 **如果你喜欢本项目，请点击右上角的Star予以支持，开源项目的成就感就靠star了，谢谢！**
 
-[![Stargazers over time](https://starchart.cc/mysterywolf/RT-Thread-wrapper-of-uCOS-II.svg)](https://starchart.cc/mysterywolf/RT-Thread-wrapper-of-uCOS-II)
+
 
 
 
