@@ -484,5 +484,5 @@ INIT_PREV_EXPORT(rt_ucosii_autoinit);
 
 如果您喜欢本项目**可以在本页右上角点一下Star**，可以赏我五毛钱，用以满足我小小的虚荣心，并激励我继续维护好这个项目。
 
-![donate](docs\pic\donate.png)
+![donate](docs/pic/donate.png)
 
