@@ -439,6 +439,8 @@ INIT_PREV_EXPORT(rt_ucosii_autoinit);
 >
 > 基于 CubeMX 移植 RT-Thread Nano：https://www.bilibili.com/video/BV1KJ41167qg
 
+直接从uCOS-II迁移到RT-Thread可以看这篇文章：https://mp.weixin.qq.com/s/EY73hn2IeBV2NQcLPYUbjw
+
 
 
 ## 5.2 RT-Thread FinSH控制台教程
