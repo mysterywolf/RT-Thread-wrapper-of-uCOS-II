@@ -1,7 +1,6 @@
 # RT-Thread操作系统的μC/OS-II兼容层
-
+## μC/OS-II RTOS Compatibility Layer for RT-Thread
 ## 让基于μC/OS-II开发的应用层无感地迁移到RT-Thread操作系统
-
 ### 如果喜欢请Star，这是对本开源项目最大的鼓励，谢谢；如果想要贡献PR，请fork
 
 _____________
@@ -27,6 +26,7 @@ _____________
 ## 1.1 RT-Thread的其他RTOS兼容层
 
 - RT-Thread操作系统的μCOS-III兼容层：https://github.com/mysterywolf/RT-Thread-wrapper-of-uCOS-III
+- RT-Thread操作系统的RTX(即CMSIS-RTOS)兼容层：https://github.com/RT-Thread-packages/CMSIS_RTOS1
 - RT-Thread操作系统的RTX5(即CMSIS-RTOS2)兼容层：https://github.com/RT-Thread-packages/CMSIS_RTOS2
 
 
