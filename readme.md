@@ -26,6 +26,7 @@ _____________
 ## 1.1 RT-Thread的其他RTOS兼容层
 
 - RT-Thread操作系统的μCOS-III兼容层：https://github.com/mysterywolf/RT-Thread-wrapper-of-uCOS-III
+- RT-Thread操作系统的FreeRTOS兼容层：https://github.com/RT-Thread-packages/FreeRTOS-Wrapper
 - RT-Thread操作系统的RTX(即CMSIS-RTOS)兼容层：https://github.com/RT-Thread-packages/CMSIS_RTOS1
 - RT-Thread操作系统的RTX5(即CMSIS-RTOS2)兼容层：https://github.com/RT-Thread-packages/CMSIS_RTOS2
 
